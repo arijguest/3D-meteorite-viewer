@@ -120,17 +120,19 @@ HTML_TEMPLATE = """
         }
 
         // Fetch meteorites from NASA API
-        function fetchMeteorites() {
+        async function fetchMeteorites() {
             const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    updateMeteoriteData(data);
-                })
-                .catch(error => {
-                    console.error('Error fetching meteorite data:', error);
-                });
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                updateMeteoriteData(data);
+            } catch (error) {
+                console.error('Error fetching meteorite data:', error);
+            }
         }
 
         // Update meteorite data on the map
@@ -210,3 +212,7 @@ def index():
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN
     )
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
