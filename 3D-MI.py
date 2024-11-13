@@ -1,7 +1,6 @@
 import os
 from flask import Flask, render_template_string
 
-# Define Flask app
 app = Flask(__name__)
 
 # Retrieve the Cesium Ion Access Token from environment variables
@@ -53,36 +52,6 @@ HTML_TEMPLATE = """
             text-align: center;
             max-width: 800px;
         }
-        #controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-        }
-        #controls label {
-            font-size: 14px;
-            color: #333;
-        }
-        #controls input {
-            padding: 5px;
-            font-size: 14px;
-            margin-right: 10px;
-            width: 80px;
-        }
-        #controls button, #controls select {
-            padding: 6px 12px;
-            font-size: 14px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            background-color: #0078D7;
-            color: #fff;
-            transition: background-color 0.3s;
-        }
-        #controls button:hover, #controls select:hover {
-            background-color: #005a9e;
-        }
         /* Tooltip Styling */
         #tooltip {
             position: absolute;
@@ -108,43 +77,16 @@ HTML_TEMPLATE = """
             #header p {
                 font-size: 12px;
             }
-            #controls {
-                flex-direction: column;
-                gap: 10px;
-            }
-            #controls label, #controls input, #controls button, #controls select {
-                width: 100%;
-                text-align: center;
-            }
-            #searchBox {
-                top: 10px;
-                right: 20px;
-            }
         }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
 
-    <!-- Header with title, description, and controls -->
+    <!-- Header with title and description -->
     <div id="header">
         <h1>🌠 Global Meteorite Impacts Visualization</h1>
         <p>Explore meteorite landing sites around the world in an interactive 3D map.</p>
-        <div id="controls">
-            <div>
-                <label for="minYear">Min Year:</label>
-                <input type="number" id="minYear" placeholder="1900">
-                <label for="maxYear">Max Year:</label>
-                <input type="number" id="maxYear" placeholder="2020">
-            </div>
-            <div>
-                <label for="minMass">Min Mass (g):</label>
-                <input type="number" id="minMass" placeholder="0">
-                <label for="maxMass">Max Mass (g):</label>
-                <input type="number" id="maxMass" placeholder="100000">
-            </div>
-            <button id="applyFilters">Apply Filters</button>
-        </div>
     </div>
 
     <!-- Tooltip -->
@@ -155,7 +97,7 @@ HTML_TEMPLATE = """
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
-            baseLayerPicker: false,
+            baseLayerPicker: true,
             navigationHelpButton: true,
             sceneModePicker: true,
             animation: false,
@@ -168,85 +110,59 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
-        let meteorites = [];
-        let allMeteorites = [];
+        // Function to determine color based on mass
+        function getColor(mass) {
+            if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
+            if (mass >= 50000) return Cesium.Color.ORANGE.withAlpha(0.6);
+            if (mass >= 10000) return Cesium.Color.YELLOW.withAlpha(0.6);
+            if (mass >= 1000) return Cesium.Color.GREEN.withAlpha(0.6);
+            return Cesium.Color.CYAN.withAlpha(0.6);
+        }
 
-        // Function to fetch meteorites from NASA API
+        // Fetch meteorites from NASA API
         function fetchMeteorites() {
             const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
 
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    allMeteorites = data;
-                    updateMeteoriteData();
+                    updateMeteoriteData(data);
                 })
                 .catch(error => {
                     console.error('Error fetching meteorite data:', error);
                 });
         }
 
-        // Function to update meteorite data on the map
-        function updateMeteoriteData() {
+        // Update meteorite data on the map
+        function updateMeteoriteData(meteorites) {
             // Remove existing entities
             viewer.entities.removeAll();
 
-            // Apply filters
-            const minYear = parseInt(document.getElementById('minYear').value);
-            const maxYear = parseInt(document.getElementById('maxYear').value);
-            const minMass = parseInt(document.getElementById('minMass').value);
-            const maxMass = parseInt(document.getElementById('maxMass').value);
-
-            meteorites = allMeteorites.filter(meteorite => {
-                // Check for valid geolocation
-                if (!meteorite.geolocation || !meteorite.geolocation.coordinates) {
-                    return false;
-                }
-                
-                // Filter by year
-                let year = meteorite.year ? new Date(meteorite.year).getFullYear() : null;
-                if (year) {
-                    if (minYear && year < minYear) return false;
-                    if (maxYear && year > maxYear) return false;
-                } else {
-                    return false; // Exclude if year is not available
-                }
-
-                // Filter by mass
-                let mass = meteorite.mass ? parseFloat(meteorite.mass) : null;
-                if (mass !== null) {
-                    if (!isNaN(minMass) && minMass !== 0 && mass < minMass) return false;
-                    if (!isNaN(maxMass) && mass > maxMass) return false;
-                } else {
-                    return false; // Exclude if mass is not available
-                }
-
-                return true;
-            });
-
-            // Add meteorites to the map
             meteorites.forEach(meteorite => {
-                const [lon, lat] = meteorite.geolocation.coordinates;
-                const name = meteorite.name || 'Unknown';
-                const mass = meteorite.mass ? Number(meteorite.mass) : 'Unknown';
-                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
-                const recclass = meteorite.recclass || 'Unknown';
+                // Ensure geolocation data exists
+                if (meteorite.geolocation && meteorite.geolocation.coordinates) {
+                    const [lon, lat] = meteorite.geolocation.coordinates;
+                    const name = meteorite.name || 'Unknown';
+                    const mass = meteorite.mass ? Number(meteorite.mass) : 0;
+                    const recclass = meteorite.recclass || 'Unknown';
+                    const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
 
-                viewer.entities.add({
-                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                    point: {
-                        pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 1000, 5), 25) : 10,
-                        color: Cesium.Color.CYAN.withAlpha(0.6),
-                        outlineColor: Cesium.Color.BLACK,
-                        outlineWidth: 1
-                    },
-                    description: `
-                        <b>Name:</b> ${name}<br>
-                        <b>Mass:</b> ${mass !== 'Unknown' ? mass + ' g' : 'Unknown'}<br>
-                        <b>Class:</b> ${recclass}<br>
-                        <b>Year:</b> ${year}
-                    `
-                });
+                    viewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: Math.min(Math.max(mass / 1000, 5), 25),
+                            color: getColor(mass),
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 1
+                        },
+                        description: `
+                            <b>Name:</b> ${name}<br>
+                            <b>Mass:</b> ${mass} g<br>
+                            <b>Class:</b> ${recclass}<br>
+                            <b>Year:</b> ${year}
+                        `
+                    });
+                }
             });
 
             if (viewer.entities.values.length > 0) {
@@ -255,11 +171,6 @@ HTML_TEMPLATE = """
                 });
             }
         }
-
-        // Event listener for 'Apply Filters' button
-        document.getElementById('applyFilters').addEventListener('click', function() {
-            updateMeteoriteData();
-        });
 
         // Tooltip functionality
         const tooltip = document.getElementById('tooltip');
