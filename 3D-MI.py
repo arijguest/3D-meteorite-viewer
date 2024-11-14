@@ -78,9 +78,9 @@ HTML_TEMPLATE = """
             margin: 0;
             font-size: 24px;
         }
-        #controls {
+        #options {
             position: absolute;
-            top: 70px;
+            top: 50px;
             left: 10px;
             background: rgba(0, 0, 0, 0.7);
             padding: 10px;
@@ -89,8 +89,16 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             max-height: calc(100% - 80px);
             overflow-y: auto;
+            width: 250px;
         }
-        #meteoriteBar {
+        #options h2 {
+            margin-top: 0;
+            font-size: 18px;
+        }
+        #controls {
+            margin-top: 10px;
+        }
+        #meteoriteBar, #craterBar {
             position: absolute;
             bottom: 0;
             left: 0;
@@ -99,6 +107,10 @@ HTML_TEMPLATE = """
             display: flex;
             overflow-x: auto;
             padding: 5px 0;
+            z-index: 1;
+        }
+        #craterBar {
+            bottom: 40px;
         }
         .bar-item {
             color: white;
@@ -154,17 +166,19 @@ HTML_TEMPLATE = """
             text-decoration: none;
             cursor: pointer;
         }
-        #fullMeteoriteTable {
+        #fullMeteoriteTable, #fullCraterTable {
             width: 100%;
             border-collapse: collapse;
         }
-        #fullMeteoriteTable th, #fullMeteoriteTable td {
+        #fullMeteoriteTable th, #fullMeteoriteTable td,
+        #fullCraterTable th, #fullCraterTable td {
             border: 1px solid #444;
             padding: 8px;
             text-align: left;
         }
-        #fullMeteoriteTable th {
+        #fullMeteoriteTable th, #fullCraterTable th {
             background-color: #555;
+            cursor: pointer;
         }
         input[type="range"] {
             width: 100%;
@@ -173,15 +187,27 @@ HTML_TEMPLATE = """
             width: 100%;
         }
         #searchContainer {
+            margin-top: 10px;
             display: flex;
             gap: 5px;
-            margin-bottom: 10px;
         }
         #searchInput {
             flex: 1;
         }
-        button, input[type="button"] {
+        button {
             cursor: pointer;
+        }
+        .sorted-asc::after {
+            content: " ▲";
+        }
+        .sorted-desc::after {
+            content: " ▼";
+        }
+        .fixed-see-all {
+            position: sticky;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
         }
     </style>
 </head>
@@ -189,65 +215,53 @@ HTML_TEMPLATE = """
     <div id="cesiumContainer"></div>
     <div id="header">
         <h1>🌠 Global Meteorite Impacts and Earth Craters Visualization</h1>
-        <div>
-            <button id="infoButton">ℹ️ Info</button>
+    </div>
+    <div id="options">
+        <h2>Options</h2>
+        <div id="controls">
+            <div>
+                <label><input type="checkbox" id="toggleMeteorites" checked> Show Meteorites</label>
+            </div>
+            <div>
+                <label><strong>Year Range:</strong> <span id="yearRangeValue"></span></label>
+                <input type="range" id="yearRangeMin" min="860" max="2023" value="860">
+                <input type="range" id="yearRangeMax" min="860" max="2023" value="2023">
+            </div>
+            <div>
+                <label><strong>Mass Range:</strong> <span id="massRangeValue"></span></label>
+                <input type="range" id="massRangeMin" min="0" max="60000" value="0">
+                <input type="range" id="massRangeMax" min="0" max="60000" value="60000">
+            </div>
+            <hr>
+            <div>
+                <label><input type="checkbox" id="toggleCraters" checked> Show Impact Craters</label>
+            </div>
+            <div>
+                <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue"></span></label>
+                <input type="range" id="diameterRangeMin" min="0" max="300" value="0">
+                <input type="range" id="diameterRangeMax" min="0" max="300" value="300">
+            </div>
+            <div>
+                <label><strong>Age Range (Millions of years):</strong> <span id="ageRangeValue"></span></label>
+                <input type="range" id="ageRangeMin" min="0" max="2000" value="0">
+                <input type="range" id="ageRangeMax" min="0" max="2000" value="2000">
+            </div>
+            <div>
+                <label><strong>Target Rock:</strong></label>
+                <select id="targetRockSelect" multiple size="5"></select>
+            </div>
+            <hr>
+            <div>
+                <button id="refreshButton">Reset Filters</button>
+            </div>
         </div>
     </div>
-    <div id="controls">
-        <div id="searchContainer">
-            <input type="text" id="searchInput" placeholder="Search location...">
-            <button id="searchButton">Search</button>
-        </div>
-        <div>
-            <label for="basemapSelector"><strong>Basemap:</strong></label>
-            <select id="basemapSelector">
-                <option value="Cesium World Imagery">Cesium World Imagery</option>
-                <option value="OpenStreetMap">OpenStreetMap</option>
-            </select>
-        </div>
-        <hr>
-        <div>
-            <label><input type="checkbox" id="toggleMeteorites" checked> Show Meteorites</label>
-        </div>
-        <div>
-            <label><strong>Year Range:</strong> <span id="yearRangeValue"></span></label>
-            <input type="range" id="yearRangeMin" min="860" max="2023" value="860">
-            <input type="range" id="yearRangeMax" min="860" max="2023" value="2023">
-        </div>
-        <div>
-            <label><strong>Mass Range:</strong> <span id="massRangeValue"></span></label>
-            <input type="range" id="massRangeMin" min="0" max="60000" value="0">
-            <input type="range" id="massRangeMax" min="0" max="60000" value="60000">
-        </div>
-        <hr>
-        <div>
-            <label><input type="checkbox" id="toggleCraters" checked> Show Impact Craters</label>
-        </div>
-        <div>
-            <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue"></span></label>
-            <input type="range" id="diameterRangeMin" min="0" max="300" value="0">
-            <input type="range" id="diameterRangeMax" min="0" max="300" value="300">
-        </div>
-        <div>
-            <label><strong>Age Range (Millions of years):</strong> <span id="ageRangeValue"></span></label>
-            <input type="range" id="ageRangeMin" min="0" max="2000" value="0">
-            <input type="range" id="ageRangeMax" min="0" max="2000" value="2000">
-        </div>
-        <div>
-            <label><strong>Target Rock:</strong></label>
-            <select id="targetRockSelect" multiple size="5"></select>
-        </div>
-        <hr>
-        <div>
-            <button id="refreshButton">Reset Filters</button>
-        </div>
-        <hr>
-        <div>
-            <span id="totalMeteorites">Total Meteorites: 0</span><br>
-            <span id="totalCraters">Total Impact Craters: 0</span>
-        </div>
+    <div id="searchContainer" style="position: absolute; top: 70px; left: 270px; z-index: 1; background: rgba(0, 0, 0, 0.7); padding: 10px; border-radius: 5px; color: white;">
+        <input type="text" id="searchInput" placeholder="Search location...">
+        <button id="searchButton">Search</button>
     </div>
     <div id="meteoriteBar"></div>
+    <div id="craterBar"></div>
     <div id="tooltip"></div>
     <div id="modal">
         <div id="modal-content">
@@ -256,11 +270,29 @@ HTML_TEMPLATE = """
             <table id="fullMeteoriteTable">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Mass</th>
-                        <th>Class</th>
-                        <th>Year</th>
-                        <th>Fall/Find</th>
+                        <th data-key="name">Name</th>
+                        <th data-key="mass">Mass</th>
+                        <th data-key="recclass">Class</th>
+                        <th data-key="year">Year</th>
+                        <th data-key="fall">Fall/Find</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="craterModal">
+        <div id="craterModal-content">
+            <span id="closeCraterModal">&times;</span>
+            <h2>All Impact Craters</h2>
+            <table id="fullCraterTable">
+                <thead>
+                    <tr>
+                        <th data-key="name">Name</th>
+                        <th data-key="diameter">Diameter (km)</th>
+                        <th data-key="age">Age (Mya)</th>
+                        <th data-key="country">Country</th>
+                        <th data-key="target_rock">Target Rock</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -276,12 +308,12 @@ HTML_TEMPLATE = """
             <ul>
                 <li><strong>Navigation:</strong> Use your mouse or touch controls to navigate around the globe.</li>
                 <li><strong>Search:</strong> Use the search bar to fly to a specific location.</li>
-                <li><strong>Filters:</strong> Adjust the sliders and dropdowns in the controls menu to filter meteorites and craters based on various criteria such as year, mass, diameter, age, and target rock type.</li>
+                <li><strong>Filters:</strong> Adjust the sliders and dropdowns in the options menu to filter meteorites and craters based on various criteria such as year, mass, diameter, age, and target rock type.</li>
                 <li><strong>Show/Hide Data:</strong> Toggle the visibility of meteorites and craters using the checkboxes.</li>
                 <li><strong>Reset Filters:</strong> Click the "Reset Filters" button to return all filters to their default settings.</li>
-                <li><strong>Top Meteorites:</strong> View the top meteorites by mass at the bottom bar and click on them to fly to their location.</li>
+                <li><strong>Top Meteorites & Craters:</strong> View the top meteorites and craters by key characteristics at the bottom bars and click on them to fly to their location.</li>
                 <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information.</li>
-                <li><strong>View All Meteorites:</strong> Click on "View All" in the top meteorites bar to see a full list of meteorites and navigate to them.</li>
+                <li><strong>View All:</strong> Click on "See All" in the top bars to see a full list and navigate to them.</li>
             </ul>
             <h3>Data Sources:</h3>
             <ul>
@@ -312,7 +344,7 @@ HTML_TEMPLATE = """
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
         let filteredCraters = [];
-        const allCraters = impactCraters.features;
+        const allCraters = impact_craters.features;
 
         let meteoriteEntities = new Cesium.CustomDataSource('meteorites');
         viewer.dataSources.add(meteoriteEntities);
@@ -341,11 +373,27 @@ HTML_TEMPLATE = """
                 .then(response => response.json())
                 .then(data => {
                     allMeteorites = data;
+                    populateTargetRockOptions();
                     applyFilters();
                 })
                 .catch(error => {
                     console.error('Error fetching meteorite data:', error);
                 });
+        }
+
+        function populateTargetRockOptions() {
+            const targetRockSet = new Set();
+            allCraters.forEach(crater => {
+                const targetRock = crater.properties.target_rock || 'Unknown';
+                targetRockSet.add(targetRock);
+            });
+            const targetRockSelect = document.getElementById('targetRockSelect');
+            targetRockSet.forEach(rock => {
+                const option = document.createElement('option');
+                option.value = rock;
+                option.text = rock;
+                targetRockSelect.add(option);
+            });
         }
 
         function applyFilters() {
@@ -411,13 +459,21 @@ HTML_TEMPLATE = """
             updateMeteoriteData();
             updateCraterData();
             updateTopMeteorites();
+            updateTopCraters();
             updateTotalCounts();
             updateModalTable();
+            updateCraterModalTable();
+            updateSlidersDisplay();
+            updateCraterSlidersDisplay();
         }
 
         function updateTotalCounts() {
-            document.getElementById('totalMeteorites').innerText = `Total Meteorites: ${filteredMeteorites.length}`;
-            document.getElementById('totalCraters').innerText = `Total Impact Craters: ${filteredCraters.length}`;
+            document.getElementById('options').innerHTML += `
+                <div style="margin-top:10px;">
+                    <span id="totalMeteorites">Total Meteorites: ${filteredMeteorites.length}</span><br>
+                    <span id="totalCraters">Total Impact Craters: ${filteredCraters.length}</span>
+                </div>
+            `;
         }
 
         function updateMeteoriteData() {
@@ -546,18 +602,40 @@ HTML_TEMPLATE = """
             });
 
             const viewAll = document.createElement('div');
-            viewAll.className = 'bar-item';
-            viewAll.innerHTML = `<strong>View All</strong>`;
+            viewAll.className = 'bar-item fixed-see-all';
+            viewAll.innerHTML = `<strong>See All</strong>`;
             viewAll.onclick = () => openModal();
+            bar.appendChild(viewAll);
+        }
+
+        function updateTopCraters() {
+            const sortedCraters = filteredCraters.sort((a, b) => parseFloat(b.properties.diameter_km) - parseFloat(a.properties.diameter_km));
+            const top10 = sortedCraters.slice(0, 10);
+            const bar = document.getElementById('craterBar');
+            bar.innerHTML = '<div class="bar-item"><strong>Top Craters:</strong></div>';
+
+            top10.forEach((crater, index) => {
+                const originalIndex = filteredCraters.indexOf(crater);
+                const name = crater.properties.crater_name || 'Unknown';
+                const diameter = parseFloat(crater.properties.diameter_km) || 0;
+                const diameterDisplay = diameter + ' km';
+                const div = document.createElement('div');
+                div.className = 'bar-item';
+                div.innerText = `🕳️ ${name} - ${diameterDisplay}`;
+                div.onclick = () => flyToCrater(originalIndex);
+                bar.appendChild(div);
+            });
+
+            const viewAll = document.createElement('div');
+            viewAll.className = 'bar-item fixed-see-all';
+            viewAll.innerHTML = `<strong>See All</strong>`;
+            viewAll.onclick = () => openCraterModal();
             bar.appendChild(viewAll);
         }
 
         function flyToMeteorite(index) {
             const meteorite = filteredMeteorites[index];
-            if (!meteorite) {
-                console.error('Invalid meteorite index:', index);
-                return;
-            }
+            if (!meteorite) return;
             let lat, lon;
 
             if (meteorite.geolocation) {
@@ -573,13 +651,22 @@ HTML_TEMPLATE = """
                 lon = parseFloat(meteorite.reclong);
             }
 
-            if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
+            if (lat && lon) {
                 viewer.camera.flyTo({
                     destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
-                    duration: 2,
-                    orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
+                    duration: 2
                 });
             }
+        }
+
+        function flyToCrater(index) {
+            const crater = filteredCraters[index];
+            if (!crater) return;
+            const [lon, lat] = crater.geometry.coordinates;
+            viewer.camera.flyTo({
+                destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
+                duration: 2
+            });
         }
 
         const tooltip = document.getElementById('tooltip');
@@ -611,7 +698,8 @@ HTML_TEMPLATE = """
 
         const modal = document.getElementById('modal');
         document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
-        window.onclick = event => { if (event.target == modal) modal.style.display = 'none'; }
+        const craterModal = document.getElementById('craterModal');
+        document.getElementById('closeCraterModal').onclick = () => craterModal.style.display = 'none';
 
         function openModal() {
             const tbody = document.querySelector('#fullMeteoriteTable tbody');
@@ -639,7 +727,33 @@ HTML_TEMPLATE = """
             modal.style.display = 'block';
         }
 
+        function openCraterModal() {
+            const tbody = document.querySelector('#fullCraterTable tbody');
+            if (!filteredCraters.length) {
+                tbody.innerHTML = '<tr><td colspan="5">No crater data available.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filteredCraters.map((crater, index) => {
+                const name = crater.properties.crater_name || 'Unknown';
+                const diameter = parseFloat(crater.properties.diameter_km) || 'Unknown';
+                const age = crater.properties.age_millions_years_ago || 'Unknown';
+                const country = crater.properties.country || 'Unknown';
+                const target_rock = crater.properties.target_rock || 'Unknown';
+                return `
+                    <tr onclick='flyToCrater(${index})' style="cursor:pointer;">
+                        <td>${name}</td>
+                        <td>${diameter} km</td>
+                        <td>${age} Mya</td>
+                        <td>${country}</td>
+                        <td>${target_rock}</td>
+                    </tr>
+                `;
+            }).join('');
+            craterModal.style.display = 'block';
+        }
+
         window.flyToMeteorite = flyToMeteorite;
+        window.flyToCrater = flyToCrater;
 
         document.getElementById('searchButton').onclick = searchLocation;
         document.getElementById('searchInput').onkeydown = e => { if (e.key === 'Enter') searchLocation(); };
@@ -654,8 +768,7 @@ HTML_TEMPLATE = """
                         const { lon, lat } = data[0];
                         viewer.camera.flyTo({
                             destination: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat), 1000000),
-                            duration: 2,
-                            orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
+                            duration: 2
                         });
                     } else {
                         alert('Location not found.');
@@ -685,42 +798,16 @@ HTML_TEMPLATE = """
 
         document.getElementById('basemapSelector').value = 'Cesium World Imagery';
 
-        document.getElementById('yearRangeMin').addEventListener('input', () => {
-            applyFilters();
-            updateSlidersDisplay();
-        });
-        document.getElementById('yearRangeMax').addEventListener('input', () => {
-            applyFilters();
-            updateSlidersDisplay();
-        });
-        document.getElementById('massRangeMin').addEventListener('input', () => {
-            applyFilters();
-            updateSlidersDisplay();
-        });
-        document.getElementById('massRangeMax').addEventListener('input', () => {
-            applyFilters();
-            updateSlidersDisplay();
-        });
+        document.getElementById('yearRangeMin').addEventListener('input', applyFilters);
+        document.getElementById('yearRangeMax').addEventListener('input', applyFilters);
+        document.getElementById('massRangeMin').addEventListener('input', applyFilters);
+        document.getElementById('massRangeMax').addEventListener('input', applyFilters);
 
-        document.getElementById('diameterRangeMin').addEventListener('input', () => {
-            applyFilters();
-            updateCraterSlidersDisplay();
-        });
-        document.getElementById('diameterRangeMax').addEventListener('input', () => {
-            applyFilters();
-            updateCraterSlidersDisplay();
-        });
-        document.getElementById('ageRangeMin').addEventListener('input', () => {
-            applyFilters();
-            updateCraterSlidersDisplay();
-        });
-        document.getElementById('ageRangeMax').addEventListener('input', () => {
-            applyFilters();
-            updateCraterSlidersDisplay();
-        });
-        document.getElementById('targetRockSelect').addEventListener('change', () => {
-            applyFilters();
-        });
+        document.getElementById('diameterRangeMin').addEventListener('input', applyFilters);
+        document.getElementById('diameterRangeMax').addEventListener('input', applyFilters);
+        document.getElementById('ageRangeMin').addEventListener('input', applyFilters);
+        document.getElementById('ageRangeMax').addEventListener('input', applyFilters);
+        document.getElementById('targetRockSelect').addEventListener('change', applyFilters);
 
         document.getElementById('toggleMeteorites').addEventListener('change', function() {
             meteoriteEntities.show = this.checked;
@@ -749,9 +836,6 @@ HTML_TEMPLATE = """
             }
 
             applyFilters();
-
-            updateSlidersDisplay();
-            updateCraterSlidersDisplay();
         }
 
         function updateSlidersDisplay() {
@@ -774,76 +858,72 @@ HTML_TEMPLATE = """
             document.getElementById('ageRangeValue').innerText = `${ageMin} - ${ageMax} Mya`;
         }
 
-        function populateTargetRockOptions() {
-            const targetRockSet = new Set();
-            allCraters.forEach(crater => {
-                const targetRock = crater.properties.target_rock || 'Unknown';
-                targetRockSet.add(targetRock);
+        function initializeSorting(tableId, dataKey) {
+            const table = document.getElementById(tableId);
+            const headers = table.querySelectorAll('th');
+            headers.forEach(header => {
+                header.onclick = () => {
+                    const currentSort = header.classList.contains('sorted-asc') ? 'asc' :
+                                        header.classList.contains('sorted-desc') ? 'desc' : null;
+                    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                    if (currentSort === 'asc') {
+                        header.classList.add('sorted-desc');
+                        sortTable(tableId, header.getAttribute('data-key'), 'desc');
+                    } else {
+                        header.classList.add('sorted-asc');
+                        sortTable(tableId, header.getAttribute('data-key'), 'asc');
+                    }
+                };
             });
-            const targetRockSelect = document.getElementById('targetRockSelect');
-            targetRockSet.forEach(rock => {
-                const option = document.createElement('option');
-                option.value = rock;
-                option.text = rock;
-                targetRockSelect.add(option);
+        }
+
+        function sortTable(tableId, key, order) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                const aText = a.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText;
+                const bText = b.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText;
+                let aVal = isNaN(parseFloat(aText)) ? aText : parseFloat(aText);
+                let bVal = isNaN(parseFloat(bText)) ? bText : parseFloat(bText);
+                if (aVal < bVal) return order === 'asc' ? -1 : 1;
+                if (aVal > bVal) return order === 'asc' ? 1 : -1;
+                return 0;
             });
+            tbody.innerHTML = rows.map(row => row.outerHTML).join('');
+        }
+
+        function getColumnIndex(tableId, key) {
+            const headers = {
+                'fullMeteoriteTable': {
+                    'name': 1,
+                    'mass': 2,
+                    'recclass': 3,
+                    'year': 4,
+                    'fall': 5
+                },
+                'fullCraterTable': {
+                    'name': 1,
+                    'diameter': 2,
+                    'age': 3,
+                    'country': 4,
+                    'target_rock': 5
+                }
+            };
+            return headers[tableId][key];
         }
 
         function updateModalTable() {
-            const tbody = document.querySelector('#fullMeteoriteTable tbody');
-            if (!filteredMeteorites.length) {
-                tbody.innerHTML = '<tr><td colspan="5">No meteorite data available.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = filteredMeteorites.map((meteorite, index) => {
-                const name = meteorite.name || 'Unknown';
-                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                const massDisplay = formatMass(mass);
-                const recclass = meteorite.recclass || 'Unknown';
-                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
-                const fall = meteorite.fall || 'Unknown';
-                return `
-                    <tr onclick='flyToMeteorite(${index})' style="cursor:pointer;">
-                        <td>${name}</td>
-                        <td>${massDisplay}</td>
-                        <td>${recclass}</td>
-                        <td>${year}</td>
-                        <td>${fall}</td>
-                    </tr>
-                `;
-            }).join('');
+            initializeSorting('fullMeteoriteTable');
         }
 
-        function initializeCraterFilters() {
-            populateTargetRockOptions();
+        function updateCraterModalTable() {
+            initializeSorting('fullCraterTable');
         }
-
-        function initializeSliders() {
-            updateSlidersDisplay();
-            updateCraterSlidersDisplay();
-        }
-
-        initializeSliders();
-        initializeCraterFilters();
 
         fetchAllMeteorites();
-
-        const infoModal = document.getElementById('infoModal');
-        const infoButton = document.getElementById('infoButton');
-        const closeInfoModal = document.getElementById('closeInfoModal');
-
-        infoButton.onclick = () => {
-            infoModal.style.display = 'block';
-        };
-
-        closeInfoModal.onclick = () => {
-            infoModal.style.display = 'none';
-        };
-
-        window.onclick = event => {
-            if (event.target == modal) modal.style.display = 'none';
-            if (event.target == infoModal) infoModal.style.display = 'none';
-        };
+        updateSlidersDisplay();
+        updateCraterSlidersDisplay();
     </script>
 </body>
 </html>
