@@ -110,7 +110,7 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
-        // Function to determine color based on mass
+        // Function to get color based on mass
         function getColor(mass) {
             if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
             if (mass >= 50000) return Cesium.Color.ORANGE.withAlpha(0.6);
@@ -142,10 +142,12 @@ HTML_TEMPLATE = """
 
             meteorites.forEach(meteorite => {
                 // Ensure geolocation data exists
-                if (meteorite.geolocation && meteorite.geolocation.coordinates) {
-                    const [lon, lat] = meteorite.geolocation.coordinates;
+                const geolocation = meteorite.geolocation;
+                if (geolocation && geolocation.latitude && geolocation.longitude) {
+                    const lat = parseFloat(geolocation.latitude);
+                    const lon = parseFloat(geolocation.longitude);
                     const name = meteorite.name || 'Unknown';
-                    const mass = meteorite.mass ? Number(meteorite.mass) : 0;
+                    const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
                     const recclass = meteorite.recclass || 'Unknown';
                     const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
 
@@ -212,3 +214,7 @@ def index():
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN
     )
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
