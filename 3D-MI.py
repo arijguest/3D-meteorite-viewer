@@ -145,7 +145,7 @@ HTML_TEMPLATE = """
             color: lightblue;
             text-decoration: underline;
         }
-        #modal, #infoModal {
+        #modal, #craterModal, #infoModal {
             display: none;
             position: fixed;
             z-index: 9999;
@@ -156,7 +156,7 @@ HTML_TEMPLATE = """
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
         }
-        #modal-content, #infoModal-content {
+        #modal-content, #craterModal-content, #infoModal-content {
             background-color: #2b2b2b;
             margin: 5% auto;
             padding: 20px;
@@ -165,7 +165,7 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             position: relative;
         }
-        #closeModal, #closeInfoModal, #controls .close-button {
+        #closeModal, #closeCraterModal, #closeInfoModal, #controls .close-button {
             color: #aaa;
             position: absolute;
             top: 10px;
@@ -173,20 +173,22 @@ HTML_TEMPLATE = """
             font-weight: bold;
             cursor: pointer;
         }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #controls .close-button:hover, #controls .close-button:focus {
+        #closeModal:hover, #closeModal:focus, #closeCraterModal:hover, #closeCraterModal:focus,
+        #closeInfoModal:hover, #closeInfoModal:focus, #controls .close-button:hover, #controls .close-button:focus {
             color: white;
             text-decoration: none;
         }
-        #fullMeteoriteTable {
+        #fullMeteoriteTable, #fullCraterTable {
             width: 100%;
             border-collapse: collapse;
         }
-        #fullMeteoriteTable th, #fullMeteoriteTable td {
+        #fullMeteoriteTable th, #fullMeteoriteTable td,
+        #fullCraterTable th, #fullCraterTable td {
             border: 1px solid #444;
             padding: 8px;
             text-align: left;
         }
-        #fullMeteoriteTable th {
+        #fullMeteoriteTable th, #fullCraterTable th {
             background-color: #555;
         }
         input[type="range"] {
@@ -281,6 +283,8 @@ HTML_TEMPLATE = """
     <div id="craterBar"></div>
     <div id="meteoriteBar"></div>
     <div id="tooltip"></div>
+    
+    <!-- Meteorite Modal -->
     <div id="modal">
         <div id="modal-content">
             <span id="closeModal">&times;</span>
@@ -299,6 +303,28 @@ HTML_TEMPLATE = """
             </table>
         </div>
     </div>
+    
+    <!-- Crater Modal -->
+    <div id="craterModal">
+        <div id="craterModal-content">
+            <span id="closeCraterModal">&times;</span>
+            <h2>All Craters</h2>
+            <table id="fullCraterTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Diameter (km)</th>
+                        <th>Age (Ma)</th>
+                        <th>Country</th>
+                        <th>Target Rock</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Info Modal -->
     <div id="infoModal">
         <div id="infoModal-content">
             <span id="closeInfoModal">&times;</span>
@@ -324,6 +350,7 @@ HTML_TEMPLATE = """
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
         </div>
     </div>
+    
     <script>
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -447,6 +474,7 @@ HTML_TEMPLATE = """
             updateTopCraters(); // Added function call
             updateTotalCounts();
             updateModalTable();
+            updateCraterModalTable(); // Ensure crater modal table is updated
         }
 
         function updateTotalCounts() {
@@ -567,7 +595,7 @@ HTML_TEMPLATE = """
             const bar = document.getElementById('meteoriteBar');
             bar.innerHTML = '<div class="bar-item"><strong>Top Meteorites:</strong></div>';
 
-            top10.forEach((meteorite, index) => {
+            top10.forEach((meteorite) => {
                 const originalIndex = filteredMeteorites.indexOf(meteorite);
                 const name = meteorite.name || 'Unknown';
                 const mass = parseFloat(meteorite.mass) || 0;
@@ -592,13 +620,14 @@ HTML_TEMPLATE = """
             const bar = document.getElementById('craterBar');
             bar.innerHTML = '<div class="bar-item"><strong>Top Craters:</strong></div>';
 
-            top10.forEach((crater, index) => {
+            top10.forEach((crater) => {
+                const originalIndex = filteredCraters.indexOf(crater);
                 const name = crater.properties.crater_name || 'Unknown';
                 const diameter = crater.properties.diameter_km || 0;
                 const div = document.createElement('div');
                 div.className = 'bar-item';
                 div.innerText = `☄️ ${name} - ${diameter} km`;
-                div.onclick = () => flyToCrater(index);
+                div.onclick = () => flyToCrater(originalIndex);
                 bar.appendChild(div);
             });
 
@@ -683,48 +712,25 @@ HTML_TEMPLATE = """
             tooltip.style.top = y + 'px';
         }
 
+        // Modal Elements
         const modal = document.getElementById('modal');
-        const modalContent = document.getElementById('modal-content');
-        document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
+        const closeModal = document.getElementById('closeModal');
 
-        const craterModal = document.createElement('div');
-        craterModal.id = 'craterModal';
-        craterModal.innerHTML = `
-            <div id="craterModal-content">
-                <span class="close-button" id="closeCraterModal">&times;</span>
-                <h2>All Craters</h2>
-                <table id="fullCraterTable">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Diameter (km)</th>
-                            <th>Age (Ma)</th>
-                            <th>Country</th>
-                            <th>Target Rock</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        `;
-        document.body.appendChild(craterModal);
+        const craterModal = document.getElementById('craterModal');
+        const closeCraterModal = document.getElementById('closeCraterModal');
 
         const infoModal = document.getElementById('infoModal');
         const infoButton = document.getElementById('infoButton');
         const closeInfoModal = document.getElementById('closeInfoModal');
 
-        infoButton.onclick = () => {
-            infoModal.style.display = 'block';
-        };
-
-        closeInfoModal.onclick = () => {
-            infoModal.style.display = 'none';
-        };
+        closeModal.onclick = () => modal.style.display = 'none';
+        closeCraterModal.onclick = () => craterModal.style.display = 'none';
+        closeInfoModal.onclick = () => infoModal.style.display = 'none';
 
         window.onclick = event => {
             if (event.target == modal) modal.style.display = 'none';
-            if (event.target == infoModal) infoModal.style.display = 'none';
             if (event.target == craterModal) craterModal.style.display = 'none';
+            if (event.target == infoModal) infoModal.style.display = 'none';
         };
 
         function openModal() {
@@ -754,7 +760,6 @@ HTML_TEMPLATE = """
         }
 
         function openCraterModal() {
-            const craterModalContent = document.getElementById('craterModal-content');
             const tbody = document.querySelector('#fullCraterTable tbody');
             if (!filteredCraters.length) {
                 tbody.innerHTML = '<tr><td colspan="5">No crater data available.</td></tr>';
@@ -930,7 +935,7 @@ HTML_TEMPLATE = """
             });
         }
 
-        function updateModalTable() {
+        function updateMeteoriteModalTable() {
             const tbody = document.querySelector('#fullMeteoriteTable tbody');
             if (!filteredMeteorites.length) {
                 tbody.innerHTML = '<tr><td colspan="5">No meteorite data available.</td></tr>';
