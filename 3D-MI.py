@@ -667,7 +667,7 @@ def index():
     )
 
 if __name__ == '__main__':
-    # Use the port provided by Railway or default to 5000
-    port = int(os.environ.get('PORT', 5000))
+    # Use the port provided by Railway
+    port = int(os.environ.get('PORT', 8080))
     # Bind to all network interfaces and use the specified port
     app.run(debug=False, host='0.0.0.0', port=port)
