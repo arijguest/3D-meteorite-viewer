@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template_string
 
+# Define Flask app
 app = Flask(__name__)
 
 # Retrieve the Cesium Ion Access Token from environment variables
@@ -10,7 +11,7 @@ CESIUM_ION_ACCESS_TOKEN = os.environ.get('CESIUM_ION_ACCESS_TOKEN')
 if not CESIUM_ION_ACCESS_TOKEN:
     raise ValueError("CESIUM_ION_ACCESS_TOKEN environment variable is not set.")
 
-# HTML template with Cesium-based functionality for meteorite impacts
+# HTML template with Cesium-based meteorite impacts visualization
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -227,3 +228,9 @@ def index():
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN
     )
+
+if __name__ == '__main__':
+    # Use the port provided by Railway or default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    # Bind to all network interfaces and use the specified port
+    app.run(debug=False, host='0.0.0.0', port=port)
