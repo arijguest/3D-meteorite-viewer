@@ -350,7 +350,7 @@ HTML_TEMPLATE = """
 
         // Fetch all meteorites from NASA API
         function fetchMeteorites() {
-            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=5000';
+            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=1000';
 
             fetch(url)
                 .then(response => response.json())
