@@ -141,11 +141,24 @@ HTML_TEMPLATE = """
             viewer.entities.removeAll();
 
             meteorites.forEach(meteorite => {
-                // Ensure geolocation data exists
-                const geolocation = meteorite.geolocation;
-                if (geolocation && geolocation.latitude && geolocation.longitude) {
-                    const lat = parseFloat(geolocation.latitude);
-                    const lon = parseFloat(geolocation.longitude);
+                let lat, lon;
+
+                // Check if geolocation data exists
+                if (meteorite.geolocation) {
+                    // Handle geolocation with 'latitude' and 'longitude' properties
+                    if (meteorite.geolocation.latitude && meteorite.geolocation.longitude) {
+                        lat = parseFloat(meteorite.geolocation.latitude);
+                        lon = parseFloat(meteorite.geolocation.longitude);
+                    }
+                    // Handle geolocation with 'coordinates' array
+                    else if (meteorite.geolocation.coordinates && meteorite.geolocation.coordinates.length === 2) {
+                        lon = parseFloat(meteorite.geolocation.coordinates[0]);
+                        lat = parseFloat(meteorite.geolocation.coordinates[1]);
+                    }
+                }
+
+                // Proceed only if both latitude and longitude are available and valid numbers
+                if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                     const name = meteorite.name || 'Unknown';
                     const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
                     const recclass = meteorite.recclass || 'Unknown';
@@ -214,7 +227,3 @@ def index():
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN
     )
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
