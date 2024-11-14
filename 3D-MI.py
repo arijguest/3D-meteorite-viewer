@@ -774,11 +774,6 @@ HTML_TEMPLATE = """
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-        handler.setInputAction(movement => {
-            const picked = viewer.scene.pick(movement.position);
-            if (Cesium.defined(picked)) {
-                if (picked.id.isImpactCrater && picked.id.craterURL !== '#') {
-                    window.open(picked.id.craterURL, '_blank');
                 }
             }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
