@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template_string
+import csv
+from flask import Flask, render_template_string, jsonify
 
 # Define Flask app
 app = Flask(__name__)
@@ -10,6 +11,24 @@ CESIUM_ION_ACCESS_TOKEN = os.environ.get('CESIUM_ION_ACCESS_TOKEN')
 # Ensure the Cesium Ion Access Token is available
 if not CESIUM_ION_ACCESS_TOKEN:
     raise ValueError("CESIUM_ION_ACCESS_TOKEN environment variable is not set.")
+
+# Read impact-features.csv
+IMPACT_FEATURES_FILE = 'impact-features.csv'
+impact_features = []
+if os.path.exists(IMPACT_FEATURES_FILE):
+    with open(IMPACT_FEATURES_FILE, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            # Assuming the CSV has Latitude and Longitude columns
+            try:
+                row['Latitude'] = float(row.get('Latitude', 0))
+                row['Longitude'] = float(row.get('Longitude', 0))
+                impact_features.append(row)
+            except ValueError:
+                # Skip rows with invalid coordinates
+                continue
+else:
+    print(f"{IMPACT_FEATURES_FILE} not found. Impact craters will not be displayed.")
 
 # HTML template with Cesium-based meteorite impacts visualization and enhanced features
 HTML_TEMPLATE = """
@@ -215,6 +234,12 @@ HTML_TEMPLATE = """
             font-size: 16px;
             padding: 5px;
         }
+        /* Total Meteorites Count Styling */
+        #totalMeteorites {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
         /* Responsive Design */
         @media (max-width: 768px) {
             #header {
@@ -245,13 +270,16 @@ HTML_TEMPLATE = """
                 top: 10px;
                 right: 20px;
             }
+            #totalMeteorites {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
 
-    <!-- Header with title, description, and controls -->
+    <!-- Header with title, description, controls, and total count -->
     <div id="header">
         <h1>🌠 Global Meteorite Impacts Visualization</h1>
         <p>Explore meteorite landing sites around the world in an interactive 3D map.</p>
@@ -271,26 +299,33 @@ HTML_TEMPLATE = """
                 <option value="OpenStreetMap">OpenStreetMap</option>
             </select>
         </div>
+        <div id="totalMeteorites">Total Meteorites: 0</div>
         <div id="legend">
             <div class="legend-item">
                 <div class="legend-color" style="background-color: cyan;"></div>
-                <span>Mass &lt; 1,000g</span>
+                <span>Mass &lt; 1 kg</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: green;"></div>
-                <span>1,000g ≤ Mass &lt; 10,000g</span>
+                <span>1 kg ≤ Mass &lt; 10 kg
+                /span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: yellow;"></div>
-                <span>10,000g ≤ Mass &lt; 50,000g</span>
+                <span>10 kg ≤ Mass &lt; 50 kg</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: orange;"></div>
-                <span>50,000g ≤ Mass &lt; 100,000g</span>
+                <span>50 kg ≤ Mass &lt; 100 kg</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: red;"></div>
-                <span>Mass ≥ 100,000g</span>
+                <span>Mass ≥ 100 kg</span>
+            </div>
+            <!-- Legend for Impact Craters -->
+            <div class="legend-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Impact Crater" width="20" height="20" style="margin-right:8px;">
+                <span>Impact Crater</span>
             </div>
         </div>
     </div>
@@ -299,7 +334,6 @@ HTML_TEMPLATE = """
     <div id="meteoriteBar">
         <!-- Populated dynamically -->
     </div>
-
     <!-- Search box -->
     <div id="searchBox">
         <input type="text" id="searchInput" placeholder="Search location...">
@@ -349,6 +383,7 @@ HTML_TEMPLATE = """
 
         let allMeteorites = [];
         let filteredMeteorites = [];
+        const impactFeatures = {{ impact_features | tojson }};
 
         // Function to get color based on mass
         function getColor(mass) {
@@ -377,10 +412,10 @@ HTML_TEMPLATE = """
 
         // Apply filters and update the map
         function applyFilters() {
-            const yearMin = parseInt(document.getElementById('yearRangeMin').value);
-            const yearMax = parseInt(document.getElementById('yearRangeMax').value);
-            const massMin = parseInt(document.getElementById('massRangeMin').value);
-            const massMax = parseInt(document.getElementById('massRangeMax').value);
+            let yearMin = parseInt(document.getElementById('yearRangeMin').value);
+            let yearMax = parseInt(document.getElementById('yearRangeMax').value);
+            let massMin = parseInt(document.getElementById('massRangeMin').value);
+            let massMax = parseInt(document.getElementById('massRangeMax').value);
 
             // Ensure min is not greater than max
             if (yearMin > yearMax) {
@@ -407,13 +442,23 @@ HTML_TEMPLATE = """
 
             updateMeteoriteData();
             updateTopMeteorites();
+            updateTotalCount();
             updateModalTable();
+        }
+
+        // Update total meteorites count
+        function updateTotalCount() {
+            document.getElementById('totalMeteorites').innerText = `Total Meteorites: ${filteredMeteorites.length}`;
         }
 
         // Update meteorite data on the map
         function updateMeteoriteData() {
-            // Remove existing entities
-            viewer.entities.removeAll();
+            // Remove existing meteorite entities
+            viewer.entities.values.forEach(entity => {
+                if (entity.isMeteorite) {
+                    viewer.entities.remove(entity);
+                }
+            });
 
             filteredMeteorites.forEach((meteorite, index) => {
                 let lat, lon;
@@ -458,7 +503,36 @@ HTML_TEMPLATE = """
                             <b>Year:</b> ${year}<br>
                             <b>Fall/Find:</b> ${fall}
                         `,
+                        isMeteorite: true,
                         meteoriteIndex: index
+                    });
+                }
+            });
+
+            addImpactCraters();
+        }
+
+        // Add impact craters to the map
+        function addImpactCraters() {
+            impactFeatures.forEach((feature, index) => {
+                if (feature.Latitude && feature.Longitude) {
+                    viewer.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(feature.Longitude, feature.Latitude),
+                        billboard: {
+                            image: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                            width: 24,
+                            height: 24
+                        },
+                        description: `
+                            <b>Name:</b> ${feature.Name}<br>
+                            <b>Category:</b> ${feature.Category}<br>
+                            <b>Type:</b> ${feature.Type}<br>
+                            <b>Age (Ma):</b> ${feature['Age (Ma)']}<br>
+                            <b>Region:</b> ${feature.Region}<br>
+                            <b>Country:</b> ${feature.Country}
+                        `,
+                        isImpactCrater: true,
+                        craterIndex: index
                     });
                 }
             });
@@ -537,7 +611,7 @@ HTML_TEMPLATE = """
 
         handler.setInputAction(movement => {
             const picked = viewer.scene.pick(movement.endPosition);
-            if (Cesium.defined(picked) && picked.id && picked.id.description) {
+            if (Cesium.defined(picked) && (picked.id.isMeteorite || picked.id.isImpactCrater)) {
                 tooltip.style.display = 'block';
                 tooltip.innerHTML = picked.id.description.getValue();
                 updateTooltipPosition(movement.endPosition);
@@ -639,13 +713,30 @@ HTML_TEMPLATE = """
         document.getElementById('basemapSelector').value = 'Cesium World Imagery';
 
         // Event listeners for filters
-        document.getElementById('yearRangeMin').addEventListener('input', applyFilters);
-        document.getElementById('yearRangeMax').addEventListener('input', applyFilters);
-        document.getElementById('massRangeMin').addEventListener('input', applyFilters);
-        document.getElementById('massRangeMax').addEventListener('input', applyFilters);
+        document.getElementById('yearRangeMin').addEventListener('input', () => {
+            applyFilters();
+            updateSlidersDisplay();
+        });
+        document.getElementById('yearRangeMax').addEventListener('input', () => {
+            applyFilters();
+            updateSlidersDisplay();
+        });
+        document.getElementById('massRangeMin').addEventListener('input', () => {
+            applyFilters();
+            updateSlidersDisplay();
+        });
+        document.getElementById('massRangeMax').addEventListener('input', () => {
+            applyFilters();
+            updateSlidersDisplay();
+        });
 
         // Initialize sliders display
         function initializeSliders() {
+            updateSlidersDisplay();
+        }
+
+        // Update sliders display
+        function updateSlidersDisplay() {
             const yearMin = parseInt(document.getElementById('yearRangeMin').value);
             const yearMax = parseInt(document.getElementById('yearRangeMax').value);
             document.getElementById('yearRangeValue').innerText = `${yearMin} - ${yearMax}`;
@@ -654,31 +745,6 @@ HTML_TEMPLATE = """
             const massMax = parseInt(document.getElementById('massRangeMax').value);
             document.getElementById('massRangeValue').innerText = `${formatMass(massMin)} - ${formatMass(massMax)}`;
         }
-
-        // Update sliders display on input
-        document.getElementById('yearRangeMin').addEventListener('input', () => {
-            const yearMin = parseInt(document.getElementById('yearRangeMin').value);
-            const yearMax = parseInt(document.getElementById('yearRangeMax').value);
-            document.getElementById('yearRangeValue').innerText = `${yearMin} - ${yearMax}`;
-        });
-
-        document.getElementById('yearRangeMax').addEventListener('input', () => {
-            const yearMin = parseInt(document.getElementById('yearRangeMin').value);
-            const yearMax = parseInt(document.getElementById('yearRangeMax').value);
-            document.getElementById('yearRangeValue').innerText = `${yearMin} - ${yearMax}`;
-        });
-
-        document.getElementById('massRangeMin').addEventListener('input', () => {
-            const massMin = parseInt(document.getElementById('massRangeMin').value);
-            const massMax = parseInt(document.getElementById('massRangeMax').value);
-            document.getElementById('massRangeValue').innerText = `${formatMass(massMin)} - ${formatMass(massMax)}`;
-        });
-
-        document.getElementById('massRangeMax').addEventListener('input', () => {
-            const massMin = parseInt(document.getElementById('massRangeMin').value);
-            const massMax = parseInt(document.getElementById('massRangeMax').value);
-            document.getElementById('massRangeValue').innerText = `${formatMass(massMin)} - ${formatMass(massMax)}`;
-        });
 
         // Update modal table
         function updateModalTable() {
@@ -720,7 +786,8 @@ HTML_TEMPLATE = """
 def index():
     return render_template_string(
         HTML_TEMPLATE,
-        cesium_token=CESIUM_ION_ACCESS_TOKEN
+        cesium_token=CESIUM_ION_ACCESS_TOKEN,
+        impact_features=impact_features
     )
 
 if __name__ == '__main__':
