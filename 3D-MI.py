@@ -338,6 +338,9 @@ HTML_TEMPLATE = """
         let allMeteorites = [];
         let meteorites = [];
 
+        // Define current mass ranges for legend
+        let currentMassRanges = [];
+
         // Function to get color based on mass
         function getColor(mass, ranges) {
             for (let i = 0; i < ranges.length; i++) {
@@ -350,7 +353,7 @@ HTML_TEMPLATE = """
 
         // Fetch all meteorites from NASA API
         function fetchMeteorites() {
-            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=1000';
+            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=10000';
 
             fetch(url)
                 .then(response => response.json())
@@ -394,6 +397,9 @@ HTML_TEMPLATE = """
             const fallFindFilter = document.getElementById('fallFindSelect').value;
             const typeFilter = document.getElementById('meteoriteTypeSelect').value;
 
+            // Update legend before filtering
+            updateLegend(massFilter);
+
             // Filter data
             meteorites = allMeteorites.filter(meteorite => {
                 const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
@@ -426,7 +432,6 @@ HTML_TEMPLATE = """
             });
 
             updateMeteoriteData();
-            updateLegend();
         }
 
         // Update meteorite data on the map and top list
@@ -520,12 +525,8 @@ HTML_TEMPLATE = """
             });
         }
 
-        // Define current mass ranges for legend
-        let currentMassRanges = [];
-
         // Update legend based on current mass selection
-        function updateLegend() {
-            const massFilter = parseInt(document.getElementById('massRange').value);
+        function updateLegend(massFilter) {
             const legend = document.getElementById('legend');
             legend.innerHTML = '';
 
@@ -599,9 +600,9 @@ HTML_TEMPLATE = """
 
             if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                 viewer.camera.flyTo({
-                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
+                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 200000),
                     duration: 2,
-                    orientation: { pitch: Cesium.Math.toRadians(270) }
+                    orientation: { pitch: Cesium.Math.toRadians(-30) }
                 });
             }
         }
@@ -719,7 +720,6 @@ HTML_TEMPLATE = """
         // Fetch meteorite data on load
         window.onload = function() {
             fetchMeteorites();
-            updateLegend();
         };
     </script>
 </body>
