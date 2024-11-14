@@ -328,23 +328,23 @@ HTML_TEMPLATE = """
         <div id="legend">
             <div class="legend-item">
                 <div class="legend-color" style="background-color: cyan;"></div>
-                <span>Mass &lt; 1,000g</span>
+                <span>Mass &lt; 1 kg</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: green;"></div>
-                <span>1,000g ≤ Mass &lt; 10,000g</span>
+                <span>1 kg ≤ Mass &lt; 10 kg</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: yellow;"></div>
-                <span>10,000g ≤ Mass &lt; 50,000g</span>
+                <span>10 kg ≤ Mass &lt; 50 kg</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: orange;"></div>
-                <span>50,000g ≤ Mass &lt; 100,000g</span>
+                <span>50 kg ≤ Mass &lt; 100kg</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: red;"></div>
-                <span>Mass ≥ 100,000g</span>
+                <span>Mass ≥ 100 kg</span>
             </div>
             <!-- Legend for Impact Craters -->
             <div class="legend-item">
@@ -353,15 +353,15 @@ HTML_TEMPLATE = """
             </div>
             <div class="legend-item">
                 <div class="legend-size" style="width: 10px; height: 10px;"></div>
-                <span>Crater Diameter: 10-30 km</span>
+                <span>Diameter: 10-30 km</span>
             </div>
             <div class="legend-item">
                 <div class="legend-size" style="width: 15px; height: 15px;"></div>
-                <span>Crater Diameter: 30-50 km</span>
+                <span>Diameter: 30-50 km</span>
             </div>
             <div class="legend-item">
                 <div class="legend-size" style="width: 20px; height: 20px;"></div>
-                <span>Crater Diameter: ≥ 50 km</span>
+                <span>Diameter: ≥ 50 km</span>
             </div>
         </div>
     </div>
@@ -657,9 +657,9 @@ HTML_TEMPLATE = """
 
             if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                 viewer.camera.flyTo({
-                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 200000),
+                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                     duration: 2,
-                    orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-30) }
+                    orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
                 });
             }
         }
@@ -743,7 +743,7 @@ HTML_TEMPLATE = """
                         viewer.camera.flyTo({
                             destination: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat), 1000000),
                             duration: 2,
-                            orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-30) }
+                            orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
                         });
                     } else {
                         alert('Location not found.');
