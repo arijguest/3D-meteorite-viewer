@@ -97,18 +97,17 @@ HTML_TEMPLATE = """
         }
         /* Refresh Button Styling */
         #refreshButton {
-            position: absolute;
-            top: 0;
-            right: -40px;
-            background: none;
+            background: #0078D7;
+            color: #fff;
             border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
             cursor: pointer;
-            font-size: 20px;
-            color: #0078D7;
-            transition: color 0.3s;
+            font-size: 14px;
+            transition: background-color 0.3s;
         }
         #refreshButton:hover {
-            color: #005a9e;
+            background-color: #005a9e;
         }
         /* Toggle Buttons */
         #toggleButtons {
@@ -133,8 +132,15 @@ HTML_TEMPLATE = """
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 20px;
             justify-content: center;
+            width: 90%;
+            max-width: 600px;
+        }
+        .legend-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
         .legend-item {
             display: flex;
@@ -316,10 +322,6 @@ HTML_TEMPLATE = """
             #totalMeteorites, #totalCraters {
                 font-size: 14px;
             }
-            #refreshButton {
-                top: -10px;
-                right: -10px;
-            }
         }
     </style>
 </head>
@@ -362,8 +364,8 @@ HTML_TEMPLATE = """
                 <option value="Cesium World Imagery">Cesium World Imagery (Default)</option>
                 <option value="OpenStreetMap">OpenStreetMap</option>
             </select>
-            <button id="refreshButton" title="Reset Filters">🔄</button>
         </div>
+        <button id="refreshButton">Refresh Options</button>
         <div id="toggleButtons">
             <label>
                 <input type="checkbox" id="toggleMeteorites" checked>
@@ -379,55 +381,45 @@ HTML_TEMPLATE = """
             <div id="totalCraters">Total Impact Craters: 0</div>
         </div>
         <div id="legend">
-            <!-- Meteorite Legend -->
-            <div class="legend-item">
-                <div class="legend-icon">
-                    <img src="https://img.icons8.com/emoji/48/000000/meteor-emoji.png" alt="Meteorite Icon">
+            <div class="legend-section">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: cyan;"></div>
+                    <span>&lt; 1 kg</span>
                 </div>
-                <span>Meteorites</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: cyan;"></div>
-                <span>Mass &lt; 1 kg</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: green;"></div>
-                <span>1 kg ≤ Mass &lt; 10 kg</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: yellow;"></div>
-                <span>10 kg ≤ Mass &lt; 50 kg</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: orange;"></div>
-                <span>50 kg ≤ Mass &lt; 100kg</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: red;"></div>
-                <span>Mass ≥ 100 kg</span>
-            </div>
-            <!-- Impact Crater Legend -->
-            <div class="legend-item">
-                <div class="legend-icon">
-                    <img src="https://img.icons8.com/ios-filled/50/000000/crater.png" alt="Crater Icon">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: green;"></div>
+                    <span>1 kg - 10 kg</span>
                 </div>
-                <span>Impact Craters</span>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: yellow;"></div>
+                    <span>10 kg - 50 kg</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: orange;"></div>
+                    <span>50 kg - 100 kg</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: red;"></div>
+                    <span>&ge; 100 kg</span>
+                </div>
             </div>
-            <div class="legend-item">
-                <div class="legend-size" style="background-color: lightblue;"></div>
-                <span>Diameter &lt; 10 km</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-size" style="background-color: blue;"></div>
-                <span>10 km ≤ Diameter &lt; 30 km</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-size" style="background-color: darkblue;"></div>
-                <span>30 km ≤ Diameter &lt; 50 km</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-size" style="background-color: navy;"></div>
-                <span>Diameter ≥ 50 km</span>
+            <div class="legend-section">
+                <div class="legend-item">
+                    <div class="legend-size" style="background-color: lightblue; width:10px; height:10px;"></div>
+                    <span>&lt; 10 km</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-size" style="background-color: blue; width:15px; height:15px;"></div>
+                    <span>10 km - 30 km</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-size" style="background-color: darkblue; width:20px; height:20px;"></div>
+                    <span>30 km - 50 km</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-size" style="background-color: navy; width:25px; height:25px;"></div>
+                    <span>&ge; 50 km</span>
+                </div>
             </div>
         </div>
     </div>
@@ -442,6 +434,11 @@ HTML_TEMPLATE = """
         <input type="text" id="searchInput" placeholder="Search location...">
         <button id="searchButton">🔍</button>
     </div>
+
+    <!-- Refresh button placed next to the map view -->
+    <button id="refreshMapButton" style="position: absolute; top: 15px; left: 30px; z-index: 4; background: #0078D7; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
+        Refresh Options
+    </button>
 
     <!-- Tooltip -->
     <div id="tooltip"></div>
@@ -640,10 +637,11 @@ HTML_TEMPLATE = """
 
                     meteoriteEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        billboard: {
-                            image: 'https://img.icons8.com/emoji/48/000000/meteor-emoji.png',
-                            width: 20,
-                            height: 20
+                        point: {
+                            pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 1000, 5), 15) : 5,
+                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 1
                         },
                         description: `
                             <b>Name:</b> ${name}<br>
@@ -687,10 +685,11 @@ HTML_TEMPLATE = """
 
                     craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        billboard: {
-                            image: 'https://img.icons8.com/ios-filled/50/000000/crater.png',
-                            width: getCraterSize(diameter),
-                            height: getCraterSize(diameter)
+                        point: {
+                            pixelSize: getCraterSize(diameter),
+                            color: getCraterColor(diameter),
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 1
                         },
                         description: `
                             <b>Name:</b> <a href="${url}" target="_blank">${name}</a><br>
@@ -714,6 +713,14 @@ HTML_TEMPLATE = """
             } else {
                 return mass + ' g';
             }
+        }
+
+        // Function to determine crater size based on diameter
+        function getCraterSize(diameter) {
+            if (diameter >= 50) return 25;
+            if (diameter >= 30) return 20;
+            if (diameter >= 10) return 15;
+            return 10;
         }
 
         // Update the top meteorites list
@@ -1032,6 +1039,12 @@ HTML_TEMPLATE = """
         }
 
         // Initialize sliders and filters on page load
+        function initializeSliders() {
+            updateSlidersDisplay();
+            updateCraterSlidersDisplay();
+        }
+
+        // Initialize sliders and filters
         initializeSliders();
         initializeCraterFilters();
 
