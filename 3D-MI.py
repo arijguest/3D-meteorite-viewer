@@ -85,14 +85,25 @@ HTML_TEMPLATE = """
             position: absolute;
             top: 70px;
             left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px 10px 10px 10px;
             z-index: 1;
             color: white;
             border-radius: 5px;
             max-height: calc(100% - 80px);
             overflow-y: auto;
             display: none;
+            width: 300px;
+        }
+        #controls .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
         }
         #meteoriteBar {
             position: absolute;
@@ -146,17 +157,19 @@ HTML_TEMPLATE = """
             width: 80%;
             color: white;
             border-radius: 5px;
+            position: relative;
         }
-        #closeModal, #closeInfoModal {
+        #closeModal, #closeInfoModal, #controls .close-button {
             color: #aaa;
-            float: right;
+            position: absolute;
+            top: 10px;
             font-size: 28px;
             font-weight: bold;
+            cursor: pointer;
         }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus {
+        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #controls .close-button:hover, #controls .close-button:focus {
             color: white;
             text-decoration: none;
-            cursor: pointer;
         }
         #fullMeteoriteTable {
             width: 100%;
@@ -187,6 +200,10 @@ HTML_TEMPLATE = """
         button, input[type="button"] {
             cursor: pointer;
         }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -198,6 +215,7 @@ HTML_TEMPLATE = """
         </div>
     </div>
     <div id="controls">
+        <button class="close-button" id="closeOptions">&times;</button>
         <div id="searchContainer">
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">Search</button>
@@ -233,7 +251,7 @@ HTML_TEMPLATE = """
             <input type="range" id="diameterRangeMax" min="0" max="300" value="300">
         </div>
         <div>
-            <label><strong>Age Range (Millions of years):</strong> <span id="ageRangeValue"></span></label>
+            <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
             <input type="range" id="ageRangeMin" min="0" max="2000" value="0">
             <input type="range" id="ageRangeMax" min="0" max="2000" value="2000">
         </div>
@@ -506,7 +524,7 @@ HTML_TEMPLATE = """
                         },
                         description: `
                             <b>Name:</b> <a href="${url}" target="_blank" style="color: lightblue; text-decoration: underline;">${name}</a><br>
-                            <b>Age:</b> ${age} Mya<br>
+                            <b>Age:</b> ${age} Ma<br>
                             <b>Diameter:</b> ${diameter} km<br>
                             <b>Country:</b> ${country}<br>
                             <b>Target Rock:</b> ${target_rock}
@@ -764,7 +782,7 @@ HTML_TEMPLATE = """
         function updateSlidersDisplay() {
             const yearMin = parseInt(document.getElementById('yearRangeMin').value);
             const yearMax = parseInt(document.getElementById('yearRangeMax').value);
-            document.getElementById('yearRangeValue').innerText = `${yearMin} - ${yearMax}`;
+            document.getElementById('yearRangeValue').innerText = `${yearMin} - ${yearMax} Ma`;
 
             const massMin = parseInt(document.getElementById('massRangeMin').value);
             const massMax = parseInt(document.getElementById('massRangeMax').value);
@@ -774,11 +792,11 @@ HTML_TEMPLATE = """
         function updateCraterSlidersDisplay() {
             const diameterMin = parseInt(document.getElementById('diameterRangeMin').value);
             const diameterMax = parseInt(document.getElementById('diameterRangeMax').value);
-            document.getElementById('diameterRangeValue').innerText = `${diameterMin} - ${diameterMax}`;
+            document.getElementById('diameterRangeValue').innerText = `${diameterMin} - ${diameterMax} km`;
 
             const ageMin = parseInt(document.getElementById('ageRangeMin').value);
             const ageMax = parseInt(document.getElementById('ageRangeMax').value);
-            document.getElementById('ageRangeValue').innerText = `${ageMin} - ${ageMax} Mya`;
+            document.getElementById('ageRangeValue').innerText = `${ageMin} - ${ageMax} Ma`;
         }
 
         function populateTargetRockOptions() {
@@ -854,6 +872,7 @@ HTML_TEMPLATE = """
 
         const optionsButton = document.getElementById('optionsButton');
         const controls = document.getElementById('controls');
+        const closeOptions = document.getElementById('closeOptions');
 
         optionsButton.onclick = () => {
             if (controls.style.display === 'none' || controls.style.display === '') {
@@ -861,6 +880,10 @@ HTML_TEMPLATE = """
             } else {
                 controls.style.display = 'none';
             }
+        };
+
+        closeOptions.onclick = () => {
+            controls.style.display = 'none';
         };
     </script>
 </body>
