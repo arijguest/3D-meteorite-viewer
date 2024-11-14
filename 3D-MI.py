@@ -83,14 +83,14 @@ HTML_TEMPLATE = """
         }
         #controls {
             position: absolute;
-            top: 70px;
+            top: 100px; /* Moved down to prevent overlap */
             left: 10px;
             background: rgba(0, 0, 0, 0.9);
-            padding: 20px 10px 10px 10px;
-            z-index: 1;
+            padding: 30px 10px 10px 10px; /* Added top padding */
+            z-index: 1000; /* Increased z-index to appear above other elements */
             color: white;
             border-radius: 5px;
-            max-height: calc(100% - 80px);
+            max-height: calc(100% - 120px);
             overflow-y: auto;
             display: none;
             width: 300px;
@@ -623,7 +623,7 @@ HTML_TEMPLATE = """
                 const diameterDisplay = diameter ? `${diameter} km` : 'Unknown';
                 const div = document.createElement('div');
                 div.className = 'bar-item';
-                div.innerText = `🌋 ${name} - ${diameterDisplay}`;
+                div.innerText = `💥 ${name} - ${diameterDisplay}`;
                 div.onclick = () => flyToCrater(filteredCraters.indexOf(crater));
                 craterBar.appendChild(div);
             });
