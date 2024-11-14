@@ -69,7 +69,7 @@ HTML_TEMPLATE = """
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
             padding: 10px;
-            z-index: 1;
+            z-index: 2;
             color: white;
             text-align: center;
             border-radius: 5px;
@@ -77,29 +77,64 @@ HTML_TEMPLATE = """
         #header h1 {
             margin: 0;
             font-size: 24px;
+            display: inline-block;
         }
-        #options {
-            position: absolute;
-            top: 50px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            z-index: 1;
+        #optionsButton, #infoButton {
+            margin-left: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 3px;
+        }
+        #options, #infoModal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+        #optionsContent, #infoModal-content {
+            background-color: #2b2b2b;
+            margin: 5% auto;
+            padding: 20px;
+            width: 300px;
             color: white;
             border-radius: 5px;
-            max-height: calc(100% - 80px);
-            overflow-y: auto;
-            width: 250px;
+            position: relative;
         }
-        #options h2 {
-            margin-top: 0;
-            font-size: 18px;
+        #closeOptions, #closeInfoModal {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
         }
-        #controls {
-            margin-top: 10px;
+        #closeOptions:hover, #closeInfoModal:hover {
+            color: white;
+        }
+        #searchContainer {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            gap: 5px;
+            color: white;
         }
         #meteoriteBar, #craterBar {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
@@ -122,21 +157,29 @@ HTML_TEMPLATE = """
         .bar-item:hover {
             background: rgba(255, 255, 255, 0.1);
         }
+        .fixed-see-all {
+            flex: 0 0 auto;
+            position: sticky;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+        }
         #tooltip {
             position: absolute;
             pointer-events: none;
-            z-index: 999;
+            z-index: 10000;
             background-color: rgba(0,0,0,0.7);
             color: white;
             padding: 10px;
             border-radius: 5px;
             max-width: 300px;
+            display: none;
         }
         #tooltip a {
             color: lightblue;
             text-decoration: underline;
         }
-        #modal, #infoModal {
+        #modal, #craterModal {
             display: none;
             position: fixed;
             z-index: 9999;
@@ -147,38 +190,58 @@ HTML_TEMPLATE = """
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
         }
-        #modal-content, #infoModal-content {
+        #modal-content, #craterModal-content {
             background-color: #2b2b2b;
             margin: 5% auto;
             padding: 20px;
             width: 80%;
+            max-width: 800px;
             color: white;
             border-radius: 5px;
+            position: relative;
         }
-        #closeModal, #closeInfoModal {
+        #closeModal, #closeCraterModal {
             color: #aaa;
-            float: right;
+            position: absolute;
+            top: 10px;
+            right: 15px;
             font-size: 28px;
             font-weight: bold;
-        }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus {
-            color: white;
-            text-decoration: none;
             cursor: pointer;
         }
-        #fullMeteoriteTable, #fullCraterTable {
+        #closeModal:hover, #closeCraterModal:hover {
+            color: white;
+        }
+        table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
         }
-        #fullMeteoriteTable th, #fullMeteoriteTable td,
-        #fullCraterTable th, #fullCraterTable td {
+        th, td {
             border: 1px solid #444;
             padding: 8px;
             text-align: left;
         }
-        #fullMeteoriteTable th, #fullCraterTable th {
+        th {
             background-color: #555;
             cursor: pointer;
+            position: relative;
+        }
+        th.sorted-asc::after, th.sorted-desc::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            border: 5px solid transparent;
+        }
+        th.sorted-asc::after {
+            border-bottom-color: white;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        th.sorted-desc::after {
+            border-top-color: white;
+            top: 50%;
+            transform: translateY(-50%);
         }
         input[type="range"] {
             width: 100%;
@@ -186,39 +249,26 @@ HTML_TEMPLATE = """
         select {
             width: 100%;
         }
-        #searchContainer {
-            margin-top: 10px;
-            display: flex;
-            gap: 5px;
-        }
-        #searchInput {
-            flex: 1;
-        }
-        button {
-            cursor: pointer;
-        }
-        .sorted-asc::after {
-            content: " ▲";
-        }
-        .sorted-desc::after {
-            content: " ▼";
-        }
-        .fixed-see-all {
-            position: sticky;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 5px 10px;
-        }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
     <div id="header">
         <h1>🌠 Global Meteorite Impacts and Earth Craters Visualization</h1>
+        <button id="optionsButton">⚙️ Options</button>
+        <button id="infoButton">ℹ️ Info</button>
     </div>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Search location...">
+        <button id="searchButton">Search</button>
+    </div>
+    <div id="meteoriteBar"></div>
+    <div id="craterBar"></div>
+    <div id="tooltip"></div>
     <div id="options">
-        <h2>Options</h2>
-        <div id="controls">
+        <div id="optionsContent">
+            <span id="closeOptions">&times;</span>
+            <h2>Options</h2>
             <div>
                 <label><input type="checkbox" id="toggleMeteorites" checked> Show Meteorites</label>
             </div>
@@ -254,15 +304,12 @@ HTML_TEMPLATE = """
             <div>
                 <button id="refreshButton">Reset Filters</button>
             </div>
+            <div style="margin-top:10px;">
+                <span id="totalMeteorites">Total Meteorites: 0</span><br>
+                <span id="totalCraters">Total Impact Craters: 0</span>
+            </div>
         </div>
     </div>
-    <div id="searchContainer" style="position: absolute; top: 70px; left: 270px; z-index: 1; background: rgba(0, 0, 0, 0.7); padding: 10px; border-radius: 5px; color: white;">
-        <input type="text" id="searchInput" placeholder="Search location...">
-        <button id="searchButton">Search</button>
-    </div>
-    <div id="meteoriteBar"></div>
-    <div id="craterBar"></div>
-    <div id="tooltip"></div>
     <div id="modal">
         <div id="modal-content">
             <span id="closeModal">&times;</span>
@@ -308,10 +355,10 @@ HTML_TEMPLATE = """
             <ul>
                 <li><strong>Navigation:</strong> Use your mouse or touch controls to navigate around the globe.</li>
                 <li><strong>Search:</strong> Use the search bar to fly to a specific location.</li>
-                <li><strong>Filters:</strong> Adjust the sliders and dropdowns in the options menu to filter meteorites and craters based on various criteria such as year, mass, diameter, age, and target rock type.</li>
-                <li><strong>Show/Hide Data:</strong> Toggle the visibility of meteorites and craters using the checkboxes.</li>
-                <li><strong>Reset Filters:</strong> Click the "Reset Filters" button to return all filters to their default settings.</li>
-                <li><strong>Top Meteorites & Craters:</strong> View the top meteorites and craters by key characteristics at the bottom bars and click on them to fly to their location.</li>
+                <li><strong>Filters:</strong> Use the Options button to adjust filters for meteorites and craters based on criteria like year, mass, diameter, age, and target rock type.</li>
+                <li><strong>Show/Hide Data:</strong> Toggle the visibility of meteorites and craters using the checkboxes in the Options menu.</li>
+                <li><strong>Reset Filters:</strong> Click the "Reset Filters" button in the Options menu to return all filters to their default settings.</li>
+                <li><strong>Top Meteorites & Craters:</strong> View the top meteorites and craters at the bottom bars and click on them to fly to their locations.</li>
                 <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information.</li>
                 <li><strong>View All:</strong> Click on "See All" in the top bars to see a full list and navigate to them.</li>
             </ul>
@@ -328,7 +375,7 @@ HTML_TEMPLATE = """
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
             baseLayerPicker: false,
-            navigationHelpButton: true,
+            navigationHelpButton: false,
             sceneModePicker: true,
             animation: false,
             timeline: false,
@@ -468,12 +515,8 @@ HTML_TEMPLATE = """
         }
 
         function updateTotalCounts() {
-            document.getElementById('options').innerHTML += `
-                <div style="margin-top:10px;">
-                    <span id="totalMeteorites">Total Meteorites: ${filteredMeteorites.length}</span><br>
-                    <span id="totalCraters">Total Impact Craters: ${filteredCraters.length}</span>
-                </div>
-            `;
+            document.getElementById('totalMeteorites').innerText = `Total Meteorites: ${filteredMeteorites.length}`;
+            document.getElementById('totalCraters').innerText = `Total Impact Craters: ${filteredCraters.length}`;
         }
 
         function updateMeteoriteData() {
@@ -589,7 +632,7 @@ HTML_TEMPLATE = """
             const bar = document.getElementById('meteoriteBar');
             bar.innerHTML = '<div class="bar-item"><strong>Top Meteorites:</strong></div>';
 
-            top10.forEach((meteorite, index) => {
+            top10.forEach(meteorite => {
                 const originalIndex = filteredMeteorites.indexOf(meteorite);
                 const name = meteorite.name || 'Unknown';
                 const mass = parseFloat(meteorite.mass) || 0;
@@ -614,7 +657,7 @@ HTML_TEMPLATE = """
             const bar = document.getElementById('craterBar');
             bar.innerHTML = '<div class="bar-item"><strong>Top Craters:</strong></div>';
 
-            top10.forEach((crater, index) => {
+            top10.forEach(crater => {
                 const originalIndex = filteredCraters.indexOf(crater);
                 const name = crater.properties.crater_name || 'Unknown';
                 const diameter = parseFloat(crater.properties.diameter_km) || 0;
@@ -651,7 +694,7 @@ HTML_TEMPLATE = """
                 lon = parseFloat(meteorite.reclong);
             }
 
-            if (lat && lon) {
+            if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                 viewer.camera.flyTo({
                     destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                     duration: 2
@@ -724,6 +767,7 @@ HTML_TEMPLATE = """
                     </tr>
                 `;
             }).join('');
+            initializeSorting('fullMeteoriteTable');
             modal.style.display = 'block';
         }
 
@@ -749,6 +793,7 @@ HTML_TEMPLATE = """
                     </tr>
                 `;
             }).join('');
+            initializeSorting('fullCraterTable');
             craterModal.style.display = 'block';
         }
 
@@ -779,24 +824,94 @@ HTML_TEMPLATE = """
                 });
         }
 
-        document.getElementById('basemapSelector').onchange = function() {
-            const selectedBasemap = this.value;
-            while (viewer.imageryLayers.length > 1) {
-                viewer.imageryLayers.remove(viewer.imageryLayers.get(1));
-            }
-            switch(selectedBasemap) {
-                case 'OpenStreetMap':
-                    viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({
-                        url : 'https://a.tile.openstreetmap.org/'
-                    }));
-                    break;
-                case 'Cesium World Imagery':
-                default:
-                    viewer.imageryLayers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 2 }));
-            }
+        document.getElementById('optionsButton').onclick = () => {
+            document.getElementById('options').style.display = 'block';
+        };
+        document.getElementById('closeOptions').onclick = () => {
+            document.getElementById('options').style.display = 'none';
         };
 
-        document.getElementById('basemapSelector').value = 'Cesium World Imagery';
+        document.getElementById('infoButton').onclick = () => {
+            document.getElementById('infoModal').style.display = 'block';
+        };
+        document.getElementById('closeInfoModal').onclick = () => {
+            document.getElementById('infoModal').style.display = 'none';
+        };
+
+        window.onclick = event => {
+            if (event.target == modal) modal.style.display = 'none';
+            if (event.target == craterModal) craterModal.style.display = 'none';
+            if (event.target == document.getElementById('options')) document.getElementById('options').style.display = 'none';
+            if (event.target == document.getElementById('infoModal')) document.getElementById('infoModal').style.display = 'none';
+        };
+
+        function initializeSorting(tableId) {
+            const table = document.getElementById(tableId);
+            const headers = table.querySelectorAll('th');
+            headers.forEach(header => {
+                header.onclick = () => {
+                    const currentSort = header.classList.contains('sorted-asc') ? 'asc' :
+                                        header.classList.contains('sorted-desc') ? 'desc' : null;
+                    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                    if (currentSort === 'asc') {
+                        header.classList.add('sorted-desc');
+                        sortTable(tableId, header.getAttribute('data-key'), 'desc');
+                    } else {
+                        header.classList.add('sorted-asc');
+                        sortTable(tableId, header.getAttribute('data-key'), 'asc');
+                    }
+                };
+            });
+        }
+
+        function sortTable(tableId, key, order) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                let aText, bText;
+                if (key === 'mass' || key === 'diameter' || key === 'age' || key === 'year') {
+                    aText = parseFloat(a.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText) || 0;
+                    bText = parseFloat(b.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText) || 0;
+                } else {
+                    aText = a.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText.toLowerCase();
+                    bText = b.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText.toLowerCase();
+                }
+
+                if (aText < bText) return order === 'asc' ? -1 : 1;
+                if (aText > bText) return order === 'asc' ? 1 : -1;
+                return 0;
+            });
+            tbody.innerHTML = rows.map(row => row.outerHTML).join('');
+        }
+
+        function getColumnIndex(tableId, key) {
+            const headers = {
+                'fullMeteoriteTable': {
+                    'name': 1,
+                    'mass': 2,
+                    'recclass': 3,
+                    'year': 4,
+                    'fall': 5
+                },
+                'fullCraterTable': {
+                    'name': 1,
+                    'diameter': 2,
+                    'age': 3,
+                    'country': 4,
+                    'target_rock': 5
+                }
+            };
+            return headers[tableId][key];
+        }
+
+        function updateModalTable() {
+            initializeSorting('fullMeteoriteTable');
+        }
+
+        function updateCraterModalTable() {
+            initializeSorting('fullCraterTable');
+        }
 
         document.getElementById('yearRangeMin').addEventListener('input', applyFilters);
         document.getElementById('yearRangeMax').addEventListener('input', applyFilters);
@@ -856,69 +971,6 @@ HTML_TEMPLATE = """
             const ageMin = parseInt(document.getElementById('ageRangeMin').value);
             const ageMax = parseInt(document.getElementById('ageRangeMax').value);
             document.getElementById('ageRangeValue').innerText = `${ageMin} - ${ageMax} Mya`;
-        }
-
-        function initializeSorting(tableId, dataKey) {
-            const table = document.getElementById(tableId);
-            const headers = table.querySelectorAll('th');
-            headers.forEach(header => {
-                header.onclick = () => {
-                    const currentSort = header.classList.contains('sorted-asc') ? 'asc' :
-                                        header.classList.contains('sorted-desc') ? 'desc' : null;
-                    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
-                    if (currentSort === 'asc') {
-                        header.classList.add('sorted-desc');
-                        sortTable(tableId, header.getAttribute('data-key'), 'desc');
-                    } else {
-                        header.classList.add('sorted-asc');
-                        sortTable(tableId, header.getAttribute('data-key'), 'asc');
-                    }
-                };
-            });
-        }
-
-        function sortTable(tableId, key, order) {
-            const table = document.getElementById(tableId);
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            rows.sort((a, b) => {
-                const aText = a.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText;
-                const bText = b.querySelector(`td:nth-child(${getColumnIndex(tableId, key)})`).innerText;
-                let aVal = isNaN(parseFloat(aText)) ? aText : parseFloat(aText);
-                let bVal = isNaN(parseFloat(bText)) ? bText : parseFloat(bText);
-                if (aVal < bVal) return order === 'asc' ? -1 : 1;
-                if (aVal > bVal) return order === 'asc' ? 1 : -1;
-                return 0;
-            });
-            tbody.innerHTML = rows.map(row => row.outerHTML).join('');
-        }
-
-        function getColumnIndex(tableId, key) {
-            const headers = {
-                'fullMeteoriteTable': {
-                    'name': 1,
-                    'mass': 2,
-                    'recclass': 3,
-                    'year': 4,
-                    'fall': 5
-                },
-                'fullCraterTable': {
-                    'name': 1,
-                    'diameter': 2,
-                    'age': 3,
-                    'country': 4,
-                    'target_rock': 5
-                }
-            };
-            return headers[tableId][key];
-        }
-
-        function updateModalTable() {
-            initializeSorting('fullMeteoriteTable');
-        }
-
-        function updateCraterModalTable() {
-            initializeSorting('fullCraterTable');
         }
 
         fetchAllMeteorites();
