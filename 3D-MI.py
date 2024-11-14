@@ -1,7 +1,6 @@
 import os
-import csv
 import json
-from flask import Flask, render_template_string, jsonify
+from flask import Flask, render_template_string
 
 # Define Flask app
 app = Flask(__name__)
@@ -15,7 +14,7 @@ if not CESIUM_ION_ACCESS_TOKEN:
 
 # Read earth-impact-craters.geojson
 IMPACT_CRATERS_FILE = 'earth-impact-craters.geojson'
-impact_craters = {}
+impact_craters = {"type": "FeatureCollection", "features": []}
 if os.path.exists(IMPACT_CRATERS_FILE):
     with open(IMPACT_CRATERS_FILE, 'r', encoding='utf-8') as geojson_file:
         impact_craters = json.load(geojson_file)
@@ -126,15 +125,21 @@ HTML_TEMPLATE = """
             align-items: center;
             margin-bottom: 5px;
         }
-        .legend-color, .legend-icon {
+        .legend-color, .legend-icon, .legend-size {
             width: 20px;
             height: 20px;
             margin-right: 8px;
             border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .legend-icon img {
             width: 100%;
             height: 100%;
+        }
+        .legend-size {
+            background-color: red;
         }
         /* Meteorite Bar Styling */
         #meteoriteBar {
@@ -343,10 +348,20 @@ HTML_TEMPLATE = """
             </div>
             <!-- Legend for Impact Craters -->
             <div class="legend-item">
-                <div class="legend-icon">
-                    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Impact Crater">
-                </div>
-                <span>Impact Crater</span>
+                <div class="legend-size" style="width: 5px; height: 5px;"></div>
+                <span>Crater Diameter: &lt; 10 km</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-size" style="width: 10px; height: 10px;"></div>
+                <span>Crater Diameter: 10-30 km</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-size" style="width: 15px; height: 15px;"></div>
+                <span>Crater Diameter: 30-50 km</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-size" style="width: 20px; height: 20px;"></div>
+                <span>Crater Diameter: ≥ 50 km</span>
             </div>
         </div>
     </div>
@@ -406,7 +421,8 @@ HTML_TEMPLATE = """
         let allMeteorites = [];
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
-
+        
+        // Data Sources for Meteorites and Craters
         let meteoriteEntities = new Cesium.CustomDataSource('meteorites');
         viewer.dataSources.add(meteoriteEntities);
 
@@ -477,6 +493,7 @@ HTML_TEMPLATE = """
             });
 
             updateMeteoriteData();
+            updateCraterData();
             updateTopMeteorites();
             updateTotalCount();
             updateModalTable();
@@ -541,8 +558,8 @@ HTML_TEMPLATE = """
             });
         }
 
-        // Add impact craters to the map
-        function addImpactCraters() {
+        // Update impact crater data on the map
+        function updateCraterData() {
             craterEntities.entities.removeAll();
 
             impactCraters.features.forEach((feature, index) => {
@@ -551,9 +568,12 @@ HTML_TEMPLATE = """
 
                 if (geometry && geometry.type === "Point") {
                     const [lon, lat] = geometry.coordinates;
-                    const name = properties.Name || 'Unknown';
-                    const age = properties.Age || 'Unknown';
-                    const diameter = properties.Diameter ? parseFloat(properties.Diameter) : 1;
+                    const name = properties.crater_name || 'Unknown';
+                    const age = properties.age_millions_years_ago || 'Unknown';
+                    const diameter = properties.diameter_km ? parseFloat(properties.diameter_km) : 1;
+                    const country = properties.country || 'Unknown';
+                    const target_rock = properties.target_rock || 'Unknown';
+                    const url = properties.url || '#';
 
                     craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -564,10 +584,11 @@ HTML_TEMPLATE = """
                             outlineWidth: 1
                         },
                         description: `
-                            <b>Name:</b> ${name}<br>
-                            <b>Age:</b> ${age}<br>
+                            <b>Name:</b> <a href="${url}" target="_blank">${name}</a><br>
+                            <b>Age:</b> ${age} million years ago<br>
                             <b>Diameter:</b> ${diameter} km<br>
-                            <b>Region:</b> ${properties.Region || 'Unknown'}
+                            <b>Country:</b> ${country}<br>
+                            <b>Target Rock:</b> ${target_rock}
                         `,
                         isImpactCrater: true,
                         craterIndex: index
@@ -830,7 +851,7 @@ HTML_TEMPLATE = """
         fetchAllMeteorites();
 
         // Add impact craters to the map
-        addImpactCraters();
+        updateCraterData();
     </script>
 </body>
 </html>
