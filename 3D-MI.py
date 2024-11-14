@@ -27,7 +27,7 @@ HTML_TEMPLATE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>🌠 Global Meteorite and Impact Crater Visualization</title>
+    <title>🌠 Meteorite and Impact Crater Visualization</title>
     <!-- Include CesiumJS -->
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
@@ -94,6 +94,7 @@ HTML_TEMPLATE = """
         .legend-item {
             display: flex;
             align-items: center;
+            margin-bottom: 5px;
         }
         .legend-symbol {
             width: 20px;
@@ -146,6 +147,20 @@ HTML_TEMPLATE = """
             max-width: 300px;
             word-wrap: break-word;
         }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .range-container input[type="range"] {
+                width: 150px;
+            }
+            .bar-item {
+                margin: 0 10px;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -156,14 +171,14 @@ HTML_TEMPLATE = """
         <h1 id="viewTitle">🌠 Meteorite Visualization</h1>
         <div id="controls">
             <div class="range-container" id="firstRangeContainer">
-                <label id="firstRangeLabel"></label>
-                <input type="range" id="firstRangeMin">
-                <input type="range" id="firstRangeMax">
+                <label id="firstRangeLabel">Year Range: <span id="firstRangeValue">860 - 2023</span></label>
+                <input type="range" id="firstRangeMin" min="860" max="2023" value="860" step="1">
+                <input type="range" id="firstRangeMax" min="860" max="2023" value="2023" step="1">
             </div>
             <div class="range-container" id="secondRangeContainer">
-                <label id="secondRangeLabel"></label>
-                <input type="range" id="secondRangeMin">
-                <input type="range" id="secondRangeMax">
+                <label id="secondRangeLabel">Mass Range (g): <span id="secondRangeValue">0 - 600000</span></label>
+                <input type="range" id="secondRangeMin" min="0" max="600000" value="0" step="1000">
+                <input type="range" id="secondRangeMax" min="0" max="600000" value="600000" step="1000">
             </div>
             <div id="viewToggle">
                 <label>
@@ -216,6 +231,7 @@ HTML_TEMPLATE = """
 
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
+        craterEntities.show = false; // Initially hide craters
 
         let allMeteorites = [];
         let filteredMeteorites = [];
@@ -240,27 +256,32 @@ HTML_TEMPLATE = """
             const secondRangeMin = document.getElementById('secondRangeMin');
             const secondRangeMax = document.getElementById('secondRangeMax');
 
+            const firstRangeValue = document.getElementById('firstRangeValue');
+            const secondRangeValue = document.getElementById('secondRangeValue');
+
             const legend = document.getElementById('legend');
             legend.innerHTML = '';
 
             if (currentView === 'meteorites') {
                 viewTitle.innerText = '🌠 Meteorite Visualization';
 
-                firstRangeLabel.innerText = 'Year Range';
+                firstRangeLabel.innerText = 'Year Range:';
                 firstRangeMin.min = 860;
                 firstRangeMin.max = 2023;
                 firstRangeMin.value = 860;
                 firstRangeMax.min = 860;
                 firstRangeMax.max = 2023;
                 firstRangeMax.value = 2023;
+                firstRangeValue.innerText = `${firstRangeMin.value} - ${firstRangeMax.value}`;
 
-                secondRangeLabel.innerText = 'Mass Range (g)';
+                secondRangeLabel.innerText = 'Mass Range (g):';
                 secondRangeMin.min = 0;
                 secondRangeMin.max = 600000;
                 secondRangeMin.value = 0;
                 secondRangeMax.min = 0;
                 secondRangeMax.max = 600000;
                 secondRangeMax.value = 600000;
+                secondRangeValue.innerText = `${secondRangeMin.value} - ${secondRangeMax.value}`;
 
                 // Legend for Meteorites
                 const legendItems = [
@@ -282,29 +303,31 @@ HTML_TEMPLATE = """
             } else if (currentView === 'craters') {
                 viewTitle.innerText = '🕳️ Impact Crater Visualization';
 
-                firstRangeLabel.innerText = 'Age Range (Ma)';
+                firstRangeLabel.innerText = 'Age Range (Ma):';
                 firstRangeMin.min = 0;
                 firstRangeMin.max = 2000;
                 firstRangeMin.value = 0;
                 firstRangeMax.min = 0;
                 firstRangeMax.max = 2000;
                 firstRangeMax.value = 2000;
+                firstRangeValue.innerText = `${firstRangeMin.value} - ${firstRangeMax.value}`;
 
-                secondRangeLabel.innerText = 'Diameter Range (km)';
+                secondRangeLabel.innerText = 'Diameter Range (km):';
                 secondRangeMin.min = 0;
                 secondRangeMin.max = 300;
                 secondRangeMin.value = 0;
                 secondRangeMax.min = 0;
                 secondRangeMax.max = 300;
                 secondRangeMax.value = 300;
+                secondRangeValue.innerText = `${secondRangeMin.value} - ${secondRangeMax.value}`;
 
                 // Legend for Impact Craters
                 const legendItems = [
-                    { color: 'lightblue', label: 'Diameter < 10km' },
-                    { color: 'green', label: '10km ≤ Diameter < 30km' },
-                    { color: 'yellow', label: '30km ≤ Diameter < 50km' },
-                    { color: 'orange', label: '50km ≤ Diameter < 100km' },
-                    { color: 'red', label: 'Diameter ≥ 100km' },
+                    { color: 'lightblue', label: 'Diameter < 10 km' },
+                    { color: 'green', label: '10 km ≤ Diameter < 30 km' },
+                    { color: 'yellow', label: '30 km ≤ Diameter < 50 km' },
+                    { color: 'orange', label: '50 km ≤ Diameter < 100 km' },
+                    { color: 'red', label: 'Diameter ≥ 100 km' },
                 ];
                 legendItems.forEach(item => {
                     const legendItem = document.createElement('div');
@@ -376,8 +399,8 @@ HTML_TEMPLATE = """
                 const age = parseFloat(ageStr.replace(/[^\d\.]/g, '')) || null;
                 const diameter = c.properties.diameter_km ? parseFloat(c.properties.diameter_km) : null;
 
-                const ageMatch = age ? (age >= ageMin && age <= ageMax) : true;
-                const diameterMatch = diameter ? (diameter >= diameterMin && diameter <= diameterMax) : true;
+                const ageMatch = age !== null ? (age >= ageMin && age <= ageMax) : true;
+                const diameterMatch = diameter !== null ? (diameter >= diameterMin && diameter <= diameterMax) : true;
 
                 return ageMatch && diameterMatch;
             });
@@ -504,13 +527,13 @@ HTML_TEMPLATE = """
             const topBar = document.getElementById('topBar');
             topBar.innerHTML = '';
 
-            const titleItem = document.createElement('div');
-            titleItem.className = 'bar-item';
             if (currentView === 'meteorites') {
+                const titleItem = document.createElement('div');
+                titleItem.className = 'bar-item';
                 titleItem.innerHTML = '<strong>Top Meteorites:</strong>';
                 topBar.appendChild(titleItem);
 
-                const sortedMeteorites = filteredMeteorites.sort((a, b) => parseFloat(b.mass || 0) - parseFloat(a.mass || 0));
+                const sortedMeteorites = filteredMeteorites.filter(m => m.mass).sort((a, b) => parseFloat(b.mass) - parseFloat(a.mass));
                 const topItems = sortedMeteorites.slice(0, 10);
 
                 topItems.forEach((meteorite, index) => {
@@ -523,11 +546,13 @@ HTML_TEMPLATE = """
                     barItem.onclick = () => flyToMeteorite(index);
                     topBar.appendChild(barItem);
                 });
-            } else {
+            } else if (currentView === 'craters') {
+                const titleItem = document.createElement('div');
+                titleItem.className = 'bar-item';
                 titleItem.innerHTML = '<strong>Top Impact Craters:</strong>';
                 topBar.appendChild(titleItem);
 
-                const sortedCraters = filteredCraters.sort((a, b) => parseFloat(b.properties.diameter_km || 0) - parseFloat(a.properties.diameter_km || 0));
+                const sortedCraters = filteredCraters.filter(c => c.properties.diameter_km).sort((a, b) => parseFloat(b.properties.diameter_km) - parseFloat(a.properties.diameter_km));
                 const topItems = sortedCraters.slice(0, 10);
 
                 topItems.forEach((crater, index) => {
@@ -606,6 +631,9 @@ HTML_TEMPLATE = """
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
+        // Hide tooltip on left click
+        handler.setInputAction(() => { tooltip.style.display = 'none'; }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
         // Setup event listeners
         function setupEventListeners() {
             // View toggle
@@ -624,9 +652,51 @@ HTML_TEMPLATE = """
             const sliders = document.querySelectorAll('input[type="range"]');
             sliders.forEach(slider => {
                 slider.addEventListener('input', () => {
+                    const minId = slider.id.replace('Max', 'Min');
+                    const minValue = parseInt(document.getElementById(minId).value);
+                    const maxValue = parseInt(slider.value);
+
+                    if (slider.id.includes('Max')) {
+                        if (maxValue < minValue) {
+                            document.getElementById(minId).value = maxValue;
+                        }
+                    } else if (slider.id.includes('Min')) {
+                        if (maxValue < minValue) {
+                            document.getElementById('Max' + slider.id.slice(3)).value = minValue;
+                        }
+                    }
+
+                    updateRangeValues();
                     applyFilters();
+                    if (currentView === 'meteorites') {
+                        updateMeteoriteData();
+                    } else {
+                        updateCraterData();
+                    }
+                    updateTopBar();
                 });
             });
+        }
+
+        // Update range labels
+        function updateRangeValues() {
+            if (currentView === 'meteorites') {
+                const yearMin = document.getElementById('firstRangeMin').value;
+                const yearMax = document.getElementById('firstRangeMax').value;
+                document.getElementById('firstRangeValue').innerText = `${yearMin} - ${yearMax}`;
+
+                const massMin = document.getElementById('secondRangeMin').value;
+                const massMax = document.getElementById('secondRangeMax').value;
+                document.getElementById('secondRangeValue').innerText = `${massMin} - ${massMax}`;
+            } else if (currentView === 'craters') {
+                const ageMin = document.getElementById('firstRangeMin').value;
+                const ageMax = document.getElementById('firstRangeMax').value;
+                document.getElementById('firstRangeValue').innerText = `${ageMin} - ${ageMax}`;
+
+                const diameterMin = document.getElementById('secondRangeMin').value;
+                const diameterMax = document.getElementById('secondRangeMax').value;
+                document.getElementById('secondRangeValue').innerText = `${diameterMin} - ${diameterMax}`;
+            }
         }
 
         // Initialize the application
@@ -636,16 +706,16 @@ HTML_TEMPLATE = """
 </html>
 """
 
-    @app.route('/')
-    def index():
-        return render_template_string(
-            HTML_TEMPLATE,
-            cesium_token=CESIUM_ION_ACCESS_TOKEN,
-            impact_craters=impact_craters
-        )
+@app.route('/')
+def index():
+    return render_template_string(
+        HTML_TEMPLATE,
+        cesium_token=CESIUM_ION_ACCESS_TOKEN,
+        impact_craters=impact_craters
+    )
 
-    if __name__ == '__main__':
-        # Use the port provided by the environment or default to 8080
-        port = int(os.environ.get('PORT', 8080))
-        # Bind to all network interfaces and use the specified port
-        app.run(debug=False, host='0.0.0.0', port=port)
+if __name__ == '__main__':
+    # Use the port provided by the environment or default to 8080
+    port = int(os.environ.get('PORT', 8080))
+    # Bind to all network interfaces and use the specified port
+    app.run(debug=False, host='0.0.0.0', port=port)
