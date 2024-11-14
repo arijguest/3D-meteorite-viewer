@@ -66,6 +66,7 @@ HTML_TEMPLATE = """
             font-size: 14px;
             color: #333;
         }
+        #yearRangeContainer,
         #massRangeContainer,
         #fallFindContainer,
         #typeContainer {
@@ -260,6 +261,10 @@ HTML_TEMPLATE = """
         <h1>🌠 Global Meteorite Impacts Visualization</h1>
         <p>Explore meteorite landing sites around the world in an interactive 3D map.</p>
         <div id="controls">
+            <div id="yearRangeContainer">
+                <label for="yearRange">Year Range: <span id="yearRangeValue">All</span></label>
+                <input type="range" id="yearRange" min="860" max="2023" value="2023" step="1">
+            </div>
             <div id="massRangeContainer">
                 <label for="massSlider">Mass Range (kg):</label>
                 <div id="massSlider"></div>
@@ -347,16 +352,17 @@ HTML_TEMPLATE = """
         let meteorites = [];
 
         // Define current filters
+        let currentYear = 'All';
         let currentMassRange = [0, 100000];
         let currentFallFind = 'All';
         let currentType = 'All';
 
         // Function to get color based on mass
         function getColor(mass) {
-            if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
-            if (mass >= 50000)  return Cesium.Color.ORANGE.withAlpha(0.6);
-            if (mass >= 10000)  return Cesium.Color.YELLOW.withAlpha(0.6);
-            if (mass >= 1000)   return Cesium.Color.GREEN.withAlpha(0.6);
+            if (mass >= 100000000) return Cesium.Color.RED.withAlpha(0.6); // 100,000 kg
+            if (mass >= 50000000)  return Cesium.Color.ORANGE.withAlpha(0.6); // 50,000 kg
+            if (mass >= 10000000)  return Cesium.Color.YELLOW.withAlpha(0.6); // 10,000 kg
+            if (mass >= 1000000)   return Cesium.Color.GREEN.withAlpha(0.6); // 1,000 kg
             return Cesium.Color.CYAN.withAlpha(0.6);
         }
 
@@ -371,6 +377,7 @@ HTML_TEMPLATE = """
                     meteorites = data;
                     populateMeteoriteTypes();
                     initializeMassSlider();
+                    initializeYearSlider();
                     applyFilters();
                 })
                 .catch(error => {
@@ -431,23 +438,42 @@ HTML_TEMPLATE = """
             });
         }
 
+        // Initialize Year Range Slider
+        function initializeYearSlider() {
+            const yearSlider = document.getElementById('yearRange');
+            const yearValue = document.getElementById('yearRangeValue');
+
+            yearSlider.addEventListener('input', function() {
+                const year = parseInt(this.value);
+                yearValue.innerText = year === 2023 ? 'All' : year;
+                currentYear = year === 2023 ? 'All' : year;
+                applyFilters();
+            });
+        }
+
         function applyFilters() {
-            const massFilter = currentMassRange;
+            const massFilter = currentMassRange.map(m => m * 1000); // Convert kg to grams
             const fallFindFilter = currentFallFind;
             const typeFilter = currentType;
 
             // Update legend before filtering
-            updateLegend(massFilter);
+            updateLegend(currentMassRange);
 
             // Filter data
             const filteredMeteorites = meteorites.filter(meteorite => {
                 const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
+                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : null;
                 const fallFind = meteorite.fall || 'Unknown';
                 const recclass = meteorite.recclass || 'Unknown';
 
+                let passYear = true;
                 let passMass = true;
                 let passFallFind = true;
                 let passType = true;
+
+                if (currentYear !== 'All' && year) {
+                    passYear = year <= currentYear;
+                }
 
                 passMass = mass >= massFilter[0] && mass <= massFilter[1];
 
@@ -459,7 +485,7 @@ HTML_TEMPLATE = """
                     passType = recclass === typeFilter;
                 }
 
-                return passMass && passFallFind && passType;
+                return passYear && passMass && passFallFind && passType;
             });
 
             updateMeteoriteData(filteredMeteorites);
@@ -475,7 +501,7 @@ HTML_TEMPLATE = """
             top10.forEach((meteorite, index) => {
                 const name = meteorite.name || 'Unknown';
                 const mass = parseFloat(meteorite.mass) || 0;
-                const massDisplay = mass > 500 ? (mass / 1000).toFixed(2) + ' kg' : mass + ' g';
+                const massDisplay = mass >= 1000 ? (mass / 1000).toFixed(2) + ' kg' : mass + ' g';
                 const div = document.createElement('div');
                 div.className = 'bar-item';
                 div.innerText = `🌠 ${name} - ${massDisplay}`;
@@ -620,7 +646,7 @@ HTML_TEMPLATE = """
                     destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                     duration: 2,
                     orientation: { 
-                        pitch: Cesium.Math.toRadians(270), 
+                        pitch: Cesium.Math.toRadians(-90), 
                         heading: Cesium.Math.toRadians(0) 
                     }
                 });
@@ -727,6 +753,13 @@ HTML_TEMPLATE = """
 
         document.getElementById('meteoriteTypeSelect').addEventListener('change', function() {
             currentType = this.value;
+            applyFilters();
+        });
+
+        document.getElementById('yearRange').addEventListener('input', function() {
+            const year = parseInt(this.value);
+            document.getElementById('yearRangeValue').innerText = year === 2023 ? 'All' : year;
+            currentYear = year === 2023 ? 'All' : year;
             applyFilters();
         });
 
