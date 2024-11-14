@@ -40,7 +40,7 @@ HTML_TEMPLATE = """
         #header {
             position: absolute;
             top: 0; left: 0; width: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.8); /* Reduced opacity */
             padding: 15px 30px;
             box-sizing: border-box;
             z-index: 3;
@@ -48,6 +48,10 @@ HTML_TEMPLATE = """
             flex-direction: column;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            pointer-events: none; /* Allow click through */
+        }
+        #header > * {
+            pointer-events: auto; /* Enable interactions for child elements */
         }
         #header h1 {
             margin: 0;
@@ -106,7 +110,11 @@ HTML_TEMPLATE = """
             cursor: pointer;
             font-size: 14px;
             transition: background-color 0.3s;
-            margin-left: 10px;
+            position: absolute;
+            bottom: 15px; /* Moved to bottom */
+            right: 30px;  /* Moved to right */
+            z-index: 4;
+            pointer-events: auto;
         }
         #infoButton:hover {
             background-color: #005a9e;
@@ -275,13 +283,6 @@ HTML_TEMPLATE = """
             font-size: 16px;
             padding: 5px;
         }
-        /* Information Button Positioning */
-        #infoButton {
-            position: absolute;
-            top: 15px;
-            left: 30px;
-            z-index: 4;
-        }
         /* Total Counts Styling */
         #totals {
             display: flex;
@@ -330,8 +331,8 @@ HTML_TEMPLATE = """
                 font-size: 14px;
             }
             #infoButton {
-                top: 10px;
-                left: 20px;
+                bottom: 10px;
+                right: 20px;
             }
         }
     </style>
@@ -361,7 +362,7 @@ HTML_TEMPLATE = """
                 <input type="range" id="diameterRangeMax" min="0" max="300" value="300" step="1">
             </div>
             <div id="ageRangeContainer">
-                <label for="ageRangeMin">Crater Age (Myr): <span id="ageRangeValue">0 - 2000</span></label>
+                <label for="ageRangeMin">Crater Age (Myr, Mya): <span id="ageRangeValue">0 - 2000 Mya</span></label>
                 <input type="range" id="ageRangeMin" min="0" max="2000" value="0" step="10">
                 <input type="range" id="ageRangeMax" min="0" max="2000" value="2000" step="10">
             </div>
@@ -376,7 +377,6 @@ HTML_TEMPLATE = """
                 <option value="OpenStreetMap">OpenStreetMap</option>
             </select>
         </div>
-        <button id="refreshButton">Refresh Options</button>
         <div id="toggleButtons">
             <label>
                 <input type="checkbox" id="toggleMeteorites" checked>
@@ -437,10 +437,8 @@ HTML_TEMPLATE = """
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">🔍</button>
         </div>
+        <button id="infoButton">Information</button>
     </div>
-
-    <!-- Information Button placed next to the map view -->
-    <button id="infoButton">Information</button>
 
     <!-- Top meteorites bar -->
     <div id="meteoriteBar">
@@ -479,13 +477,13 @@ HTML_TEMPLATE = """
             <p><strong>Data Sources:</strong></p>
             <ul>
                 <li><strong>Meteorite Data:</strong> NASA Open Data API.</li>
-                <li><strong>Impact Crater Data:</strong> earth-impact-craters.geojson file.</li>
+                <li><strong>Impact Crater Data:</strong> Earth Impact Database via <a href="https://github.com/cjwinchester/earth-impact-data" target="_blank">https://github.com/cjwinchester/earth-impact-data</a>.</li>
             </ul>
             <p><strong>Key Terminology:</strong></p>
             <ul>
                 <li><strong>Mass:</strong> The mass of the meteorite in grams or kilograms.</li>
                 <li><strong>Crater Diameter:</strong> The diameter of the impact crater in kilometers.</li>
-                <li><strong>Crater Age:</strong> The age of the crater in million years ago.</li>
+                <li><strong>Crater Age:</strong> The age of the crater in million years ago (Mya).</li>
             </ul>
             <p><strong>Fun Facts:</strong></p>
             <ul>
@@ -720,7 +718,7 @@ HTML_TEMPLATE = """
                         },
                         description: `
                             <b>Name:</b> <a href="${url}" target="_blank">${name}</a><br>
-                            <b>Age:</b> ${age}<br>
+                            <b>Age:</b> ${age} Mya<br>
                             <b>Diameter:</b> ${diameter} km<br>
                             <b>Country:</b> ${country}<br>
                             <b>Target Rock:</b> ${target_rock}
@@ -1015,7 +1013,7 @@ HTML_TEMPLATE = """
 
             const ageMin = parseInt(document.getElementById('ageRangeMin').value);
             const ageMax = parseInt(document.getElementById('ageRangeMax').value);
-            document.getElementById('ageRangeValue').innerText = `${ageMin} - ${ageMax}`;
+            document.getElementById('ageRangeValue').innerText = `${ageMin} - ${ageMax} Mya`;
         }
 
         // Populate target rock options
