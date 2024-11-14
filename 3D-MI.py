@@ -180,15 +180,23 @@ HTML_TEMPLATE = """
         #fullMeteoriteTable, #fullCraterTable {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
         #fullMeteoriteTable th, #fullMeteoriteTable td,
         #fullCraterTable th, #fullCraterTable td {
             border: 1px solid #444;
             padding: 8px;
             text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         #fullMeteoriteTable th, #fullCraterTable th {
             background-color: #555;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            cursor: pointer;
         }
         input[type="range"] {
             width: 100%;
@@ -210,6 +218,26 @@ HTML_TEMPLATE = """
         label {
             display: block;
             margin-bottom: 10px;
+        }
+        /* Scrollable table body */
+        #modal-content, #craterModal-content {
+            max-height: 80vh;
+            overflow: hidden;
+        }
+        #fullMeteoriteTable tbody, #fullCraterTable tbody {
+            display: block;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        #fullMeteoriteTable thead, #fullCraterTable thead {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        #fullMeteoriteTable tbody tr, #fullCraterTable tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
         }
     </style>
 </head>
@@ -289,11 +317,11 @@ HTML_TEMPLATE = """
             <table id="fullMeteoriteTable">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Mass</th>
-                        <th>Class</th>
-                        <th>Year</th>
-                        <th>Fall/Find</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -307,10 +335,10 @@ HTML_TEMPLATE = """
             <table id="fullCraterTable">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Diameter (km)</th>
-                        <th>Age (Ma)</th>
-                        <th>Country</th>
+                        <th onclick="sortTable('fullCraterTable', 0)">Name &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 1)">Diameter (km) &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 2)">Age (Ma) &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 3)">Country &#x25B2;&#x25BC;</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -551,14 +579,15 @@ HTML_TEMPLATE = """
                             outlineWidth: 1
                         },
                         description: `
-                            <b>Name:</b> <a href="${url}" target="_blank" style="color: lightblue; text-decoration: underline;">${name}</a><br>
+                            <b>Name:</b> ${name}<br>
                             <b>Age:</b> ${age} Ma<br>
                             <b>Diameter:</b> ${diameter} km<br>
                             <b>Country:</b> ${country}<br>
                             <b>Target Rock:</b> ${target_rock}
                         `,
                         isImpactCrater: true,
-                        craterIndex: index
+                        craterIndex: index,
+                        craterURL: url  /* Added URL property */
                     });
                 }
             });
@@ -670,6 +699,12 @@ HTML_TEMPLATE = """
                 duration: 2,
                 orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-45) }
             });
+
+            // Redirect to the crater URL
+            const url = crater.properties.url || '#';
+            if (url !== '#') {
+                window.open(url, '_blank');
+            }
         }
 
         function openModal() {
@@ -739,7 +774,14 @@ HTML_TEMPLATE = """
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-        handler.setInputAction(() => { tooltip.style.display = 'none'; }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+        handler.setInputAction(movement => {
+            const picked = viewer.scene.pick(movement.position);
+            if (Cesium.defined(picked)) {
+                if (picked.id.isImpactCrater && picked.id.craterURL !== '#') {
+                    window.open(picked.id.craterURL, '_blank');
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
         function updateTooltipPosition(position) {
             const x = position.x + 15;
@@ -803,6 +845,67 @@ HTML_TEMPLATE = """
                     </tr>
                 `;
             }).join('');
+        }
+
+        // Sorting function
+        function sortTable(tableId, colIndex) {
+            const table = document.getElementById(tableId);
+            let switching = true;
+            let dir = "asc";
+            let switchcount = 0;
+
+            while (switching) {
+                switching = false;
+                const rows = table.rows;
+                for (let i = 1; i < (rows.length - 1); i++) {
+                    let shouldSwitch = false;
+                    const x = rows[i].getElementsByTagName("TD")[colIndex];
+                    const y = rows[i + 1].getElementsByTagName("TD")[colIndex];
+                    let xContent = x.textContent || x.innerText;
+                    let yContent = y.textContent || y.innerText;
+
+                    // Attempt to convert to numbers
+                    const xNum = parseFloat(xContent.replace(/[^\d.-]/g, ''));
+                    const yNum = parseFloat(yContent.replace(/[^\d.-]/g, ''));
+
+                    if (!isNaN(xNum) && !isNaN(yNum)) {
+                        if (dir == "asc") {
+                            if (xNum > yNum) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else if (dir == "desc") {
+                            if (xNum < yNum) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        // Compare as strings
+                        if (dir == "asc") {
+                            if (xContent.toLowerCase() > yContent.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else if (dir == "desc") {
+                            if (xContent.toLowerCase() < yContent.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
         }
 
         document.getElementById('searchButton').onclick = searchLocation;
