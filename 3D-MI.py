@@ -526,29 +526,24 @@ HTML_TEMPLATE = """
             const legend = document.getElementById('legend');
             legend.innerHTML = '';
 
-            // Define dynamic ranges based on mass filter
-            // For simplicity, we'll divide the massFilter into 5 equal ranges
-            const numRanges = 5;
-            const rangeSize = massFilter / numRanges;
-            let currentMassRanges = [];
+            // Define static ranges based on original color scheme
+            const ranges = [
+                { min: 0, max: 1000, color: 'cyan', label: 'Mass < 1,000g' },
+                { min: 1000, max: 10000, color: 'green', label: '1,000g ≤ Mass < 10,000g' },
+                { min: 10000, max: 50000, color: 'yellow', label: '10,000g ≤ Mass < 50,000g' },
+                { min: 50000, max: 100000, color: 'orange', label: '50,000g ≤ Mass < 100,000g' },
+                { min: 100000, max: Infinity, color: 'red', label: 'Mass ≥ 100,000g' }
+            ];
 
-            for (let i = 0; i < numRanges; i++) {
-                const min = i * rangeSize;
-                const max = (i + 1) * rangeSize;
-                const color = getColorForRange(i, numRanges);
-                currentMassRanges.push({ min, max, color });
-            }
-
-            // Define the top range to include massFilter and above
-            currentMassRanges.push({ min: massFilter, max: Infinity, color: '#FF0000' }); // Red for highest mass
-
-            // Create legend items
-            currentMassRanges.forEach(range => {
+            ranges.forEach(range => {
+                // Adjust ranges based on massFilter
+                if (range.min > massFilter) return;
+                const displayMax = range.max > massFilter ? massFilter : range.max;
                 let label;
-                if (range.max === Infinity) {
+                if (range.max === Infinity || displayMax === Infinity) {
                     label = `Mass ≥ ${formatMass(range.min)}`;
                 } else {
-                    label = `Mass ${formatMass(range.min)} - ${formatMass(range.max)}`;
+                    label = `Mass ${formatMass(range.min)} - ${formatMass(displayMax)}`;
                 }
 
                 const item = document.createElement('div');
@@ -559,12 +554,6 @@ HTML_TEMPLATE = """
                 `;
                 legend.appendChild(item);
             });
-        }
-
-        // Helper function to get color based on range index
-        function getColorForRange(index, total) {
-            const colors = ['cyan', 'green', 'yellow', 'orange', 'red'];
-            return colors[index % colors.length];
         }
 
         // Helper function to format mass display
@@ -661,28 +650,31 @@ HTML_TEMPLATE = """
             const query = document.getElementById('searchInput').value;
             if (!query.trim()) return;
 
-            const geocoder = new Cesium.Geocoder(viewer.scene, {
-                url: 'https://nominatim.openstreetmap.org/search?format=json&q='
-            });
-
-            geocoder.geocode(query).then(results => {
-                if (results.length > 0) {
-                    const result = results[0];
-                    viewer.camera.flyTo({
-                        destination: Cesium.Cartesian3.fromDegrees(result.lon, result.lat, 200000),
-                        duration: 2,
-                        orientation: { pitch: Cesium.Math.toRadians(-30) }
-                    });
-                } else {
-                    alert('Location not found.');
-                }
-            });
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length) {
+                        const { lon, lat } = data[0];
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat), 2000000),
+                            duration: 2,
+                            orientation: { pitch: Cesium.Math.toRadians(-30) }
+                        });
+                    } else {
+                        alert('Location not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching location:', error);
+                });
         });
 
         // Basemap selector functionality
         document.getElementById('basemapSelector').addEventListener('change', function() {
             const selected = this.value;
-            viewer.imageryLayers.removeAll();
+            while (viewer.imageryLayers.length > 1) {
+                viewer.imageryLayers.remove(viewer.imageryLayers.get(1));
+            }
             if (selected === 'Cesium World Imagery') {
                 viewer.imageryLayers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 2 }));
             } else if (selected === 'OpenStreetMap') {
@@ -702,7 +694,7 @@ HTML_TEMPLATE = """
 
         document.getElementById('massRange').addEventListener('input', function() {
             const mass = parseInt(this.value);
-            document.getElementById('massRangeValue').innerText = mass === 100000 ? 'All' : mass + ' g';
+            document.getElementById('massRangeValue').innerText = mass === 100000 ? 'All' : formatMass(mass);
             currentMass = mass === 100000 ? 100000 : mass;
             applyFilters();
         });
