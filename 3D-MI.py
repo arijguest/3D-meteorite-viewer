@@ -63,16 +63,12 @@ HTML_TEMPLATE = """
             font-size: 14px;
             color: #333;
         }
-        #yearRangeContainer,
-        #massRangeContainer,
-        #fallFindContainer,
-        #typeContainer {
+        #yearRangeContainer {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        #yearRange,
-        #massRange {
+        #yearRange {
             width: 200px;
         }
         #controls button, #controls select {
@@ -91,6 +87,10 @@ HTML_TEMPLATE = """
         /* Legend Styling */
         #legend {
             margin-top: 15px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
@@ -99,33 +99,53 @@ HTML_TEMPLATE = """
         .legend-item {
             display: flex;
             align-items: center;
-            font-size: 12px;
-            color: #333;
+            margin-bottom: 5px;
         }
         .legend-color {
-            width: 15px;
-            height: 15px;
-            margin-right: 5px;
-            border: 1px solid #000;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 3px;
         }
-        /* Tooltip Styling */
-        #tooltip {
+        /* Meteorite Bar Styling */
+        #meteoriteBar {
             position: absolute;
-            background: rgba(50, 50, 50, 0.9);
-            color: #fff;
-            padding: 8px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 0;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            z-index: 3;
+            display: flex;
+            overflow-x: auto;
+            align-items: center;
+        }
+        #meteoriteBar::-webkit-scrollbar {
+            height: 8px;
+        }
+        #meteoriteBar::-webkit-scrollbar-thumb {
+            background: #ccc;
             border-radius: 4px;
-            pointer-events: none;
-            z-index: 5;
-            display: none;
-            max-width: 200px;
-            font-size: 12px;
+        }
+        .bar-item {
+            flex: 0 0 auto;
+            margin: 0 15px;
+            font-size: 14px;
+            color: #0078D7;
+            cursor: pointer;
+            transition: color 0.3s;
+            white-space: nowrap;
+        }
+        .bar-item:hover {
+            color: #005a9e;
+            text-decoration: underline;
         }
         /* Modal Styling */
         #modal {
             display: none;
             position: fixed;
-            z-index: 10;
+            z-index: 4;
             left: 0;
             top: 0;
             width: 100%;
@@ -134,14 +154,14 @@ HTML_TEMPLATE = """
             background-color: rgba(0,0,0,0.5);
         }
         #modalContent {
-            background-color: #fefefe;
+            background-color: #fff;
             margin: 5% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
-            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         #closeModal {
             color: #aaa;
@@ -152,23 +172,22 @@ HTML_TEMPLATE = """
         }
         #closeModal:hover,
         #closeModal:focus {
-            color: black;
+            color: #000;
             text-decoration: none;
         }
-        #fullMeteoriteTable {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #fullMeteoriteTable th, #fullMeteoriteTable td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        #fullMeteoriteTable th {
-            background-color: #f2f2f2;
-        }
-        #fullMeteoriteTable tr:hover {
-            background-color: #ddd;
+        /* Tooltip Styling */
+        #tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 13px;
+            z-index: 5;
+            display: none;
+            max-width: 300px;
+            word-wrap: break-word;
         }
         /* Search Box Styling */
         #searchBox {
@@ -178,65 +197,53 @@ HTML_TEMPLATE = """
             z-index: 4;
             display: flex;
             align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 5px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         #searchInput {
-            padding: 6px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 4px 0 0 4px;
+            border: none;
             outline: none;
+            padding: 5px;
+            font-size: 14px;
         }
         #searchButton {
-            padding: 6px 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-left: none;
-            border-radius: 0 4px 4px 0;
-            background-color: #0078D7;
-            color: #fff;
+            border: none;
+            background: none;
             cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #searchButton:hover {
-            background-color: #005a9e;
-        }
-        /* Meteorite Bar Styling */
-        #meteoriteBar {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 3;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            max-width: 90%;
-            overflow-x: auto;
-        }
-        .bar-item {
-            font-size: 14px;
-            color: #333;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .bar-item:hover {
-            text-decoration: underline;
+            font-size: 16px;
+            padding: 5px;
         }
         /* Responsive Design */
         @media (max-width: 768px) {
+            #header {
+                padding: 10px 20px;
+            }
+            #header h1 {
+                font-size: 20px;
+            }
+            #header p {
+                font-size: 12px;
+            }
             #controls {
                 flex-direction: column;
+                gap: 10px;
             }
-            #searchBox {
-                top: auto;
-                bottom: 60px;
+            #legend {
+                flex-direction: column;
+                gap: 8px;
             }
             #meteoriteBar {
-                bottom: 70px;
+                padding: 8px 0;
+            }
+            .bar-item {
+                margin: 0 10px;
+                font-size: 12px;
+            }
+            #searchBox {
+                top: 10px;
+                right: 20px;
             }
         }
     </style>
@@ -253,33 +260,33 @@ HTML_TEMPLATE = """
                 <label for="yearRange">Year Range: <span id="yearRangeValue">All</span></label>
                 <input type="range" id="yearRange" min="860" max="2023" value="2023" step="1">
             </div>
-            <div id="massRangeContainer">
-                <label for="massRange">Max Mass (g): <span id="massRangeValue">All</span></label>
-                <input type="range" id="massRange" min="0" max="100000" value="100000" step="1000">
-            </div>
-            <div id="fallFindContainer">
-                <label for="fallFindSelect">Type:</label>
-                <select id="fallFindSelect">
-                    <option value="All">All</option>
-                    <option value="Fell">Fell</option>
-                    <option value="Found">Found</option>
-                </select>
-            </div>
-            <div id="typeContainer">
-                <label for="meteoriteTypeSelect">Meteorite Class:</label>
-                <select id="meteoriteTypeSelect">
-                    <option value="All">All</option>
-                    <!-- Options will be populated dynamically -->
-                </select>
-            </div>
+            <button id="toggleHeatmap">Enable Heatmap</button>
             <select id="basemapSelector">
                 <option value="Cesium World Imagery">Cesium World Imagery (Default)</option>
                 <option value="OpenStreetMap">OpenStreetMap</option>
             </select>
         </div>
-        <!-- Legend and other elements -->
         <div id="legend">
-            <!-- Dynamic Legend Items -->
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: cyan;"></div>
+                <span>Mass &lt; 1,000g</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: green;"></div>
+                <span>1,000g ≤ Mass &lt; 10,000g</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: yellow;"></div>
+                <span>10,000g ≤ Mass &lt; 50,000g</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: orange;"></div>
+                <span>50,000g ≤ Mass &lt; 100,000g</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: red;"></div>
+                <span>Mass ≥ 100,000g</span>
+            </div>
         </div>
     </div>
 
@@ -306,7 +313,7 @@ HTML_TEMPLATE = """
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Mass</th>
+                        <th>Mass (g)</th>
                         <th>Class</th>
                         <th>Year</th>
                         <th>Fall/Find</th>
@@ -335,103 +342,36 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
-        let allMeteorites = [];
+        let heatmapEnabled = false;
         let meteorites = [];
-
-        // Define current mass ranges for legend
-        let currentMassRanges = [];
+        let heatmapPoints = [];
 
         // Function to get color based on mass
-        function getColor(mass, ranges) {
-            for (let i = 0; i < ranges.length; i++) {
-                if (mass >= ranges[i].min && mass < ranges[i].max) {
-                    return Cesium.Color.fromCssColorString(ranges[i].color).withAlpha(0.6);
-                }
-            }
-            return Cesium.Color.GRAY.withAlpha(0.6);
+        function getColor(mass) {
+            if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
+            if (mass >= 50000)  return Cesium.Color.ORANGE.withAlpha(0.6);
+            if (mass >= 10000)  return Cesium.Color.YELLOW.withAlpha(0.6);
+            if (mass >= 1000)   return Cesium.Color.GREEN.withAlpha(0.6);
+            return Cesium.Color.CYAN.withAlpha(0.6);
         }
 
-        // Fetch all meteorites from NASA API
-        function fetchMeteorites() {
-            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=10000';
+        // Fetch meteorites from NASA API based on selected year range
+        function fetchMeteorites(year) {
+            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=1000';
+            if (year !== 'All') {
+                url += `&$where=year >= '${year}-01-01T00:00:00.000'`;
+            }
 
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     if (!data) throw new Error('Invalid meteorite data format.');
-                    allMeteorites = data;
-                    populateMeteoriteTypes();
-                    applyFilters();
+                    meteorites = data;
+                    updateMeteoriteData();
                 })
                 .catch(error => {
                     console.error('Error fetching meteorite data:', error);
                 });
-        }
-
-        // Populate Meteorite Type dropdown
-        function populateMeteoriteTypes() {
-            const typeSelect = document.getElementById('meteoriteTypeSelect');
-            const types = new Set();
-            allMeteorites.forEach(meteorite => {
-                const recclass = meteorite.recclass || 'Unknown';
-                types.add(recclass);
-            });
-
-            // Clear existing options except 'All'
-            typeSelect.innerHTML = '<option value="All">All</option>';
-
-            // Sort types alphabetically
-            const sortedTypes = Array.from(types).sort();
-
-            sortedTypes.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = type;
-                typeSelect.appendChild(option);
-            });
-        }
-
-        function applyFilters() {
-            const yearFilter = parseInt(document.getElementById('yearRange').value);
-            const massFilter = parseInt(document.getElementById('massRange').value);
-            const fallFindFilter = document.getElementById('fallFindSelect').value;
-            const typeFilter = document.getElementById('meteoriteTypeSelect').value;
-
-            // Update legend before filtering
-            updateLegend(massFilter);
-
-            // Filter data
-            meteorites = allMeteorites.filter(meteorite => {
-                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
-                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : null;
-                const fallFind = meteorite.fall || 'Unknown';
-                const recclass = meteorite.recclass || 'Unknown';
-
-                let passYear = true;
-                let passMass = true;
-                let passFallFind = true;
-                let passType = true;
-
-                if (yearFilter !== 2023 && year) {
-                    passYear = year <= yearFilter;
-                }
-
-                if (massFilter !== 100000) {
-                    passMass = mass <= massFilter;
-                }
-
-                if (fallFindFilter !== 'All') {
-                    passFallFind = fallFind === fallFindFilter;
-                }
-
-                if (typeFilter !== 'All') {
-                    passType = recclass === typeFilter;
-                }
-
-                return passYear && passMass && passFallFind && passType;
-            });
-
-            updateMeteoriteData();
         }
 
         // Update meteorite data on the map and top list
@@ -443,12 +383,11 @@ HTML_TEMPLATE = """
 
             top10.forEach((meteorite, index) => {
                 const name = meteorite.name || 'Unknown';
-                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
-                const massDisplay = mass > 500 ? (mass / 1000).toFixed(2) + ' kg' : mass + ' g';
+                const mass = parseFloat(meteorite.mass) || 0;
                 const div = document.createElement('div');
                 div.className = 'bar-item';
-                div.innerText = `🌠 ${name} - ${massDisplay}`;
-                div.onclick = () => flyToMeteorite(meteorites.indexOf(meteorite));
+                div.innerText = `🌠 ${name} - ${mass}g`;
+                div.onclick = () => flyToMeteorite(index);
                 bar.appendChild(div);
             });
 
@@ -460,12 +399,20 @@ HTML_TEMPLATE = """
 
             // Remove existing entities
             viewer.entities.removeAll();
+            heatmapPoints.forEach(pointCollection => {
+                viewer.scene.primitives.remove(pointCollection);
+            });
+            heatmapPoints = [];
 
-            addMeteoritePoints();
-            if (viewer.entities.values.length > 0) {
-                viewer.zoomTo(viewer.entities).otherwise(() => {
-                    console.log('Zoom failed');
-                });
+            if (heatmapEnabled) {
+                addHeatmap();
+            } else {
+                addMeteoritePoints();
+                if (viewer.entities.values.length > 0) {
+                    viewer.zoomTo(viewer.entities).otherwise(() => {
+                        console.log('Zoom failed');
+                    });
+                }
             }
         }
 
@@ -495,17 +442,11 @@ HTML_TEMPLATE = """
                     const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
                     const fall = meteorite.fall || 'Unknown';
 
-                    // Mass display logic
-                    let massDisplay = 'Unknown';
-                    if (mass !== 'Unknown') {
-                        massDisplay = mass > 500 ? (mass / 1000).toFixed(2) + ' kg' : mass + ' g';
-                    }
-
                     viewer.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
                             pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 1000, 5), 25) : 5,
-                            color: mass !== 'Unknown' ? getColor(mass, currentMassRanges) : Cesium.Color.GRAY.withAlpha(0.6),
+                            color: mass !== 'Unknown' ? getColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
                             outlineColor: Cesium.Color.BLACK,
                             outlineWidth: 1
                         },
@@ -514,7 +455,7 @@ HTML_TEMPLATE = """
                             <b>ID:</b> ${id}<br>
                             <b>Latitude:</b> ${lat.toFixed(5)}<br>
                             <b>Longitude:</b> ${lon.toFixed(5)}<br>
-                            <b>Mass:</b> ${massDisplay}<br>
+                            <b>Mass:</b> ${mass} g<br>
                             <b>Class:</b> ${recclass}<br>
                             <b>Year:</b> ${year}<br>
                             <b>Fall/Find:</b> ${fall}
@@ -525,55 +466,39 @@ HTML_TEMPLATE = """
             });
         }
 
-        // Update legend based on current mass selection
-        function updateLegend(massFilter) {
-            const legend = document.getElementById('legend');
-            legend.innerHTML = '';
+        // Add heatmap using PointPrimitives
+        function addHeatmap() {
+            const pointCollection = new Cesium.PointPrimitiveCollection();
+            viewer.scene.primitives.add(pointCollection);
 
-            // Define dynamic ranges based on mass filter
-            // For simplicity, we'll divide the massFilter into 5 equal ranges
-            const numRanges = 5;
-            const rangeSize = massFilter / numRanges;
-            currentMassRanges = [];
+            meteorites.forEach(meteorite => {
+                let lat, lon;
 
-            for (let i = 0; i < numRanges; i++) {
-                const min = i * rangeSize;
-                const max = (i + 1) * rangeSize;
-                const color = getColorForRange(i, numRanges);
-                currentMassRanges.push({ min, max, color });
-            }
-
-            // Define the top range to include massFilter and above
-            currentMassRanges.push({ min: massFilter, max: Infinity, color: '#FF0000' }); // Red for highest mass
-
-            // Create legend items
-            currentMassRanges.forEach(range => {
-                let label;
-                if (range.max === Infinity) {
-                    label = `Mass ≥ ${formatMass(range.min)}`;
-                } else {
-                    label = `Mass ${formatMass(range.min)} - ${formatMass(range.max)}`;
+                if (meteorite.geolocation) {
+                    if (meteorite.geolocation.latitude && meteorite.geolocation.longitude) {
+                        lat = parseFloat(meteorite.geolocation.latitude);
+                        lon = parseFloat(meteorite.geolocation.longitude);
+                    } else if (meteorite.geolocation.coordinates && meteorite.geolocation.coordinates.length === 2) {
+                        lon = parseFloat(meteorite.geolocation.coordinates[0]);
+                        lat = parseFloat(meteorite.geolocation.coordinates[1]);
+                    }
+                } else if (meteorite.reclat && meteorite.reclong) {
+                    lat = parseFloat(meteorite.reclat);
+                    lon = parseFloat(meteorite.reclong);
                 }
 
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `
-                    <div class="legend-color" style="background-color: ${range.color};"></div>
-                    <span>${label}</span>
-                `;
-                legend.appendChild(item);
+                if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
+                    const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
+
+                    pointCollection.add({
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        color: getColor(mass),
+                        pixelSize: Math.max(5 + mass / 10000, 5)
+                    });
+                }
             });
-        }
 
-        // Helper function to get color based on range index
-        function getColorForRange(index, total) {
-            const colors = ['cyan', 'green', 'yellow', 'orange', 'red'];
-            return colors[index % colors.length];
-        }
-
-        // Helper function to format mass display
-        function formatMass(mass) {
-            return mass >= 1000 ? (mass / 1000).toFixed(2) + ' kg' : mass + ' g';
+            heatmapPoints.push(pointCollection);
         }
 
         // Fly to a specific meteorite location
@@ -608,25 +533,37 @@ HTML_TEMPLATE = """
         }
 
         // Tooltip functionality
-        let tooltip = document.getElementById('tooltip');
+        const tooltip = document.getElementById('tooltip');
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
-        viewer.screenSpaceEventHandler.setInputAction(function onMouseMove(movement) {
-            const pickedObject = viewer.scene.pick(movement.endPosition);
-            if (Cesium.defined(pickedObject) && pickedObject.id) {
-                const description = pickedObject.id.description.getValue();
+        handler.setInputAction(movement => {
+            const picked = viewer.scene.pick(movement.endPosition);
+            if (Cesium.defined(picked) && picked.id && picked.id.description) {
                 tooltip.style.display = 'block';
-                tooltip.innerHTML = description.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '');
-                let position = movement.endPosition;
-                tooltip.style.left = position.x + 15 + 'px';
-                tooltip.style.top = position.y + 15 + 'px';
+                tooltip.innerHTML = picked.id.description.getValue();
+                updateTooltipPosition(movement.endPosition);
             } else {
                 tooltip.style.display = 'none';
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
+        handler.setInputAction(() => { tooltip.style.display = 'none'; }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
+        // Update tooltip position based on mouse movement
+        function updateTooltipPosition(position) {
+            const x = position.x + 15;
+            const y = position.y + 15;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+
         // Modal functionality for viewing all meteorites
+        const modal = document.getElementById('modal');
+        document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
+        window.onclick = event => { if (event.target == modal) modal.style.display = 'none'; }
+
+        // Open modal to display all meteorites
         function openModal() {
-            const modal = document.getElementById('modal');
             const tbody = document.querySelector('#fullMeteoriteTable tbody');
             if (!meteorites.length) {
                 tbody.innerHTML = '<tr><td colspan="5">No meteorite data available.</td></tr>';
@@ -634,15 +571,14 @@ HTML_TEMPLATE = """
             }
             tbody.innerHTML = meteorites.map((meteorite, index) => {
                 const name = meteorite.name || 'Unknown';
-                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
-                const massDisplay = mass > 500 ? (mass / 1000).toFixed(2) + ' kg' : mass + ' g';
+                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
                 const recclass = meteorite.recclass || 'Unknown';
                 const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
                 const fall = meteorite.fall || 'Unknown';
                 return `
-                    <tr onclick="flyToMeteorite(${index})" style="cursor:pointer;">
+                    <tr onclick='flyToMeteorite(${index})' style="cursor:pointer;">
                         <td>${name}</td>
-                        <td>${massDisplay}</td>
+                        <td>${mass}</td>
                         <td>${recclass}</td>
                         <td>${year}</td>
                         <td>${fall}</td>
@@ -652,75 +588,72 @@ HTML_TEMPLATE = """
             modal.style.display = 'block';
         }
 
-        // Close modal when clicking on <span> (x)
-        document.getElementById('closeModal').onclick = function() {
-            document.getElementById('modal').style.display = 'none';
-        }
-
         // Ensure flyToMeteorite is accessible globally
         window.flyToMeteorite = flyToMeteorite;
 
         // Search location functionality
-        document.getElementById('searchButton').addEventListener('click', function() {
-            const query = document.getElementById('searchInput').value;
-            if (!query.trim()) return;
+        document.getElementById('searchButton').onclick = searchLocation;
+        document.getElementById('searchInput').onkeydown = e => { if (e.key === 'Enter') searchLocation(); };
 
-            const geocoder = new Cesium.Geocoder(viewer.scene, {
-                url: 'https://nominatim.openstreetmap.org/search?format=json&q='
-            });
-
-            geocoder.geocode(query).then(results => {
-                if (results.length > 0) {
-                    const result = results[0];
-                    viewer.camera.flyTo({
-                        destination: Cesium.Cartesian3.fromDegrees(result.lon, result.lat, 200000),
-                        duration: 2,
-                        orientation: { pitch: Cesium.Math.toRadians(-30) }
-                    });
-                } else {
-                    alert('Location not found.');
-                }
-            });
-        });
+        function searchLocation() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length) {
+                        const { lon, lat } = data[0];
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat), 2000000),
+                            duration: 2,
+                            orientation: { pitch: Cesium.Math.toRadians(-30) }
+                        });
+                    } else {
+                        alert('Location not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching location:', error);
+                });
+        }
 
         // Basemap selector functionality
-        document.getElementById('basemapSelector').addEventListener('change', function() {
-            const selected = this.value;
-            viewer.imageryLayers.removeAll();
-            if (selected === 'Cesium World Imagery') {
-                viewer.imageryLayers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 2 }));
-            } else if (selected === 'OpenStreetMap') {
-                viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({
-                    url: 'https://a.tile.openstreetmap.org/'
-                }));
+        document.getElementById('basemapSelector').onchange = function() {
+            const selectedBasemap = this.value;
+            while (viewer.imageryLayers.length > 1) {
+                viewer.imageryLayers.remove(viewer.imageryLayers.get(1));
             }
-        });
+            switch(selectedBasemap) {
+                case 'OpenStreetMap':
+                    viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({
+                        url : 'https://a.tile.openstreetmap.org/'
+                    }));
+                    break;
+                case 'Cesium World Imagery':
+                default:
+                    viewer.imageryLayers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 2 }));
+            }
+        };
 
-        // Event listeners for filters
+        // Initialize the basemap selector to default
+        document.getElementById('basemapSelector').value = 'Cesium World Imagery';
+
+        // Event listeners for year range and heatmap toggle
         document.getElementById('yearRange').addEventListener('input', function() {
             const year = parseInt(this.value);
             document.getElementById('yearRangeValue').innerText = year === 2023 ? 'All' : year;
-            applyFilters();
+            fetchMeteorites(year === 2023 ? 'All' : year);
         });
 
-        document.getElementById('massRange').addEventListener('input', function() {
-            const mass = parseInt(this.value);
-            document.getElementById('massRangeValue').innerText = mass === 100000 ? 'All' : mass + ' g';
-            applyFilters();
+        document.getElementById('toggleHeatmap').addEventListener('click', function() {
+            heatmapEnabled = !heatmapEnabled;
+            this.innerText = heatmapEnabled ? 'Disable Heatmap' : 'Enable Heatmap';
+            updateMeteoriteData();
         });
 
-        document.getElementById('fallFindSelect').addEventListener('change', function() {
-            applyFilters();
-        });
+        // Fetch initial meteorite data
+        fetchMeteorites('All');
 
-        document.getElementById('meteoriteTypeSelect').addEventListener('change', function() {
-            applyFilters();
-        });
-
-        // Fetch meteorite data on load
-        window.onload = function() {
-            fetchMeteorites();
-        };
     </script>
 </body>
 </html>
@@ -734,7 +667,7 @@ def index():
     )
 
 if __name__ == '__main__':
-    # Use the port provided by Railway or default to 8080
+    # Use the port provided by Railway
     port = int(os.environ.get('PORT', 8080))
     # Bind to all network interfaces and use the specified port
     app.run(debug=False, host='0.0.0.0', port=port)
