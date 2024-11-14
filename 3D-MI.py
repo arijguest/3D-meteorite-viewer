@@ -279,26 +279,7 @@ HTML_TEMPLATE = """
         </div>
         <!-- Legend and other elements -->
         <div id="legend">
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: cyan;"></div>
-                <span>Mass &lt; 1,000g</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: green;"></div>
-                <span>1,000g ≤ Mass &lt; 10,000g</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: yellow;"></div>
-                <span>10,000g ≤ Mass &lt; 50,000g</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: orange;"></div>
-                <span>50,000g ≤ Mass &lt; 100,000g</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: red;"></div>
-                <span>Mass ≥ 100,000g</span>
-            </div>
+            <!-- Dynamic Legend Items -->
         </div>
     </div>
 
@@ -358,17 +339,18 @@ HTML_TEMPLATE = """
         let meteorites = [];
 
         // Function to get color based on mass
-        function getColor(mass) {
-            if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
-            if (mass >= 50000)  return Cesium.Color.ORANGE.withAlpha(0.6);
-            if (mass >= 10000)  return Cesium.Color.YELLOW.withAlpha(0.6);
-            if (mass >= 1000)   return Cesium.Color.GREEN.withAlpha(0.6);
-            return Cesium.Color.CYAN.withAlpha(0.6);
+        function getColor(mass, ranges) {
+            for (let i = 0; i < ranges.length; i++) {
+                if (mass >= ranges[i].min && mass < ranges[i].max) {
+                    return Cesium.Color.fromCssColorString(ranges[i].color).withAlpha(0.6);
+                }
+            }
+            return Cesium.Color.GRAY.withAlpha(0.6);
         }
 
         // Fetch all meteorites from NASA API
         function fetchMeteorites() {
-            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=10000';
+            let url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=5000';
 
             fetch(url)
                 .then(response => response.json())
@@ -444,6 +426,7 @@ HTML_TEMPLATE = """
             });
 
             updateMeteoriteData();
+            updateLegend();
         }
 
         // Update meteorite data on the map and top list
@@ -517,7 +500,7 @@ HTML_TEMPLATE = """
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
                             pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 1000, 5), 25) : 5,
-                            color: mass !== 'Unknown' ? getColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
+                            color: mass !== 'Unknown' ? getColor(mass, currentMassRanges) : Cesium.Color.GRAY.withAlpha(0.6),
                             outlineColor: Cesium.Color.BLACK,
                             outlineWidth: 1
                         },
@@ -535,6 +518,61 @@ HTML_TEMPLATE = """
                     });
                 }
             });
+        }
+
+        // Define current mass ranges for legend
+        let currentMassRanges = [];
+
+        // Update legend based on current mass selection
+        function updateLegend() {
+            const massFilter = parseInt(document.getElementById('massRange').value);
+            const legend = document.getElementById('legend');
+            legend.innerHTML = '';
+
+            // Define dynamic ranges based on mass filter
+            // For simplicity, we'll divide the massFilter into 5 equal ranges
+            const numRanges = 5;
+            const rangeSize = massFilter / numRanges;
+            currentMassRanges = [];
+
+            for (let i = 0; i < numRanges; i++) {
+                const min = i * rangeSize;
+                const max = (i + 1) * rangeSize;
+                const color = getColorForRange(i, numRanges);
+                currentMassRanges.push({ min, max, color });
+            }
+
+            // Define the top range to include massFilter and above
+            currentMassRanges.push({ min: massFilter, max: Infinity, color: '#FF0000' }); // Red for highest mass
+
+            // Create legend items
+            currentMassRanges.forEach(range => {
+                let label;
+                if (range.max === Infinity) {
+                    label = `Mass ≥ ${formatMass(range.min)}`;
+                } else {
+                    label = `Mass ${formatMass(range.min)} - ${formatMass(range.max)}`;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `
+                    <div class="legend-color" style="background-color: ${range.color};"></div>
+                    <span>${label}</span>
+                `;
+                legend.appendChild(item);
+            });
+        }
+
+        // Helper function to get color based on range index
+        function getColorForRange(index, total) {
+            const colors = ['cyan', 'green', 'yellow', 'orange', 'red'];
+            return colors[index % colors.length];
+        }
+
+        // Helper function to format mass display
+        function formatMass(mass) {
+            return mass >= 1000 ? (mass / 1000).toFixed(2) + ' kg' : mass + ' g';
         }
 
         // Fly to a specific meteorite location
@@ -561,9 +599,9 @@ HTML_TEMPLATE = """
 
             if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                 viewer.camera.flyTo({
-                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 200000),
+                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                     duration: 2,
-                    orientation: { pitch: Cesium.Math.toRadians(-30) }
+                    orientation: { pitch: Cesium.Math.toRadians(270) }
                 });
             }
         }
@@ -678,8 +716,11 @@ HTML_TEMPLATE = """
             applyFilters();
         });
 
-        // Fetch meteorite data
-        fetchMeteorites();
+        // Fetch meteorite data on load
+        window.onload = function() {
+            fetchMeteorites();
+            updateLegend();
+        };
     </script>
 </body>
 </html>
