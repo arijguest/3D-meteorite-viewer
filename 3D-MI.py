@@ -460,7 +460,7 @@ HTML_TEMPLATE = """
                 const div = document.createElement('div');
                 div.className = 'bar-item';
                 div.innerText = `🌠 ${name} - ${massDisplay}`;
-                div.onclick = () => flyToMeteorite(index);
+                div.onclick = () => flyToMeteorite(meteorites.indexOf(meteorite));
                 bar.appendChild(div);
             });
 
@@ -569,14 +569,21 @@ HTML_TEMPLATE = """
         }
 
         // Tooltip functionality
-        viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(click) {
-            const pickedObject = viewer.scene.pick(click.position);
+        let tooltip = document.getElementById('tooltip');
+
+        viewer.screenSpaceEventHandler.setInputAction(function onMouseMove(movement) {
+            const pickedObject = viewer.scene.pick(movement.endPosition);
             if (Cesium.defined(pickedObject) && pickedObject.id) {
                 const description = pickedObject.id.description.getValue();
-                const [name, id, latitude, longitude, mass, recclass, year, fall] = description.match(/<b>Name:<\/b> (.*?)<br><b>ID:<\/b> (.*?)<br><b>Latitude:<\/b> (.*?)<br><b>Longitude:<\/b> (.*?)<br><b>Mass:<\/b> (.*?)<br><b>Class:<\/b> (.*?)<br><b>Year:<\/b> (.*?)<br><b>Fall\/Find:<\/b> (.*?)/).slice(1,9);
-                alert(\`Name: \${name}\\nID: \${id}\\nLatitude: \${latitude}\\nLongitude: \${longitude}\\nMass: \${mass}\\nClass: \${recclass}\\nYear: \${year}\\nFall/Find: \${fall}\`);
+                tooltip.style.display = 'block';
+                tooltip.innerHTML = description.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '');
+                let position = movement.endPosition;
+                tooltip.style.left = position.x + 15 + 'px';
+                tooltip.style.top = position.y + 15 + 'px';
+            } else {
+                tooltip.style.display = 'none';
             }
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
         // Modal functionality for viewing all meteorites
         function openModal() {
@@ -594,7 +601,7 @@ HTML_TEMPLATE = """
                 const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
                 const fall = meteorite.fall || 'Unknown';
                 return `
-                    <tr onclick='flyToMeteorite(${index})' style="cursor:pointer;">
+                    <tr onclick="flyToMeteorite(${index})" style="cursor:pointer;">
                         <td>${name}</td>
                         <td>${massDisplay}</td>
                         <td>${recclass}</td>
@@ -673,7 +680,6 @@ HTML_TEMPLATE = """
 
         // Fetch meteorite data
         fetchMeteorites();
-
     </script>
 </body>
 </html>
