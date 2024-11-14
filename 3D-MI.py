@@ -69,6 +69,7 @@ HTML_TEMPLATE = """
             justify-content: center;
             align-items: center;
             position: relative;
+            width: 100%;
         }
         #controls label {
             font-size: 14px;
@@ -95,8 +96,8 @@ HTML_TEMPLATE = """
         #controls button:hover, #controls select:hover {
             background-color: #005a9e;
         }
-        /* Refresh Button Styling */
-        #refreshButton {
+        /* Information Button Styling */
+        #infoButton {
             background: #0078D7;
             color: #fff;
             border: none;
@@ -105,8 +106,9 @@ HTML_TEMPLATE = """
             cursor: pointer;
             font-size: 14px;
             transition: background-color 0.3s;
+            margin-left: 10px;
         }
-        #refreshButton:hover {
+        #infoButton:hover {
             background-color: #005a9e;
         }
         /* Toggle Buttons */
@@ -201,7 +203,7 @@ HTML_TEMPLATE = """
             text-decoration: underline;
         }
         /* Modal Styling */
-        #modal {
+        #modal, #infoModal {
             display: none;
             position: fixed;
             z-index: 4;
@@ -212,7 +214,7 @@ HTML_TEMPLATE = """
             overflow: auto;
             background-color: rgba(0,0,0,0.5);
         }
-        #modalContent {
+        #modalContent, #infoModalContent {
             background-color: #fff;
             margin: 5% auto;
             padding: 20px;
@@ -222,7 +224,7 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-        #closeModal {
+        #closeModal, #closeInfoModal {
             color: #aaa;
             float: right;
             font-size: 28px;
@@ -230,7 +232,9 @@ HTML_TEMPLATE = """
             cursor: pointer;
         }
         #closeModal:hover,
-        #closeModal:focus {
+        #closeModal:focus,
+        #closeInfoModal:hover,
+        #closeInfoModal:focus {
             color: #000;
             text-decoration: none;
         }
@@ -250,16 +254,13 @@ HTML_TEMPLATE = """
         }
         /* Search Box Styling */
         #searchBox {
-            position: absolute;
-            top: 15px;
-            right: 30px;
-            z-index: 4;
             display: flex;
             align-items: center;
             background: rgba(255, 255, 255, 0.95);
             padding: 5px;
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 15px;
         }
         #searchInput {
             border: none;
@@ -273,6 +274,13 @@ HTML_TEMPLATE = """
             cursor: pointer;
             font-size: 16px;
             padding: 5px;
+        }
+        /* Information Button Positioning */
+        #infoButton {
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            z-index: 4;
         }
         /* Total Counts Styling */
         #totals {
@@ -311,8 +319,7 @@ HTML_TEMPLATE = """
                 font-size: 12px;
             }
             #searchBox {
-                top: 10px;
-                right: 20px;
+                margin-top: 10px;
             }
             #totals {
                 flex-direction: column;
@@ -322,13 +329,17 @@ HTML_TEMPLATE = """
             #totalMeteorites, #totalCraters {
                 font-size: 14px;
             }
+            #infoButton {
+                top: 10px;
+                left: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
 
-    <!-- Header with title, description, controls, toggles, and total counts -->
+    <!-- Header with title, description, controls, toggles, total counts, and search bar -->
     <div id="header">
         <h1>🌠 Global Meteorite Impacts and Earth Craters Visualization</h1>
         <p>Explore meteorite landing sites and impact craters around the world in an interactive 3D map.</p>
@@ -422,23 +433,19 @@ HTML_TEMPLATE = """
                 </div>
             </div>
         </div>
+        <div id="searchBox">
+            <input type="text" id="searchInput" placeholder="Search location...">
+            <button id="searchButton">🔍</button>
+        </div>
     </div>
+
+    <!-- Information Button placed next to the map view -->
+    <button id="infoButton">Information</button>
 
     <!-- Top meteorites bar -->
     <div id="meteoriteBar">
         <!-- Populated dynamically -->
     </div>
-
-    <!-- Search box -->
-    <div id="searchBox">
-        <input type="text" id="searchInput" placeholder="Search location...">
-        <button id="searchButton">🔍</button>
-    </div>
-
-    <!-- Refresh button placed next to the map view -->
-    <button id="refreshMapButton" style="position: absolute; top: 15px; left: 30px; z-index: 4; background: #0078D7; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 14px; transition: background-color 0.3s;">
-        Refresh Options
-    </button>
 
     <!-- Tooltip -->
     <div id="tooltip"></div>
@@ -460,6 +467,32 @@ HTML_TEMPLATE = """
                 </thead>
                 <tbody></tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Modal for information -->
+    <div id="infoModal">
+        <div id="infoModalContent">
+            <span id="closeInfoModal">&times;</span>
+            <h2>Information</h2>
+            <p><strong>About the Program:</strong> This application visualizes meteorite landing sites and impact craters around the world in an interactive 3D map using CesiumJS.</p>
+            <p><strong>Data Sources:</strong></p>
+            <ul>
+                <li><strong>Meteorite Data:</strong> NASA Open Data API.</li>
+                <li><strong>Impact Crater Data:</strong> earth-impact-craters.geojson file.</li>
+            </ul>
+            <p><strong>Key Terminology:</strong></p>
+            <ul>
+                <li><strong>Mass:</strong> The mass of the meteorite in grams or kilograms.</li>
+                <li><strong>Crater Diameter:</strong> The diameter of the impact crater in kilometers.</li>
+                <li><strong>Crater Age:</strong> The age of the crater in million years ago.</li>
+            </ul>
+            <p><strong>Fun Facts:</strong></p>
+            <ul>
+                <li>The largest meteorite ever found on Earth is the Hoba Meteorite in Namibia, weighing approximately 60 tons.</li>
+                <li>Impact craters can provide valuable information about Earth's geological history.</li>
+                <li>Meteorites can be classified into different types based on their composition, such as stony, iron, and stony-iron.</li>
+            </ul>
         </div>
     </div>
 
@@ -583,11 +616,11 @@ HTML_TEMPLATE = """
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
                 let diameter = parseFloat(properties.diameter_km) || 0;
-                let age = parseFloat(properties.age_millions_years_ago) || 0;
+                let age = properties.age_millions_years_ago || '';
                 const targetRock = properties.target_rock || 'Unknown';
 
                 const diameterMatch = diameter >= diameterMin && diameter <= diameterMax;
-                const ageMatch = age >= ageMin && age <= ageMax;
+                const ageMatch = age !== '' ? true : false; // Assuming age must be present
                 const rockMatch = selectedRocks.length ? selectedRocks.includes(targetRock) : true;
 
                 return diameterMatch && ageMatch && rockMatch;
@@ -671,17 +704,11 @@ HTML_TEMPLATE = """
                 if (geometry && geometry.type === "Point") {
                     const [lon, lat] = geometry.coordinates;
                     const name = properties.crater_name || 'Unknown';
-                    let age = properties.age_millions_years_ago || 'Unknown';
+                    const age = properties.age_millions_years_ago || 'Unknown';
                     let diameter = parseFloat(properties.diameter_km) || 1;
                     const country = properties.country || 'Unknown';
                     const target_rock = properties.target_rock || 'Unknown';
                     const url = properties.url || '#';
-
-                    // Handle uncertainties and units in age
-                    if (typeof age === 'string') {
-                        age = age.replace(/[^\d\.]/g, '');
-                        age = parseFloat(age) || 'Unknown';
-                    }
 
                     craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -693,7 +720,7 @@ HTML_TEMPLATE = """
                         },
                         description: `
                             <b>Name:</b> <a href="${url}" target="_blank">${name}</a><br>
-                            <b>Age:</b> ${age} million years ago<br>
+                            <b>Age:</b> ${age}<br>
                             <b>Diameter:</b> ${diameter} km<br>
                             <b>Country:</b> ${country}<br>
                             <b>Target Rock:</b> ${target_rock}
@@ -1050,6 +1077,24 @@ HTML_TEMPLATE = """
 
         // Fetch all meteorite data on page load
         fetchAllMeteorites();
+
+        // Information Modal Functionality
+        const infoModal = document.getElementById('infoModal');
+        const infoButton = document.getElementById('infoButton');
+        const closeInfoModal = document.getElementById('closeInfoModal');
+
+        infoButton.onclick = () => {
+            infoModal.style.display = 'block';
+        };
+
+        closeInfoModal.onclick = () => {
+            infoModal.style.display = 'none';
+        };
+
+        window.onclick = event => {
+            if (event.target == modal) modal.style.display = 'none';
+            if (event.target == infoModal) infoModal.style.display = 'none';
+        };
     </script>
 </body>
 </html>
