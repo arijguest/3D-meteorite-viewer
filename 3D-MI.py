@@ -1,5 +1,6 @@
 import os
 import csv
+import json
 from flask import Flask, render_template_string, jsonify
 
 # Define Flask app
@@ -12,31 +13,22 @@ CESIUM_ION_ACCESS_TOKEN = os.environ.get('CESIUM_ION_ACCESS_TOKEN')
 if not CESIUM_ION_ACCESS_TOKEN:
     raise ValueError("CESIUM_ION_ACCESS_TOKEN environment variable is not set.")
 
-# Read impact-features.csv
-IMPACT_FEATURES_FILE = 'impact-features.csv'
-impact_features = []
-if os.path.exists(IMPACT_FEATURES_FILE):
-    with open(IMPACT_FEATURES_FILE, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            # Assuming the CSV has Latitude and Longitude columns
-            try:
-                row['Latitude'] = float(row.get('Latitude', 0))
-                row['Longitude'] = float(row.get('Longitude', 0))
-                impact_features.append(row)
-            except ValueError:
-                # Skip rows with invalid coordinates
-                continue
+# Read earth-impact-craters.geojson
+IMPACT_CRATERS_FILE = 'earth-impact-craters.geojson'
+impact_craters = {}
+if os.path.exists(IMPACT_CRATERS_FILE):
+    with open(IMPACT_CRATERS_FILE, 'r', encoding='utf-8') as geojson_file:
+        impact_craters = json.load(geojson_file)
 else:
-    print(f"{IMPACT_FEATURES_FILE} not found. Impact craters will not be displayed.")
+    print(f"{IMPACT_CRATERS_FILE} not found. Impact craters will not be displayed.")
 
-# HTML template with Cesium-based meteorite impacts visualization and enhanced features
+# HTML template with Cesium-based meteorite impacts and impact craters visualization
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>🌠 Global Meteorite Impacts Visualization</title>
+    <title>🌠 Global Meteorite Impacts and Earth Craters Visualization</title>
     <!-- Include CesiumJS -->
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
@@ -103,6 +95,20 @@ HTML_TEMPLATE = """
         #controls button:hover, #controls select:hover {
             background-color: #005a9e;
         }
+        /* Toggle Buttons */
+        #toggleButtons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #toggleButtons label {
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
         /* Legend Styling */
         #legend {
             margin-top: 15px;
@@ -120,11 +126,15 @@ HTML_TEMPLATE = """
             align-items: center;
             margin-bottom: 5px;
         }
-        .legend-color {
+        .legend-color, .legend-icon {
             width: 20px;
             height: 20px;
             margin-right: 8px;
             border-radius: 3px;
+        }
+        .legend-icon img {
+            width: 100%;
+            height: 100%;
         }
         /* Meteorite Bar Styling */
         #meteoriteBar {
@@ -279,10 +289,10 @@ HTML_TEMPLATE = """
 <body>
     <div id="cesiumContainer"></div>
 
-    <!-- Header with title, description, controls, and total count -->
+    <!-- Header with title, description, controls, toggles, and total count -->
     <div id="header">
-        <h1>🌠 Global Meteorite Impacts Visualization</h1>
-        <p>Explore meteorite landing sites around the world in an interactive 3D map.</p>
+        <h1>🌠 Global Meteorite Impacts and Earth Craters Visualization</h1>
+        <p>Explore meteorite landing sites and impact craters around the world in an interactive 3D map.</p>
         <div id="controls">
             <div id="yearRangeContainer">
                 <label for="yearRange">Year Range: <span id="yearRangeValue">860 - 2023</span></label>
@@ -299,32 +309,43 @@ HTML_TEMPLATE = """
                 <option value="OpenStreetMap">OpenStreetMap</option>
             </select>
         </div>
+        <div id="toggleButtons">
+            <label>
+                <input type="checkbox" id="toggleMeteorites" checked>
+                Show Meteorites
+            </label>
+            <label>
+                <input type="checkbox" id="toggleCraters" checked>
+                Show Impact Craters
+            </label>
+        </div>
         <div id="totalMeteorites">Total Meteorites: 0</div>
         <div id="legend">
             <div class="legend-item">
                 <div class="legend-color" style="background-color: cyan;"></div>
-                <span>Mass &lt; 1 kg</span>
+                <span>Mass &lt; 1,000g</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: green;"></div>
-                <span>1 kg ≤ Mass &lt; 10 kg
-                /span>
+                <span>1,000g ≤ Mass &lt; 10,000g</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: yellow;"></div>
-                <span>10 kg ≤ Mass &lt; 50 kg</span>
+                <span>10,000g ≤ Mass &lt; 50,000g</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: orange;"></div>
-                <span>50 kg ≤ Mass &lt; 100 kg</span>
+                <span>50,000g ≤ Mass &lt; 100,000g</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: red;"></div>
-                <span>Mass ≥ 100 kg</span>
+                <span>Mass ≥ 100,000g</span>
             </div>
             <!-- Legend for Impact Craters -->
             <div class="legend-item">
-                <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Impact Crater" width="20" height="20" style="margin-right:8px;">
+                <div class="legend-icon">
+                    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Impact Crater">
+                </div>
                 <span>Impact Crater</span>
             </div>
         </div>
@@ -334,6 +355,7 @@ HTML_TEMPLATE = """
     <div id="meteoriteBar">
         <!-- Populated dynamically -->
     </div>
+
     <!-- Search box -->
     <div id="searchBox">
         <input type="text" id="searchInput" placeholder="Search location...">
@@ -383,15 +405,29 @@ HTML_TEMPLATE = """
 
         let allMeteorites = [];
         let filteredMeteorites = [];
-        const impactFeatures = {{ impact_features | tojson }};
+        const impactCraters = {{ impact_craters | tojson }};
+
+        let meteoriteEntities = new Cesium.CustomDataSource('meteorites');
+        viewer.dataSources.add(meteoriteEntities);
+
+        let craterEntities = new Cesium.CustomDataSource('craters');
+        viewer.dataSources.add(craterEntities);
 
         // Function to get color based on mass
-        function getColor(mass) {
+        function getMeteoriteColor(mass) {
             if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
             if (mass >= 50000)  return Cesium.Color.ORANGE.withAlpha(0.6);
             if (mass >= 10000)  return Cesium.Color.YELLOW.withAlpha(0.6);
             if (mass >= 1000)   return Cesium.Color.GREEN.withAlpha(0.6);
             return Cesium.Color.CYAN.withAlpha(0.6);
+        }
+
+        // Function to get size based on crater diameter
+        function getCraterSize(diameter) {
+            if (diameter >= 50) return 20;
+            if (diameter >= 30) return 15;
+            if (diameter >= 10) return 10;
+            return 5;
         }
 
         // Fetch all meteorites from NASA API
@@ -453,12 +489,7 @@ HTML_TEMPLATE = """
 
         // Update meteorite data on the map
         function updateMeteoriteData() {
-            // Remove existing meteorite entities
-            viewer.entities.values.forEach(entity => {
-                if (entity.isMeteorite) {
-                    viewer.entities.remove(entity);
-                }
-            });
+            meteoriteEntities.entities.removeAll();
 
             filteredMeteorites.forEach((meteorite, index) => {
                 let lat, lon;
@@ -485,11 +516,11 @@ HTML_TEMPLATE = """
                     const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
                     const fall = meteorite.fall || 'Unknown';
 
-                    viewer.entities.add({
+                    meteoriteEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
                             pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 1000, 5), 25) : 5,
-                            color: mass !== 'Unknown' ? getColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
+                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
                             outlineColor: Cesium.Color.BLACK,
                             outlineWidth: 1
                         },
@@ -508,28 +539,35 @@ HTML_TEMPLATE = """
                     });
                 }
             });
-
-            addImpactCraters();
         }
 
         // Add impact craters to the map
         function addImpactCraters() {
-            impactFeatures.forEach((feature, index) => {
-                if (feature.Latitude && feature.Longitude) {
-                    viewer.entities.add({
-                        position: Cesium.Cartesian3.fromDegrees(feature.Longitude, feature.Latitude),
-                        billboard: {
-                            image: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-                            width: 24,
-                            height: 24
+            craterEntities.entities.removeAll();
+
+            impactCraters.features.forEach((feature, index) => {
+                const properties = feature.properties;
+                const geometry = feature.geometry;
+
+                if (geometry && geometry.type === "Point") {
+                    const [lon, lat] = geometry.coordinates;
+                    const name = properties.Name || 'Unknown';
+                    const age = properties.Age || 'Unknown';
+                    const diameter = properties.Diameter ? parseFloat(properties.Diameter) : 1;
+
+                    craterEntities.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: getCraterSize(diameter),
+                            color: Cesium.Color.RED.withAlpha(0.8),
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 1
                         },
                         description: `
-                            <b>Name:</b> ${feature.Name}<br>
-                            <b>Category:</b> ${feature.Category}<br>
-                            <b>Type:</b> ${feature.Type}<br>
-                            <b>Age (Ma):</b> ${feature['Age (Ma)']}<br>
-                            <b>Region:</b> ${feature.Region}<br>
-                            <b>Country:</b> ${feature.Country}
+                            <b>Name:</b> ${name}<br>
+                            <b>Age:</b> ${age}<br>
+                            <b>Diameter:</b> ${diameter} km<br>
+                            <b>Region:</b> ${properties.Region || 'Unknown'}
                         `,
                         isImpactCrater: true,
                         craterIndex: index
@@ -611,10 +649,14 @@ HTML_TEMPLATE = """
 
         handler.setInputAction(movement => {
             const picked = viewer.scene.pick(movement.endPosition);
-            if (Cesium.defined(picked) && (picked.id.isMeteorite || picked.id.isImpactCrater)) {
-                tooltip.style.display = 'block';
-                tooltip.innerHTML = picked.id.description.getValue();
-                updateTooltipPosition(movement.endPosition);
+            if (Cesium.defined(picked)) {
+                if (picked.id.isMeteorite || picked.id.isImpactCrater) {
+                    tooltip.style.display = 'block';
+                    tooltip.innerHTML = picked.id.description.getValue();
+                    updateTooltipPosition(movement.endPosition);
+                } else {
+                    tooltip.style.display = 'none';
+                }
             } else {
                 tooltip.style.display = 'none';
             }
@@ -730,6 +772,15 @@ HTML_TEMPLATE = """
             updateSlidersDisplay();
         });
 
+        // Toggle buttons for meteorites and craters
+        document.getElementById('toggleMeteorites').addEventListener('change', function() {
+            meteoriteEntities.show = this.checked;
+        });
+
+        document.getElementById('toggleCraters').addEventListener('change', function() {
+            craterEntities.show = this.checked;
+        });
+
         // Initialize sliders display
         function initializeSliders() {
             updateSlidersDisplay();
@@ -777,6 +828,9 @@ HTML_TEMPLATE = """
 
         // Fetch all meteorite data on page load
         fetchAllMeteorites();
+
+        // Add impact craters to the map
+        addImpactCraters();
     </script>
 </body>
 </html>
@@ -787,11 +841,11 @@ def index():
     return render_template_string(
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN,
-        impact_features=impact_features
+        impact_craters=impact_craters
     )
 
 if __name__ == '__main__':
-    # Use the port provided by Railway or default to 8080
+    # Use the port provided by the environment or default to 8080
     port = int(os.environ.get('PORT', 8080))
     # Bind to all network interfaces and use the specified port
     app.run(debug=False, host='0.0.0.0', port=port)
