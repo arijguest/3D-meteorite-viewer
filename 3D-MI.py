@@ -54,7 +54,7 @@ HTML_TEMPLATE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>🌠 Global Meteorite Impacts and Earth Craters Visualization</title>
+    <title>🌠 Global Meteorite Specimens and Impact Craters 🌠</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -83,11 +83,11 @@ HTML_TEMPLATE = """
         }
         #controls {
             position: absolute;
-            top: 100px; /* Moved down to prevent overlap */
+            top: 100px;
             left: 10px;
             background: rgba(0, 0, 0, 0.9);
-            padding: 30px 10px 10px 10px; /* Added top padding */
-            z-index: 1000; /* Increased z-index to appear above other elements */
+            padding: 30px 10px 10px 10px;
+            z-index: 1000;
             color: white;
             border-radius: 5px;
             max-height: calc(100% - 120px);
@@ -109,7 +109,7 @@ HTML_TEMPLATE = """
             position: absolute;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 1);
             display: flex;
             overflow-x: auto;
             padding: 5px 0;
@@ -195,7 +195,7 @@ HTML_TEMPLATE = """
             background-color: #555;
             position: sticky;
             top: 0;
-            z-index: 2;
+            z-index: 500;
             cursor: pointer;
         }
         input[type="range"] {
@@ -219,7 +219,6 @@ HTML_TEMPLATE = """
             display: block;
             margin-bottom: 10px;
         }
-        /* Scrollable table body */
         #modal-content, #craterModal-content {
             max-height: 80vh;
             overflow: hidden;
@@ -244,7 +243,7 @@ HTML_TEMPLATE = """
 <body>
     <div id="cesiumContainer"></div>
     <div id="header">
-        <h1>🌠 Global Meteorite Impacts and Earth Craters Visualization</h1>
+        <h1>🌠 Global Meteorite Specimens and Impact Craters 🌠</h1>
         <div>
             <button id="optionsButton">⚙️ Options</button>
         </div>
@@ -301,7 +300,7 @@ HTML_TEMPLATE = """
         <hr>
         <div>
             <span id="totalMeteorites">Total Meteorites: 0</span><br>
-            <span id="totalCraters">Total Impact Craters: 0</span>
+            <span id="totalCraters">Total Craters: 0</span>
         </div>
         <div>
             <button id="infoButton">ℹ️ Info</button>
@@ -353,7 +352,7 @@ HTML_TEMPLATE = """
         <div id="infoModal-content">
             <span id="closeInfoModal">&times;</span>
             <h2>Information</h2>
-            <p>Welcome to the Global Meteorite Impacts and Earth Craters Visualization App. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
+            <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization App. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
             <h3>How to Use:</h3>
             <ul>
                 <li><strong>Navigation:</strong> Use your mouse or touch controls to navigate around the globe.</li>
@@ -369,7 +368,7 @@ HTML_TEMPLATE = """
             <h3>Data Sources:</h3>
             <ul>
                 <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
-                <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database</a></li>
+                <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database via Antash</a></li>
             </ul>
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
         </div>
