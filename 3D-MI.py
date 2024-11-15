@@ -95,23 +95,40 @@ HTML_TEMPLATE = """
             background: rgba(255, 255, 255, 0.1);
         }
         /* Controls, modals, bars, tooltips styles */
-        /* ... (Same as before with adjustments for new buttons and elements) */
         #controls, #keyContainer {
-            /* Adjust styles accordingly */
-            max-height: calc(100% - 120px);
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px 10px 10px 10px;
+            z-index: 1000;
+            color: white;
+            border-radius: 5px;
+            max-height: calc(100% - 80px);
             overflow-y: auto;
             display: none;
             width: 300px;
         }
-        #controls {
-            top: 100px;
+        #controls h3, #keyContainer h3 {
+            margin-top: 0;
+            text-align: center;
         }
-        #keyContainer {
-            top: 150px;
+        #controls .close-button, #keyContainer .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
         }
         /* Legend styles */
         #legend {
-            margin-top: 10px;
+            margin-top: 20px;
+        }
+        #legend h4 {
+            margin-bottom: 5px;
         }
         #legend div {
             display: flex;
@@ -119,9 +136,9 @@ HTML_TEMPLATE = """
             margin-bottom: 5px;
         }
         #legend span {
-            display: inline-block;
             width: 20px;
             height: 20px;
+            display: inline-block;
             margin-right: 10px;
         }
         /* Search input styles in modals */
@@ -131,6 +148,68 @@ HTML_TEMPLATE = """
             box-sizing: border-box;
             padding: 5px;
             font-size: 16px;
+        }
+        /* Modal styles */
+        #modal, #craterModal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+        }
+        #modal-content, #craterModal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            color: black;
+        }
+        #modal-content h2, #craterModal-content h2 {
+            text-align: center;
+        }
+        #closeModal, #closeCraterModal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #closeModal:hover, #closeModal:focus, #closeCraterModal:hover, #closeCraterModal:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            padding: 10px;
+        }
+        table tbody td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        /* Tooltip styles */
+        #tooltip {
+            position: absolute;
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            display: none;
         }
         /* Adjust other styles to accommodate new elements */
     </style>
@@ -147,8 +226,14 @@ HTML_TEMPLATE = """
     </div>
     <!-- Controls Panel -->
     <div id="controls">
-        <!-- Close button and content -->
-        <!-- ... (Same as before) -->
+        <button class="close-button" id="closeOptions">&times;</button>
+        <h3>Options</h3>
+        <!-- Include controls for filtering and clustering -->
+        <div>
+            <label><input type="checkbox" id="clusterMeteorites" checked> Cluster Meteorites</label><br>
+            <label><input type="checkbox" id="clusterCraters" checked> Cluster Impact Craters</label><br>
+            <!-- Additional options -->
+        </div>
     </div>
     <!-- Key (Legend) Panel -->
     <div id="keyContainer">
@@ -157,7 +242,7 @@ HTML_TEMPLATE = """
         <div id="legend">
             <h4>Meteorite Mass (g):</h4>
             <div>
-                <span style="background-color: #800080;"></span> < 10,000
+                <span style="background-color: #800080;"></span> &lt; 10,000
             </div>
             <div>
                 <span style="background-color: #FF0000;"></span> 10,000 - 50,000
@@ -166,11 +251,11 @@ HTML_TEMPLATE = """
                 <span style="background-color: #FFA500;"></span> 50,000 - 100,000
             </div>
             <div>
-                <span style="background-color: #FFFF00;"></span> > 100,000
+                <span style="background-color: #FFFF00;"></span> &gt; 100,000
             </div>
             <h4>Impact Crater Diameter (km):</h4>
             <div>
-                <span style="background-color: #ADD8E6;"></span> < 10
+                <span style="background-color: #ADD8E6;"></span> &lt; 10
             </div>
             <div>
                 <span style="background-color: #0000FF;"></span> 10 - 30
@@ -179,12 +264,10 @@ HTML_TEMPLATE = """
                 <span style="background-color: #00008B;"></span> 30 - 50
             </div>
             <div>
-                <span style="background-color: #000080;"></span> > 50
+                <span style="background-color: #000080;"></span> &gt; 50
             </div>
         </div>
     </div>
-    <!-- Other modals and elements -->
-    <!-- ... (Same as before with search inputs added to modals) -->
     <!-- Meteorite Modal -->
     <div id="modal">
         <div id="modal-content">
@@ -192,7 +275,16 @@ HTML_TEMPLATE = """
             <h2>All Meteorites</h2>
             <input type="text" id="modalMeteoriteSearch" class="modal-search" placeholder="Search meteorites...">
             <table id="fullMeteoriteTable">
-                <!-- ... (Same as before) -->
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fullMeteoriteTable', 0)">Name</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 1)">Mass (g)</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 2)">Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated here -->
+                </tbody>
             </table>
         </div>
     </div>
@@ -203,16 +295,24 @@ HTML_TEMPLATE = """
             <h2>All Impact Craters</h2>
             <input type="text" id="modalCraterSearch" class="modal-search" placeholder="Search impact craters...">
             <table id="fullCraterTable">
-                <!-- ... (Same as before) -->
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fullCraterTable', 0)">Name</th>
+                        <th onclick="sortTable('fullCraterTable', 1)">Diameter (km)</th>
+                        <th onclick="sortTable('fullCraterTable', 2)">Age (My)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated here -->
+                </tbody>
             </table>
         </div>
     </div>
-    <!-- Tooltip and scripts -->
+    <!-- Tooltip -->
     <div id="tooltip"></div>
     <script>
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            // ... (Same as before)
             sceneModePicker: true,
             animation: false,
             timeline: false
@@ -249,7 +349,6 @@ HTML_TEMPLATE = """
 
         // Fetch meteorite data and apply filters
         function fetchAllMeteorites() {
-            // ... (Same as before)
             const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
             fetch(url)
                 .then(response => response.json())
@@ -263,42 +362,31 @@ HTML_TEMPLATE = """
         }
 
         function applyFilters() {
-            // ... (Same as before)
-            // Filter meteorites
-            filteredMeteorites = allMeteorites.filter(m => {
-                // ... (Same as before)
-                // Apply filters
-                return yearMatch && massMatch;
-            });
+            // Apply filters to meteorites
+            filteredMeteorites = allMeteorites; // Implement filtering logic if needed
 
-            // Filter craters
-            filteredCraters = allCraters.filter(feature => {
-                // ... (Same as before)
-                return diameterMatch && ageMatch && rockMatch;
-            });
+            // Apply filters to craters
+            filteredCraters = allCraters; // Implement filtering logic if needed
 
             updateMeteoriteData();
             updateCraterData();
-            updateTopMeteorites();
-            updateTopCraters();
-            updateTotalCounts();
             updateModalTable();
             updateCraterModalTable();
         }
 
         function updateMeteoriteData() {
-            // ... (Same as before with clustering fixed)
             meteoriteDataSource.entities.removeAll();
 
             filteredMeteorites.forEach((meteorite, index) => {
-                // ... (Calculate positions and properties)
+                const lat = meteorite.reclat ? parseFloat(meteorite.reclat) : undefined;
+                const lon = meteorite.reclong ? parseFloat(meteorite.reclong) : undefined;
                 if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
-                    const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
+                    const mass = meteorite.mass ? parseFloat(meteorite.mass) : 0;
                     const entity = meteoriteDataSource.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
-                            pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
-                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
+                            pixelSize: mass ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
+                            color: mass ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
                             outlineColor: Cesium.Color.BLACK,
                             outlineWidth: 1
                         },
@@ -313,67 +401,70 @@ HTML_TEMPLATE = """
             meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
             meteoriteDataSource.clustering.pixelRange = 50;
             meteoriteDataSource.clustering.minimumClusterSize = 5;
-            meteoriteDataSource.clustering.clusterPoints = true;
         }
 
         function updateCraterData() {
-            // ... (Same as before)
             craterDataSource.entities.removeAll();
 
             filteredCraters.forEach((feature, index) => {
-                // ... (Calculate properties)
+                const properties = feature.properties;
+                const lat = properties.latitude;
+                const lon = properties.longitude;
+                const diameter = properties.diameter_km;
                 craterDataSource.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(lon, lat),
                     point: {
-                        pixelSize: getCraterSize(diameter),
-                        color: getCraterColor(diameter),
+                        pixelSize: diameter ? Math.min(Math.max(diameter / 2, 5), 20) : 5,
+                        color: diameter ? getCraterColor(diameter) : Cesium.Color.GRAY.withAlpha(0.6),
                         outlineColor: Cesium.Color.BLACK,
                         outlineWidth: 1
                     },
-                    description: getCraterDescription(properties),
                     properties: {
                         isImpactCrater: true,
                         craterIndex: index
                     }
                 });
             });
-        }
 
-        // Functions to update modals, tooltips, search functionality
-        // ... (Include search functionality in modals)
-        function addModalSearchFunctionality() {
-            document.getElementById('modalMeteoriteSearch').addEventListener('input', function() {
-                updateModalTable(this.value.toLowerCase());
-            });
-
-            document.getElementById('modalCraterSearch').addEventListener('input', function() {
-                updateCraterModalTable(this.value.toLowerCase());
-            });
+            craterDataSource.clustering.enabled = document.getElementById('clusterCraters').checked;
+            craterDataSource.clustering.pixelRange = 50;
+            craterDataSource.clustering.minimumClusterSize = 5;
         }
 
         function updateModalTable(searchTerm = '') {
-            // ... (Update table based on searchTerm)
             const tbody = document.querySelector('#fullMeteoriteTable tbody');
             const filtered = filteredMeteorites.filter(meteorite => {
                 return meteorite.name && meteorite.name.toLowerCase().includes(searchTerm);
             });
             tbody.innerHTML = filtered.map((meteorite, index) => {
-                // ... (Same as before)
+                const name = meteorite.name || 'Unknown';
+                const mass = meteorite.mass || 'Unknown';
+                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
+                return `<tr onclick="flyToMeteorite(${index})">
+                    <td>${name}</td>
+                    <td>${mass}</td>
+                    <td>${year}</td>
+                </tr>`;
             }).join('');
         }
 
         function updateCraterModalTable(searchTerm = '') {
-            // ... (Update table based on searchTerm)
             const tbody = document.querySelector('#fullCraterTable tbody');
             const filtered = filteredCraters.filter(crater => {
                 return crater.properties.crater_name && crater.properties.crater_name.toLowerCase().includes(searchTerm);
             });
             tbody.innerHTML = filtered.map((crater, index) => {
-                // ... (Same as before)
+                const name = crater.properties.crater_name || 'Unknown';
+                const diameter = crater.properties.diameter_km || 'Unknown';
+                const age = crater.properties.age || 'Unknown';
+                return `<tr onclick="flyToCrater(${index})">
+                    <td>${name}</td>
+                    <td>${diameter}</td>
+                    <td>${age}</td>
+                </tr>`;
             }).join('');
         }
 
-        // Fix sortTable function
         function sortTable(tableId, colIndex) {
             const table = document.getElementById(tableId);
             const tbody = table.querySelector('tbody');
@@ -398,29 +489,65 @@ HTML_TEMPLATE = """
             rows.forEach(row => tbody.appendChild(row));
         }
 
-        // Adjust UI buttons and add event listeners
-        document.getElementById('keyButton').onclick = () => {
-            const keyContainer = document.getElementById('keyContainer');
-            keyContainer.style.display = keyContainer.style.display === 'block' ? 'none' : 'block';
-        };
-        document.getElementById('closeKey').onclick = () => {
-            document.getElementById('keyContainer').style.display = 'none';
-        };
+        function addModalSearchFunctionality() {
+            document.getElementById('modalMeteoriteSearch').addEventListener('input', function() {
+                updateModalTable(this.value.toLowerCase());
+            });
 
-        // Initialize application
+            document.getElementById('modalCraterSearch').addEventListener('input', function() {
+                updateCraterModalTable(this.value.toLowerCase());
+            });
+        }
+
+        function flyToMeteorite(index) {
+            const meteorite = filteredMeteorites[index];
+            const lat = meteorite.reclat ? parseFloat(meteorite.reclat) : undefined;
+            const lon = meteorite.reclong ? parseFloat(meteorite.reclong) : undefined;
+            if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000)
+                });
+            }
+        }
+
+        function flyToCrater(index) {
+            const crater = filteredCraters[index];
+            const lat = crater.properties.latitude;
+            const lon = crater.properties.longitude;
+            if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000)
+                });
+            }
+        }
+
+        function initializeEventListeners() {
+            document.getElementById('optionsButton').onclick = () => {
+                const controls = document.getElementById('controls');
+                controls.style.display = controls.style.display === 'block' ? 'none' : 'block';
+            };
+            document.getElementById('closeOptions').onclick = () => {
+                document.getElementById('controls').style.display = 'none';
+            };
+            document.getElementById('keyButton').onclick = () => {
+                const keyContainer = document.getElementById('keyContainer');
+                keyContainer.style.display = keyContainer.style.display === 'block' ? 'none' : 'block';
+            };
+            document.getElementById('closeKey').onclick = () => {
+                document.getElementById('keyContainer').style.display = 'none';
+            };
+            document.getElementById('clusterMeteorites').onchange = applyFilters;
+            document.getElementById('clusterCraters').onchange = applyFilters;
+        }
+
         function initialize() {
             fetchAllMeteorites();
-            applyFilters();
             addModalSearchFunctionality();
             initializeEventListeners();
         }
 
-        function initializeEventListeners() {
-            // Attach event listeners for buttons and inputs
-            // ... (Same as before)
-        }
-
         initialize();
+
     </script>
 </body>
 </html>
