@@ -54,7 +54,7 @@ HTML_TEMPLATE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>🌠 Global Meteorite Specimens and Impact Craters 🌠</title>
+    <title>🌠 Global Meteorite Specimens & Impact Craters 🌠</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -243,7 +243,7 @@ HTML_TEMPLATE = """
 <body>
     <div id="cesiumContainer"></div>
     <div id="header">
-        <h1>🌠 Global Meteorite Specimens and Impact Craters 🌠</h1>
+        <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
         <div>
             <button id="optionsButton">⚙️ Options</button>
         </div>
