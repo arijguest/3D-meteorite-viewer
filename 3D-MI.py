@@ -352,7 +352,7 @@ HTML_TEMPLATE = """
         <div id="infoModal-content">
             <span id="closeInfoModal">&times;</span>
             <h2>Information</h2>
-            <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization App. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
+            <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
             <h3>How to Use:</h3>
             <ul>
                 <li><strong>Navigation:</strong> Use your mouse or touch controls to navigate around the globe.</li>
@@ -363,7 +363,7 @@ HTML_TEMPLATE = """
                 <li><strong>Top Meteorites:</strong> View the top meteorites by mass at the bottom bar and click on them to fly to their location.</li>
                 <li><strong>Top Impact Craters:</strong> View the top impact craters by diameter in the bar above and click on them to fly to their location.</li>
                 <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information.</li>
-                <li><strong>View All:</strong> Click on "View All" in the top meteorites or craters bar to see a full list and navigate to them.</li>
+                <li><strong>View All:</strong> Click on "View All" in the top meteorites or craters bar to see a full list.</li>
             </ul>
             <h3>Data Sources:</h3>
             <ul>
@@ -418,7 +418,7 @@ HTML_TEMPLATE = """
         }
 
         function fetchAllMeteorites() {
-            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=10000';
+            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
