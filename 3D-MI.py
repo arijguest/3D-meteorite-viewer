@@ -238,6 +238,16 @@ HTML_TEMPLATE = """
             width: 100%;
             table-layout: fixed;
         }
+        /* Cluster styling */
+        .cluster-marker {
+            background-color: rgba(0, 102, 204, 0.8);
+            border-radius: 50%;
+            color: white;
+            padding: 5px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -276,7 +286,10 @@ HTML_TEMPLATE = """
             <input type="range" id="massRangeMax" min="0" max="1000000" value="1000000">
         </div>
         <div>
-            <label><input type="checkbox" id="clusterMeteorites"> Cluster Meteorites</label>
+            <label><input type="checkbox" id="clusterMeteorites"> Enable Clustering</label>
+        </div>
+        <div>
+            <label><input type="checkbox" id="heatmapToggle"> Show Heatmap</label>
         </div>
         <hr>
         <div>
@@ -405,11 +418,11 @@ HTML_TEMPLATE = """
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
 
-        meteoriteEntities.clustering = new Cesium.EntityCluster({
-            enabled: document.getElementById('clusterMeteorites').checked,
-            pixelRange: 15,
-            minimumClusterSize: 3
-        });
+        // Enhanced clustering parameters
+        meteoriteEntities.clustering.enabled = document.getElementById('clusterMeteorites').checked;
+        meteoriteEntities.clustering.pixelRange = 50;
+        meteoriteEntities.clustering.minimumClusterSize = 5;
+        meteoriteEntities.clustering.clusterLabels = true;
 
         function getMeteoriteColor(mass) {
             if (mass >= 500000) return Cesium.Color.RED.withAlpha(0.6);
@@ -427,7 +440,7 @@ HTML_TEMPLATE = """
         }
 
         function fetchAllMeteorites() {
-            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=100000';
+            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -506,6 +519,7 @@ HTML_TEMPLATE = """
             updateTotalCounts();
             updateModalTable();
             updateCraterModalTable();
+            updateHeatmapLayer();
         }
 
         function updateTotalCounts() {
@@ -560,7 +574,10 @@ HTML_TEMPLATE = """
                             <b>Fall/Find:</b> ${fall}
                         `,
                         isMeteorite: true,
-                        meteoriteIndex: index
+                        meteoriteIndex: index,
+                        properties: {
+                            mass: mass
+                        }
                     });
                 }
             });
@@ -1029,6 +1046,10 @@ HTML_TEMPLATE = """
             craterEntities.show = this.checked;
         });
 
+        document.getElementById('heatmapToggle').addEventListener('change', function() {
+            updateHeatmapLayer();
+        });
+
         document.getElementById('refreshButton').onclick = resetFilters;
 
         function resetFilters() {
@@ -1056,7 +1077,7 @@ HTML_TEMPLATE = """
         function updateSlidersDisplay() {
             const yearMin = parseInt(document.getElementById('yearRangeMin').value);
             const yearMax = parseInt(document.getElementById('yearRangeMax').value);
-            document.getElementById('yearRangeValue').innerText = `${yearMin} - ${yearMax} Ma`;
+            document.getElementById('yearRangeValue').innerText = `${yearMin} - ${yearMax}`;
 
             const massMin = parseInt(document.getElementById('massRangeMin').value);
             const massMax = parseInt(document.getElementById('massRangeMax').value);
@@ -1131,6 +1152,72 @@ HTML_TEMPLATE = """
         closeOptions.onclick = () => {
             controls.style.display = 'none';
         };
+
+        // Heatmap implementation
+        let heatmapPrimitive;
+        function updateHeatmapLayer() {
+            if (document.getElementById('heatmapToggle').checked) {
+                if (heatmapPrimitive) viewer.scene.primitives.remove(heatmapPrimitive);
+                const heatData = filteredMeteorites.map(meteorite => {
+                    let lat, lon;
+                    if (meteorite.geolocation) {
+                        if (meteorite.geolocation.latitude && meteorite.geolocation.longitude) {
+                            lat = parseFloat(meteorite.geolocation.latitude);
+                            lon = parseFloat(meteorite.geolocation.longitude);
+                        } else if (meteorite.geolocation.coordinates && meteorite.geolocation.coordinates.length === 2) {
+                            lon = parseFloat(meteorite.geolocation.coordinates[0]);
+                            lat = parseFloat(meteorite.geolocation.coordinates[1]);
+                        }
+                    } else if (meteorite.reclat && meteorite.reclong) {
+                        lat = parseFloat(meteorite.reclat);
+                        lon = parseFloat(meteorite.reclong);
+                    }
+                    if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
+                        return { lon, lat, value: 1 };
+                    }
+                    return null;
+                }).filter(d => d !== null);
+
+                const heatmap = createCesiumHeatmap(viewer, heatData);
+                heatmapPrimitive = heatmap;
+                viewer.scene.primitives.add(heatmap);
+            } else {
+                if (heatmapPrimitive) {
+                    viewer.scene.primitives.remove(heatmapPrimitive);
+                    heatmapPrimitive = null;
+                }
+            }
+        }
+
+        function createCesiumHeatmap(viewer, data) {
+            const positions = data.map(d => Cesium.Cartographic.toCartesian(Cesium.Cartographic.fromDegrees(d.lon, d.lat)));
+            const heatmapOptions = {
+                min: 0,
+                max: 1,
+                radius: 15
+            };
+            const heatmapData = {
+                positions,
+                options: heatmapOptions
+            };
+            // Simple heatmap implementation; for a real application, consider using a library or custom solution
+            const heatPrimitive = new Cesium.Primitive({
+                geometryInstances: new Cesium.GeometryInstance({
+                    geometry: new Cesium.PointGeometry({
+                        positions: positions,
+                        vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
+                    }),
+                    attributes: {
+                        color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.RED.withAlpha(0.5))
+                    }
+                }),
+                appearance: new Cesium.PerInstanceColorAppearance({
+                    closed: true,
+                    translucent: true
+                })
+            });
+            return heatPrimitive;
+        }
     </script>
 </body>
 </html>
