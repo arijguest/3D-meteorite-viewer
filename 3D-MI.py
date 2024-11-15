@@ -272,8 +272,11 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <label><strong>Mass Range:</strong> <span id="massRangeValue"></span></label>
-            <input type="range" id="massRangeMin" min="0" max="60000" value="0">
-            <input type="range" id="massRangeMax" min="0" max="60000" value="60000">
+            <input type="range" id="massRangeMin" min="0" max="1000000" value="0">
+            <input type="range" id="massRangeMax" min="0" max="1000000" value="1000000">
+        </div>
+        <div>
+            <label><input type="checkbox" id="clusterMeteorites"> Cluster Meteorites</label>
         </div>
         <hr>
         <div>
@@ -402,11 +405,17 @@ HTML_TEMPLATE = """
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
 
+        meteoriteEntities.clustering = new Cesium.EntityCluster({
+            enabled: document.getElementById('clusterMeteorites').checked,
+            pixelRange: 15,
+            minimumClusterSize: 3
+        });
+
         function getMeteoriteColor(mass) {
-            if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
-            if (mass >= 50000)  return Cesium.Color.ORANGE.withAlpha(0.6);
-            if (mass >= 10000)  return Cesium.Color.YELLOW.withAlpha(0.6);
-            if (mass >= 1000)   return Cesium.Color.GREEN.withAlpha(0.6);
+            if (mass >= 500000) return Cesium.Color.RED.withAlpha(0.6);
+            if (mass >= 100000) return Cesium.Color.ORANGE.withAlpha(0.6);
+            if (mass >= 50000)  return Cesium.Color.YELLOW.withAlpha(0.6);
+            if (mass >= 10000)  return Cesium.Color.GREEN.withAlpha(0.6);
             return Cesium.Color.CYAN.withAlpha(0.6);
         }
 
@@ -418,7 +427,7 @@ HTML_TEMPLATE = """
         }
 
         function fetchAllMeteorites() {
-            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
+            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=100000';
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -535,7 +544,7 @@ HTML_TEMPLATE = """
                     meteoriteEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
-                            pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 1000, 5), 15) : 5,
+                            pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
                             color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
                             outlineColor: Cesium.Color.BLACK,
                             outlineWidth: 1
@@ -605,7 +614,9 @@ HTML_TEMPLATE = """
 
         function formatMass(mass) {
             if (mass === 'Unknown' || isNaN(mass)) return 'Unknown';
-            if (mass > 500) {
+            if (mass >= 1000000) {
+                return (mass / 1000000).toFixed(2) + ' tonnes';
+            } else if (mass >= 1000) {
                 return (mass / 1000).toFixed(2) + ' kg';
             } else {
                 return mass + ' g';
@@ -867,7 +878,6 @@ HTML_TEMPLATE = """
             }).join('');
         }
 
-        // Sorting function
         function sortTable(tableId, colIndex) {
             const table = document.getElementById(tableId);
             let switching = true;
@@ -876,15 +886,14 @@ HTML_TEMPLATE = """
 
             while (switching) {
                 switching = false;
-                const rows = table.rows;
-                for (let i = 1; i < (rows.length - 1); i++) {
+                const rows = table.querySelectorAll("tbody tr");
+                for (let i = 0; i < rows.length - 1; i++) {
                     let shouldSwitch = false;
                     const x = rows[i].getElementsByTagName("TD")[colIndex];
                     const y = rows[i + 1].getElementsByTagName("TD")[colIndex];
                     let xContent = x.textContent || x.innerText;
                     let yContent = y.textContent || y.innerText;
 
-                    // Attempt to convert to numbers
                     const xNum = parseFloat(xContent.replace(/[^\d.-]/g, ''));
                     const yNum = parseFloat(yContent.replace(/[^\d.-]/g, ''));
 
@@ -901,7 +910,6 @@ HTML_TEMPLATE = """
                             }
                         }
                     } else {
-                        // Compare as strings
                         if (dir == "asc") {
                             if (xContent.toLowerCase() > yContent.toLowerCase()) {
                                 shouldSwitch = true;
@@ -1013,6 +1021,10 @@ HTML_TEMPLATE = """
             meteoriteEntities.show = this.checked;
         });
 
+        document.getElementById('clusterMeteorites').addEventListener('change', function() {
+            meteoriteEntities.clustering.enabled = this.checked;
+        });
+
         document.getElementById('toggleCraters').addEventListener('change', function() {
             craterEntities.show = this.checked;
         });
@@ -1023,7 +1035,7 @@ HTML_TEMPLATE = """
             document.getElementById('yearRangeMin').value = 860;
             document.getElementById('yearRangeMax').value = 2023;
             document.getElementById('massRangeMin').value = 0;
-            document.getElementById('massRangeMax').value = 60000;
+            document.getElementById('massRangeMax').value = 1000000;
 
             document.getElementById('diameterRangeMin').value = 0;
             document.getElementById('diameterRangeMax').value = 300;
