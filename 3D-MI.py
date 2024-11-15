@@ -238,16 +238,6 @@ HTML_TEMPLATE = """
             width: 100%;
             table-layout: fixed;
         }
-        /* Cluster styling */
-        .cluster-marker {
-            background-color: rgba(0, 102, 204, 0.8);
-            border-radius: 50%;
-            color: white;
-            padding: 5px;
-            text-align: center;
-            font-size: 14px;
-            line-height: 1;
-        }
     </style>
 </head>
 <body>
@@ -286,10 +276,7 @@ HTML_TEMPLATE = """
             <input type="range" id="massRangeMax" min="0" max="1000000" value="1000000">
         </div>
         <div>
-            <label><input type="checkbox" id="clusterMeteorites"> Enable Clustering</label>
-        </div>
-        <div>
-            <label><input type="checkbox" id="heatmapToggle"> Show Heatmap</label>
+            <label><input type="checkbox" id="clusterMeteorites" checked> Enable Clustering</label>
         </div>
         <hr>
         <div>
@@ -412,17 +399,18 @@ HTML_TEMPLATE = """
         let filteredCraters = [];
         const allCraters = impactCraters.features;
 
-        let meteoriteEntities = new Cesium.CustomDataSource('meteorites');
-        viewer.dataSources.add(meteoriteEntities);
-
+        let meteoritePoints = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
 
         // Enhanced clustering parameters
-        meteoriteEntities.clustering.enabled = document.getElementById('clusterMeteorites').checked;
-        meteoriteEntities.clustering.pixelRange = 50;
-        meteoriteEntities.clustering.minimumClusterSize = 5;
-        meteoriteEntities.clustering.clusterLabels = true;
+        const clusterOptions = {
+            enabled: true,
+            pixelRange: 50,
+            minimumClusterSize: 5
+        };
+
+        const entityCluster = new Cesium.EntityCluster(clusterOptions);
 
         function getMeteoriteColor(mass) {
             if (mass >= 500000) return Cesium.Color.RED.withAlpha(0.6);
@@ -519,7 +507,6 @@ HTML_TEMPLATE = """
             updateTotalCounts();
             updateModalTable();
             updateCraterModalTable();
-            updateHeatmapLayer();
         }
 
         function updateTotalCounts() {
@@ -528,7 +515,7 @@ HTML_TEMPLATE = """
         }
 
         function updateMeteoriteData() {
-            meteoriteEntities.entities.removeAll();
+            meteoritePoints.removeAll();
 
             filteredMeteorites.forEach((meteorite, index) => {
                 let lat, lon;
@@ -547,39 +534,23 @@ HTML_TEMPLATE = """
                 }
 
                 if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
-                    const name = meteorite.name || 'Unknown';
-                    const id = meteorite.id || 'Unknown';
                     const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                    const massDisplay = formatMass(mass);
-                    const recclass = meteorite.recclass || 'Unknown';
-                    const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
-                    const fall = meteorite.fall || 'Unknown';
-
-                    meteoriteEntities.entities.add({
+                    meteoritePoints.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        point: {
-                            pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
-                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
-                            outlineColor: Cesium.Color.BLACK,
-                            outlineWidth: 1
-                        },
-                        description: `
-                            <b>Name:</b> ${name}<br>
-                            <b>ID:</b> ${id}<br>
-                            <b>Latitude:</b> ${lat.toFixed(5)}<br>
-                            <b>Longitude:</b> ${lon.toFixed(5)}<br>
-                            <b>Mass:</b> ${massDisplay}<br>
-                            <b>Class:</b> ${recclass}<br>
-                            <b>Year:</b> ${year}<br>
-                            <b>Fall/Find:</b> ${fall}
-                        `,
-                        isMeteorite: true,
-                        meteoriteIndex: index,
-                        properties: {
-                            mass: mass
+                        pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
+                        color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
+                        id: {
+                            isMeteorite: true,
+                            meteoriteIndex: index
                         }
                     });
                 }
+            });
+
+            meteoritePoints.cluster = new Cesium.EntityCluster({
+                enabled: document.getElementById('clusterMeteorites').checked,
+                pixelRange: 50,
+                minimumClusterSize: 5
             });
         }
 
@@ -592,15 +563,7 @@ HTML_TEMPLATE = """
 
                 if (geometry && geometry.type === "Point") {
                     const [lon, lat] = geometry.coordinates;
-                    const name = properties.crater_name || 'Unknown';
-                    const age = properties.age_millions_years_ago || 'Unknown';
                     let diameter = parseFloat(properties.diameter_km) || 1;
-                    const country = properties.country || 'Unknown';
-                    const target_rock = properties.target_rock || 'Unknown';
-                    const exposed = properties.exposed !== undefined ? properties.exposed : 'Unknown';
-                    const drilled = properties.drilled !== undefined ? properties.drilled : 'Unknown';
-                    const bolide_type = properties.bolid_type || 'Unknown';
-                    const url = properties.url || '#';
 
                     craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -610,23 +573,35 @@ HTML_TEMPLATE = """
                             outlineColor: Cesium.Color.BLACK,
                             outlineWidth: 1
                         },
-                        description: `
-                            <b>Name:</b> ${name}<br>
-                            <b>Age:</b> ${age} Ma<br>
-                            <b>Diameter:</b> ${diameter} km<br>
-                            <b>Country:</b> ${country}<br>
-                            <b>Target Rock:</b> ${target_rock}<br>
-                            <b>Exposed:</b> ${exposed}<br>
-                            <b>Drilled:</b> ${drilled}<br>
-                            <b>Bolide Type:</b> ${bolide_type}<br>
-                            <b>URL:</b> <a href="${url}" target="_blank">More Info</a>
-                        `,
+                        description: getCraterDescription(properties),
                         isImpactCrater: true,
-                        craterIndex: index,
-                        craterURL: url
+                        craterIndex: index
                     });
                 }
             });
+        }
+
+        function getCraterDescription(properties) {
+            const name = properties.crater_name || 'Unknown';
+            const age = properties.age_millions_years_ago || 'Unknown';
+            const diameter = properties.diameter_km || 'Unknown';
+            const country = properties.country || 'Unknown';
+            const target_rock = properties.target_rock || 'Unknown';
+            const exposed = properties.exposed !== undefined ? properties.exposed : 'Unknown';
+            const drilled = properties.drilled !== undefined ? properties.drilled : 'Unknown';
+            const bolide_type = properties.bolid_type || 'Unknown';
+            const url = properties.url || '#';
+            return `
+                <b>Name:</b> ${name}<br>
+                <b>Age:</b> ${age} Ma<br>
+                <b>Diameter:</b> ${diameter} km<br>
+                <b>Country:</b> ${country}<br>
+                <b>Target Rock:</b> ${target_rock}<br>
+                <b>Exposed:</b> ${exposed}<br>
+                <b>Drilled:</b> ${drilled}<br>
+                <b>Bolide Type:</b> ${bolide_type}<br>
+                <b>URL:</b> <a href="${url}" target="_blank">More Info</a>
+            `;
         }
 
         function formatMass(mass) {
@@ -800,11 +775,17 @@ HTML_TEMPLATE = """
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
         handler.setInputAction(movement => {
-            const picked = viewer.scene.pick(movement.endPosition);
-            if (Cesium.defined(picked)) {
-                if (picked.id.isMeteorite || picked.id.isImpactCrater) {
+            const pickedObject = viewer.scene.pick(movement.endPosition);
+            if (Cesium.defined(pickedObject)) {
+                if (pickedObject.id && (pickedObject.id.isMeteorite || pickedObject.id.isImpactCrater)) {
                     tooltip.style.display = 'block';
-                    tooltip.innerHTML = picked.id.description.getValue();
+                    if (pickedObject.id.isImpactCrater) {
+                        tooltip.innerHTML = pickedObject.id.description.getValue();
+                    } else if (pickedObject.id.isMeteorite) {
+                        const index = pickedObject.id.meteoriteIndex;
+                        const meteorite = filteredMeteorites[index];
+                        tooltip.innerHTML = getMeteoriteDescription(meteorite);
+                    }
                     updateTooltipPosition(movement.endPosition);
                 } else {
                     tooltip.style.display = 'none';
@@ -814,14 +795,41 @@ HTML_TEMPLATE = """
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-        handler.setInputAction(movement => {
-            const picked = viewer.scene.pick(movement.position);
-            if (Cesium.defined(picked)) {
-                if (picked.id.isImpactCrater) {
-                    flyToCrater(picked.id.craterIndex);
+        function getMeteoriteDescription(meteorite) {
+            let lat, lon;
+
+            if (meteorite.geolocation) {
+                if (meteorite.geolocation.latitude && meteorite.geolocation.longitude) {
+                    lat = parseFloat(meteorite.geolocation.latitude);
+                    lon = parseFloat(meteorite.geolocation.longitude);
+                } else if (meteorite.geolocation.coordinates && meteorite.geolocation.coordinates.length === 2) {
+                    lon = parseFloat(meteorite.geolocation.coordinates[0]);
+                    lat = parseFloat(meteorite.geolocation.coordinates[1]);
                 }
+            } else if (meteorite.reclat && meteorite.reclong) {
+                lat = parseFloat(meteorite.reclat);
+                lon = parseFloat(meteorite.reclong);
             }
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            const name = meteorite.name || 'Unknown';
+            const id = meteorite.id || 'Unknown';
+            const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
+            const massDisplay = formatMass(mass);
+            const recclass = meteorite.recclass || 'Unknown';
+            const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
+            const fall = meteorite.fall || 'Unknown';
+
+            return `
+                <b>Name:</b> ${name}<br>
+                <b>ID:</b> ${id}<br>
+                <b>Latitude:</b> ${lat ? lat.toFixed(5) : 'Unknown'}<br>
+                <b>Longitude:</b> ${lon ? lon.toFixed(5) : 'Unknown'}<br>
+                <b>Mass:</b> ${massDisplay}<br>
+                <b>Class:</b> ${recclass}<br>
+                <b>Year:</b> ${year}<br>
+                <b>Fall/Find:</b> ${fall}
+            `;
+        }
 
         function updateTooltipPosition(position) {
             const x = position.x + 15;
@@ -1035,19 +1043,15 @@ HTML_TEMPLATE = """
         });
 
         document.getElementById('toggleMeteorites').addEventListener('change', function() {
-            meteoriteEntities.show = this.checked;
+            meteoritePoints.show = this.checked;
         });
 
         document.getElementById('clusterMeteorites').addEventListener('change', function() {
-            meteoriteEntities.clustering.enabled = this.checked;
+            meteoritePoints.cluster.enabled = this.checked;
         });
 
         document.getElementById('toggleCraters').addEventListener('change', function() {
             craterEntities.show = this.checked;
-        });
-
-        document.getElementById('heatmapToggle').addEventListener('change', function() {
-            updateHeatmapLayer();
         });
 
         document.getElementById('refreshButton').onclick = resetFilters;
@@ -1153,71 +1157,6 @@ HTML_TEMPLATE = """
             controls.style.display = 'none';
         };
 
-        // Heatmap implementation
-        let heatmapPrimitive;
-        function updateHeatmapLayer() {
-            if (document.getElementById('heatmapToggle').checked) {
-                if (heatmapPrimitive) viewer.scene.primitives.remove(heatmapPrimitive);
-                const heatData = filteredMeteorites.map(meteorite => {
-                    let lat, lon;
-                    if (meteorite.geolocation) {
-                        if (meteorite.geolocation.latitude && meteorite.geolocation.longitude) {
-                            lat = parseFloat(meteorite.geolocation.latitude);
-                            lon = parseFloat(meteorite.geolocation.longitude);
-                        } else if (meteorite.geolocation.coordinates && meteorite.geolocation.coordinates.length === 2) {
-                            lon = parseFloat(meteorite.geolocation.coordinates[0]);
-                            lat = parseFloat(meteorite.geolocation.coordinates[1]);
-                        }
-                    } else if (meteorite.reclat && meteorite.reclong) {
-                        lat = parseFloat(meteorite.reclat);
-                        lon = parseFloat(meteorite.reclong);
-                    }
-                    if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
-                        return { lon, lat, value: 1 };
-                    }
-                    return null;
-                }).filter(d => d !== null);
-
-                const heatmap = createCesiumHeatmap(viewer, heatData);
-                heatmapPrimitive = heatmap;
-                viewer.scene.primitives.add(heatmap);
-            } else {
-                if (heatmapPrimitive) {
-                    viewer.scene.primitives.remove(heatmapPrimitive);
-                    heatmapPrimitive = null;
-                }
-            }
-        }
-
-        function createCesiumHeatmap(viewer, data) {
-            const positions = data.map(d => Cesium.Cartographic.toCartesian(Cesium.Cartographic.fromDegrees(d.lon, d.lat)));
-            const heatmapOptions = {
-                min: 0,
-                max: 1,
-                radius: 15
-            };
-            const heatmapData = {
-                positions,
-                options: heatmapOptions
-            };
-            // Simple heatmap implementation; for a real application, consider using a library or custom solution
-            const heatPrimitive = new Cesium.Primitive({
-                geometryInstances: new Cesium.GeometryInstance({
-                    geometry: new Cesium.PointGeometry({
-                        positions: positions,
-                        vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
-                    }),
-                    attributes: {
-                        color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.RED.withAlpha(0.5))
-                    }
-                }),
-                appearance: new Cesium.PerInstanceColorAppearance({
-                    closed: true,
-                    translucent: true
-                })
-            });
-            return heatPrimitive;
-        }
     </script>
 </body>
 </html>
