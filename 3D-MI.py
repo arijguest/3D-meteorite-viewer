@@ -339,6 +339,10 @@ HTML_TEMPLATE = """
                         <th onclick="sortTable('fullCraterTable', 1)">Diameter (km) &#x25B2;&#x25BC;</th>
                         <th onclick="sortTable('fullCraterTable', 2)">Age (Ma) &#x25B2;&#x25BC;</th>
                         <th onclick="sortTable('fullCraterTable', 3)">Country &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 4)">Exposed &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 5)">Drilled &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 6)">Bolide Type &#x25B2;&#x25BC;</th>
+                        <th>Link</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -568,6 +572,9 @@ HTML_TEMPLATE = """
                     let diameter = parseFloat(properties.diameter_km) || 1;
                     const country = properties.country || 'Unknown';
                     const target_rock = properties.target_rock || 'Unknown';
+                    const exposed = properties.exposed !== undefined ? properties.exposed : 'Unknown';
+                    const drilled = properties.drilled !== undefined ? properties.drilled : 'Unknown';
+                    const bolide_type = properties.bolid_type || 'Unknown';
                     const url = properties.url || '#';
 
                     craterEntities.entities.add({
@@ -583,11 +590,15 @@ HTML_TEMPLATE = """
                             <b>Age:</b> ${age} Ma<br>
                             <b>Diameter:</b> ${diameter} km<br>
                             <b>Country:</b> ${country}<br>
-                            <b>Target Rock:</b> ${target_rock}
+                            <b>Target Rock:</b> ${target_rock}<br>
+                            <b>Exposed:</b> ${exposed}<br>
+                            <b>Drilled:</b> ${drilled}<br>
+                            <b>Bolide Type:</b> ${bolide_type}<br>
+                            <b>URL:</b> <a href="${url}" target="_blank">More Info</a>
                         `,
                         isImpactCrater: true,
                         craterIndex: index,
-                        craterURL: url  /* Added URL property */
+                        craterURL: url
                     });
                 }
             });
@@ -699,12 +710,6 @@ HTML_TEMPLATE = """
                 duration: 2,
                 orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-45) }
             });
-
-            // Redirect to the crater URL
-            const url = crater.properties.url || '#';
-            if (url !== '#') {
-                window.open(url, '_blank');
-            }
         }
 
         function openModal() {
@@ -736,7 +741,7 @@ HTML_TEMPLATE = """
         function openCraterModal() {
             const tbody = document.querySelector('#fullCraterTable tbody');
             if (!filteredCraters.length) {
-                tbody.innerHTML = '<tr><td colspan="4">No crater data available.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8">No crater data available.</td></tr>';
                 return;
             }
             tbody.innerHTML = filteredCraters.map((crater, index) => {
@@ -744,12 +749,20 @@ HTML_TEMPLATE = """
                 const diameter = parseFloat(crater.properties.diameter_km) || 'Unknown';
                 const age = crater.properties.age_millions_years_ago || 'Unknown';
                 const country = crater.properties.country || 'Unknown';
+                const exposed = crater.properties.exposed !== undefined ? crater.properties.exposed : 'Unknown';
+                const drilled = crater.properties.drilled !== undefined ? crater.properties.drilled : 'Unknown';
+                const bolide_type = crater.properties.bolid_type || 'Unknown';
+                const url = crater.properties.url || '#';
                 return `
-                    <tr onclick='flyToCrater(${index})' style="cursor:pointer;">
+                    <tr>
                         <td>${name}</td>
                         <td>${diameter}</td>
                         <td>${age}</td>
                         <td>${country}</td>
+                        <td>${exposed}</td>
+                        <td>${drilled}</td>
+                        <td>${bolide_type}</td>
+                        <td><a href="${url}" target="_blank">Visit</a></td>
                     </tr>
                 `;
             }).join('');
@@ -777,8 +790,8 @@ HTML_TEMPLATE = """
         handler.setInputAction(movement => {
             const picked = viewer.scene.pick(movement.position);
             if (Cesium.defined(picked)) {
-                if (picked.id.isImpactCrater && picked.id.craterURL !== '#') {
-                    window.open(picked.id.craterURL, '_blank');
+                if (picked.id.isImpactCrater) {
+                    flyToCrater(picked.id.craterIndex);
                 }
             }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -828,7 +841,7 @@ HTML_TEMPLATE = """
         function updateCraterModalTable() {
             const tbody = document.querySelector('#fullCraterTable tbody');
             if (!filteredCraters.length) {
-                tbody.innerHTML = '<tr><td colspan="4">No crater data available.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8">No crater data available.</td></tr>';
                 return;
             }
             tbody.innerHTML = filteredCraters.map((crater, index) => {
@@ -836,12 +849,20 @@ HTML_TEMPLATE = """
                 const diameter = parseFloat(crater.properties.diameter_km) || 'Unknown';
                 const age = crater.properties.age_millions_years_ago || 'Unknown';
                 const country = crater.properties.country || 'Unknown';
+                const exposed = crater.properties.exposed !== undefined ? crater.properties.exposed : 'Unknown';
+                const drilled = crater.properties.drilled !== undefined ? crater.properties.drilled : 'Unknown';
+                const bolide_type = crater.properties.bolid_type || 'Unknown';
+                const url = crater.properties.url || '#';
                 return `
-                    <tr onclick='flyToCrater(${index})' style="cursor:pointer;">
+                    <tr>
                         <td>${name}</td>
                         <td>${diameter}</td>
                         <td>${age}</td>
                         <td>${country}</td>
+                        <td>${exposed}</td>
+                        <td>${drilled}</td>
+                        <td>${bolide_type}</td>
+                        <td><a href="${url}" target="_blank">Visit</a></td>
                     </tr>
                 `;
             }).join('');
