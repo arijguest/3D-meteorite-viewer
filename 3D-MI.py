@@ -295,7 +295,7 @@ HTML_TEMPLATE = """
             <input type="range" id="diameterRangeMax" min="0" max="300" value="300">
         </div>
         <div>
-            <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
+            <label><strong>Age Range (Ma):</strong> <span id="ageRangeValue"></span></label>
             <input type="range" id="ageRangeMin" min="0" max="2000" value="0">
             <input type="range" id="ageRangeMax" min="0" max="2000" value="2000">
         </div>
@@ -358,20 +358,22 @@ HTML_TEMPLATE = """
         <div id="keyModal-content">
             <span id="closeKeyModal">&times;</span>
             <h2>Key</h2>
-            <h3>Meteorite Colors:</h3>
+            <h3>Meteorite Symbols:</h3>
+            <p>The size of the meteorite symbol correlates with its mass, and the color indicates its mass range:</p>
             <ul>
-                <li><span style="color: purple;">Purple</span>: Mass ≥ 500,000 g</li>
-                <li><span style="color: red;">Red</span>: 100,000 g ≤ Mass &lt; 500,000 g</li>
-                <li><span style="color: orange;">Orange</span>: 50,000 g ≤ Mass &lt; 100,000 g</li>
-                <li><span style="color: yellow;">Yellow</span>: 10,000 g ≤ Mass &lt; 50,000 g</li>
-                <li><span style="color: cyan;">Cyan</span>: Mass &lt; 10,000 g</li>
+                <li><span style="color: purple;">●</span> Large purple circle (size 20 px): Mass ≥ 500,000 g</li>
+                <li><span style="color: red;">●</span> Large red circle (size 15 px): 100,000 g ≤ Mass &lt; 500,000 g</li>
+                <li><span style="color: orange;">●</span> Medium orange circle (size 10 px): 50,000 g ≤ Mass &lt; 100,000 g</li>
+                <li><span style="color: yellow;">●</span> Small yellow circle (size 7 px): 10,000 g ≤ Mass &lt; 50,000 g</li>
+                <li><span style="color: cyan;">●</span> Tiny cyan circle (size 5 px): Mass &lt; 10,000 g</li>
             </ul>
-            <h3>Impact Crater Colors:</h3>
+            <h3>Impact Crater Symbols:</h3>
+            <p>The size of the impact crater symbol correlates with its diameter, and the color indicates its diameter range:</p>
             <ul>
-                <li><span style="color: navy;">Navy</span>: Diameter ≥ 50 km</li>
-                <li><span style="color: darkblue;">Dark Blue</span>: 30 km ≤ Diameter &lt; 50 km</li>
-                <li><span style="color: blue;">Blue</span>: 10 km ≤ Diameter &lt; 30 km</li>
-                <li><span style="color: lightblue;">Light Blue</span>: Diameter &lt; 10 km</li>
+                <li><span style="color: navy;">▲</span> Large navy triangle (size 25 px): Diameter ≥ 50 km</li>
+                <li><span style="color: darkblue;">▲</span> Medium dark blue triangle (size 20 px): 30 km ≤ Diameter &lt; 50 km</li>
+                <li><span style="color: blue;">▲</span> Small blue triangle (size 15 px): 10 km ≤ Diameter &lt; 30 km</li>
+                <li><span style="color: lightblue;">▲</span> Tiny light blue triangle (size 10 px): Diameter &lt; 10 km</li>
             </ul>
         </div>
     </div>
@@ -379,6 +381,8 @@ HTML_TEMPLATE = """
         <div id="infoModal-content">
             <span id="closeInfoModal">&times;</span>
             <h2>Information</h2>
+            <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
+            <h3>How to Use:</h3>
             <!-- Existing content -->
         </div>
     </div>
@@ -416,8 +420,6 @@ HTML_TEMPLATE = """
             minimumClusterSize: 10
         };
 
-        const entityCluster = new Cesium.EntityCluster(clusterOptions);
-
         function getMeteoriteColor(mass) {
             if (mass >= 500000) return Cesium.Color.PURPLE.withAlpha(0.6);
             if (mass >= 100000) return Cesium.Color.RED.withAlpha(0.6);
@@ -446,8 +448,151 @@ HTML_TEMPLATE = """
                 });
         }
 
-        // Rest of the JavaScript code remains the same, except for:
-        // 1. Remove the 'URL' section from the getCraterDescription function
+        function applyFilters() {
+            let yearMin = parseInt(document.getElementById('yearRangeMin').value);
+            let yearMax = parseInt(document.getElementById('yearRangeMax').value);
+            let massMin = parseInt(document.getElementById('massRangeMin').value);
+            let massMax = parseInt(document.getElementById('massRangeMax').value);
+
+            let diameterMin = parseInt(document.getElementById('diameterRangeMin').value);
+            let diameterMax = parseInt(document.getElementById('diameterRangeMax').value);
+            let ageMin = parseInt(document.getElementById('ageRangeMin').value);
+            let ageMax = parseInt(document.getElementById('ageRangeMax').value);
+            const selectedRocks = Array.from(document.getElementById('targetRockSelect').selectedOptions).map(option => option.value);
+
+            if (yearMin > yearMax) {
+                [yearMin, yearMax] = [yearMax, yearMin];
+                document.getElementById('yearRangeMin').value = yearMin;
+                document.getElementById('yearRangeMax').value = yearMax;
+            }
+
+            if (massMin > massMax) {
+                [massMin, massMax] = [massMax, massMin];
+                document.getElementById('massRangeMin').value = massMin;
+                document.getElementById('massRangeMax').value = massMax;
+            }
+
+            if (diameterMin > diameterMax) {
+                [diameterMin, diameterMax] = [diameterMax, diameterMin];
+                document.getElementById('diameterRangeMin').value = diameterMin;
+                document.getElementById('diameterRangeMax').value = diameterMax;
+            }
+
+            if (ageMin > ageMax) {
+                [ageMin, ageMax] = [ageMax, ageMin];
+                document.getElementById('ageRangeMin').value = ageMin;
+                document.getElementById('ageRangeMax').value = ageMax;
+            }
+
+            filteredMeteorites = allMeteorites.filter(m => {
+                const year = m.year ? new Date(m.year).getFullYear() : null;
+                const mass = m.mass ? parseFloat(m.mass) : null;
+
+                const yearMatch = year ? (year >= yearMin && year <= yearMax) : true;
+                const massMatch = mass ? (mass >= massMin && mass <= massMax) : true;
+
+                return yearMatch && massMatch;
+            });
+
+            filteredCraters = allCraters.filter(feature => {
+                const properties = feature.properties;
+                let diameter = parseFloat(properties.diameter_km) || 0;
+                let age_min = parseFloat(properties.age_min) || 0;
+                let age_max = parseFloat(properties.age_max) || 2000;
+                const targetRock = properties.target_rock || 'Unknown';
+
+                const diameterMatch = diameter >= diameterMin && diameter <= diameterMax;
+                const ageMatch = (age_min >= ageMin && age_max <= ageMax);
+                const rockMatch = selectedRocks.length ? selectedRocks.includes(targetRock) : true;
+
+                return diameterMatch && ageMatch && rockMatch;
+            });
+
+            updateMeteoriteData();
+            updateCraterData();
+            updateTopMeteorites();
+            updateTopCraters();
+            updateTotalCounts();
+            updateModalTable();
+            updateCraterModalTable();
+        }
+
+        function updateTotalCounts() {
+            document.getElementById('totalMeteorites').innerText = `Total Meteorites: ${filteredMeteorites.length}`;
+            document.getElementById('totalCraters').innerText = `Total Impact Craters: ${filteredCraters.length}`;
+        }
+
+        function updateMeteoriteData() {
+            meteoritePoints.removeAll();
+
+            filteredMeteorites.forEach((meteorite, index) => {
+                let lat, lon;
+
+                if (meteorite.geolocation) {
+                    if (meteorite.geolocation.latitude && meteorite.geolocation.longitude) {
+                        lat = parseFloat(meteorite.geolocation.latitude);
+                        lon = parseFloat(meteorite.geolocation.longitude);
+                    } else if (meteorite.geolocation.coordinates && meteorite.geolocation.coordinates.length === 2) {
+                        lon = parseFloat(meteorite.geolocation.coordinates[0]);
+                        lat = parseFloat(meteorite.geolocation.coordinates[1]);
+                    }
+                } else if (meteorite.reclat && meteorite.reclong) {
+                    lat = parseFloat(meteorite.reclat);
+                    lon = parseFloat(meteorite.reclong);
+                }
+
+                if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
+                    const mass = meteorite.mass ? parseFloat(meteorite.mass) : null;
+                    let pixelSize = mass ? Math.min(Math.max(mass / 10000, 5), 20) : 5;
+                    pixelSize = Math.round(pixelSize);
+
+                    meteoritePoints.add({
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        pixelSize: pixelSize,
+                        color: mass ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
+                        id: {
+                            isMeteorite: true,
+                            meteoriteIndex: index
+                        }
+                    });
+                }
+            });
+
+            meteoritePoints.cluster = new Cesium.EntityCluster({
+                enabled: document.getElementById('clusterMeteorites').checked,
+                pixelRange: 80,
+                minimumClusterSize: 10
+            });
+        }
+
+        function updateCraterData() {
+            craterEntities.entities.removeAll();
+
+            filteredCraters.forEach((feature, index) => {
+                const properties = feature.properties;
+                const geometry = feature.geometry;
+
+                if (geometry && geometry.type === "Point") {
+                    const [lon, lat] = geometry.coordinates;
+                    let diameter = parseFloat(properties.diameter_km) || 1;
+                    let pixelSize = getCraterSize(diameter);
+
+                    craterEntities.entities.add({
+                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                        point: {
+                            pixelSize: pixelSize,
+                            color: getCraterColor(diameter),
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 1
+                        },
+                        description: getCraterDescription(properties),
+                        isImpactCrater: true,
+                        craterIndex: index
+                    });
+                }
+            });
+        }
+
         function getCraterDescription(properties) {
             const name = properties.crater_name || 'Unknown';
             const age = properties.age_millions_years_ago || 'Unknown';
@@ -469,14 +614,27 @@ HTML_TEMPLATE = """
             `;
         }
 
-        // 2. Adjust the clustering options to handle large datasets
-        meteoritePoints.cluster = new Cesium.EntityCluster({
-            enabled: document.getElementById('clusterMeteorites').checked,
-            pixelRange: 80,
-            minimumClusterSize: 10
-        });
+        function formatMass(mass) {
+            if (mass === 'Unknown' || isNaN(mass)) return 'Unknown';
+            if (mass >= 1000000) {
+                return (mass / 1000000).toFixed(2) + ' tonnes';
+            } else if (mass >= 1000) {
+                return (mass / 1000).toFixed(2) + ' kg';
+            } else {
+                return mass + ' g';
+            }
+        }
 
-        // 3. Add event listeners for the Key modal
+        function getCraterSize(diameter) {
+            if (diameter >= 50) return 25;
+            if (diameter >= 30) return 20;
+            if (diameter >= 10) return 15;
+            return 10;
+        }
+
+        // Rest of the JavaScript code remains unchanged...
+
+        // Add event listeners for the Key modal
         const keyModal = document.getElementById('keyModal');
         const keyButton = document.getElementById('keyButton');
         const closeKeyModal = document.getElementById('closeKeyModal');
@@ -493,7 +651,7 @@ HTML_TEMPLATE = """
             if (event.target == keyModal) keyModal.style.display = 'none';
         };
 
-        // Rest of the JavaScript code remains unchanged
+        // Rest of the JavaScript code remains the same
 
     </script>
 </body>
