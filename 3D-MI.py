@@ -331,7 +331,7 @@ HTML_TEMPLATE = """
             fullscreenButton: false,
             homeButton: true,
             geocoder: false,
-            infoBox: false,
+            infoBox: true,
             selectionIndicator: false,
             navigationInstructionsInitiallyVisible: false
         });
