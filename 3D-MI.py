@@ -145,7 +145,7 @@ HTML_TEMPLATE = """
             color: lightblue;
             text-decoration: underline;
         }
-        #modal, #infoModal, #craterModal, #keyModal {
+        #modal, #infoModal, #craterModal {
             display: none;
             position: fixed;
             z-index: 9999;
@@ -156,7 +156,7 @@ HTML_TEMPLATE = """
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
         }
-        #modal-content, #infoModal-content, #craterModal-content, #keyModal-content {
+        #modal-content, #infoModal-content, #craterModal-content {
             background-color: #2b2b2b;
             margin: 5% auto;
             padding: 20px;
@@ -165,7 +165,7 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             position: relative;
         }
-        #closeModal, #closeInfoModal, #closeCraterModal, #closeKeyModal, #controls .close-button {
+        #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button {
             color: #aaa;
             position: absolute;
             top: 10px;
@@ -173,7 +173,7 @@ HTML_TEMPLATE = """
             font-weight: bold;
             cursor: pointer;
         }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #closeKeyModal:hover, #closeKeyModal:focus, #controls .close-button:hover, #controls .close-button:focus {
+        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus {
             color: white;
             text-decoration: none;
         }
@@ -219,7 +219,7 @@ HTML_TEMPLATE = """
             display: block;
             margin-bottom: 10px;
         }
-        #modal-content, #craterModal-content, #keyModal-content {
+        #modal-content, #craterModal-content {
             max-height: 80vh;
             overflow: hidden;
         }
@@ -246,7 +246,6 @@ HTML_TEMPLATE = """
         <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
         <div>
             <button id="optionsButton">⚙️ Options</button>
-            <button id="keyButton">🗝️ Key</button>
         </div>
     </div>
     <div id="controls">
@@ -377,36 +376,13 @@ HTML_TEMPLATE = """
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
         </div>
     </div>
-    <div id="keyModal">
-        <div id="keyModal-content">
-            <span id="closeKeyModal">&times;</span>
-            <h2>Key</h2>
-            <h3>Meteorite Symbols:</h3>
-            <p>The size of the meteorite symbol correlates with its mass, and the color indicates its mass range:</p>
-            <ul>
-                <li><span style="color: purple;">●</span> Large purple circle (size 20 px): Mass ≥ 500,000 g</li>
-                <li><span style="color: red;">●</span> Large red circle (size 15 px): 100,000 g ≤ Mass &lt; 500,000 g</li>
-                <li><span style="color: orange;">●</span> Medium orange circle (size 10 px): 50,000 g ≤ Mass &lt; 100,000 g</li>
-                <li><span style="color: yellow;">●</span> Small yellow circle (size 7 px): 10,000 g ≤ Mass &lt; 50,000 g</li>
-                <li><span style="color: cyan;">●</span> Tiny cyan circle (size 5 px): Mass &lt; 10,000 g</li>
-            </ul>
-            <h3>Impact Crater Symbols:</h3>
-            <p>The size of the impact crater symbol correlates with its diameter, and the color indicates its diameter range:</p>
-            <ul>
-                <li><span style="color: navy;">▲</span> Large navy triangle (size 25 px): Diameter ≥ 50 km</li>
-                <li><span style="color: darkblue;">▲</span> Medium dark blue triangle (size 20 px): 30 km ≤ Diameter &lt; 50 km</li>
-                <li><span style="color: blue;">▲</span> Small blue triangle (size 15 px): 10 km ≤ Diameter &lt; 30 km</li>
-                <li><span style="color: lightblue;">▲</span> Tiny light blue triangle (size 10 px): Diameter &lt; 10 km</li>
-            </ul>
-        </div>
-    </div>
     <script>
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
             baseLayerPicker: false,
             navigationHelpButton: true,
-            sceneModePicker: false,
+            sceneModePicker: true,
             animation: false,
             timeline: false,
             fullscreenButton: false,
@@ -535,7 +511,7 @@ HTML_TEMPLATE = """
 
         function updateTotalCounts() {
             document.getElementById('totalMeteorites').innerText = `Total Meteorites: ${filteredMeteorites.length}`;
-            document.getElementById('totalCraters').innerText = `Total Craters: ${filteredCraters.length}`;
+            document.getElementById('totalCraters').innerText = `Total Impact Craters: ${filteredCraters.length}`;
         }
 
         function updateMeteoriteData() {
@@ -864,17 +840,12 @@ HTML_TEMPLATE = """
 
         const modal = document.getElementById('modal');
         const craterModal = document.getElementById('craterModal');
-        const keyModal = document.getElementById('keyModal');
-        const infoModal = document.getElementById('infoModal');
         document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
         document.getElementById('closeCraterModal').onclick = () => craterModal.style.display = 'none';
-        document.getElementById('closeKeyModal').onclick = () => keyModal.style.display = 'none';
-        document.getElementById('closeInfoModal').onclick = () => infoModal.style.display = 'none';
         window.onclick = event => {
             if (event.target == modal) modal.style.display = 'none';
             if (event.target == craterModal) craterModal.style.display = 'none';
             if (event.target == infoModal) infoModal.style.display = 'none';
-            if (event.target == keyModal) keyModal.style.display = 'none';
         };
 
         function updateModalTable() {
@@ -1184,19 +1155,6 @@ HTML_TEMPLATE = """
 
         closeOptions.onclick = () => {
             controls.style.display = 'none';
-        };
-
-        // Key Modal Functionality
-        const keyButton = document.getElementById('keyButton');
-        const keyModalElement = document.getElementById('keyModal');
-        const closeKeyModal = document.getElementById('closeKeyModal');
-
-        keyButton.onclick = () => {
-            keyModalElement.style.display = 'block';
-        };
-
-        closeKeyModal.onclick = () => {
-            keyModalElement.style.display = 'none';
         };
 
     </script>
