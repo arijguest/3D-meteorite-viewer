@@ -145,7 +145,44 @@ HTML_TEMPLATE = """
             color: lightblue;
             text-decoration: underline;
         }
-        #modal, #infoModal, #craterModal {
+        /* InfoBox Container Styles */
+        #infoBoxContainer {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            width: 300px;
+            height: 400px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            display: none;
+        }
+
+        /* Options Menu Button Styles */
+        #toggleInfoBoxButton {
+            cursor: pointer;
+            padding: 5px 10px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+
+        #toggleInfoBoxButton:hover {
+            background: #666;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        /* Existing styles... */
+        /* Remove or comment out the existing InfoModal styles */
+        /*
+        #infoModal {
             display: none;
             position: fixed;
             z-index: 9999;
@@ -156,7 +193,7 @@ HTML_TEMPLATE = """
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
         }
-        #modal-content, #infoModal-content, #craterModal-content {
+        #infoModal-content {
             background-color: #2b2b2b;
             margin: 5% auto;
             padding: 20px;
@@ -165,7 +202,7 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             position: relative;
         }
-        #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button {
+        #closeInfoModal {
             color: #aaa;
             position: absolute;
             top: 10px;
@@ -173,84 +210,11 @@ HTML_TEMPLATE = """
             font-weight: bold;
             cursor: pointer;
         }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus {
+        #closeInfoModal:hover, #closeInfoModal:focus {
             color: white;
             text-decoration: none;
         }
-        #fullMeteoriteTable, #fullCraterTable {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-        #fullMeteoriteTable th, #fullMeteoriteTable td,
-        #fullCraterTable th, #fullCraterTable td {
-            border: 1px solid #444;
-            padding: 8px;
-            text-align: left;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        #fullMeteoriteTable th, #fullCraterTable th {
-            background-color: #555;
-            position: sticky;
-            top: 0;
-            z-index: 500;
-            cursor: pointer;
-        }
-        input[type="range"] {
-            width: 100%;
-        }
-        select {
-            width: 100%;
-        }
-        #searchContainer {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-        #searchInput {
-            flex: 1;
-        }
-        button, input[type="button"] {
-            cursor: pointer;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-        }
-        #modal-content, #craterModal-content {
-            max-height: 80vh;
-            overflow: hidden;
-        }
-        #fullMeteoriteTable tbody, #fullCraterTable tbody {
-            display: block;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        #fullMeteoriteTable thead, #fullCraterTable thead {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-        }
-        #fullMeteoriteTable tbody tr, #fullCraterTable tbody tr {
-            display: table;
-            width: 100%;
-            table-layout: fixed;
-        }
-        /* InfoBox Styles */
-        #infoBoxContainer {
-            position: absolute;
-            bottom: 100px;
-            right: 10px;
-            width: 300px;
-            height: 200px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            display: none;
-        }
+        */
     </style>
 </head>
 <body>
@@ -319,51 +283,14 @@ HTML_TEMPLATE = """
             <span id="totalCraters">Total Craters: 0</span>
         </div>
         <div>
-            <button id="infoButton">ℹ️ Info</button>
+            <button id="toggleInfoBoxButton">ℹ️ Info</button>
         </div>
     </div>
     <div id="craterBar"></div>
     <div id="meteoriteBar"></div>
     <div id="tooltip"></div>
-    <div id="modal">
-        <div id="modal-content">
-            <span id="closeModal">&times;</span>
-            <h2>All Meteorites</h2>
-            <table id="fullMeteoriteTable">
-                <thead>
-                    <tr>
-                        <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
-    <div id="craterModal">
-        <div id="craterModal-content">
-            <span id="closeCraterModal">&times;</span>
-            <h2>All Impact Craters</h2>
-            <table id="fullCraterTable">
-                <thead>
-                    <tr>
-                        <th onclick="sortTable('fullCraterTable', 0)">Name &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullCraterTable', 1)">Diameter (km) &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullCraterTable', 2)">Age (Ma) &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullCraterTable', 3)">Country &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullCraterTable', 4)">Exposed &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullCraterTable', 5)">Drilled &#x25B2;&#x25BC;</th>
-                        <th onclick="sortTable('fullCraterTable', 6)">Bolide Type &#x25B2;&#x25BC;</th>
-                        <th>Link</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Remove the existing InfoModal -->
+    <!--
     <div id="infoModal">
         <div id="infoModal-content">
             <span id="closeInfoModal">&times;</span>
@@ -389,6 +316,7 @@ HTML_TEMPLATE = """
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
         </div>
     </div>
+    -->
     <!-- InfoBox Container -->
     <div id="infoBoxContainer"></div>
     <script>
@@ -408,8 +336,18 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
-        // Initialize InfoBox
+        // Initialize Cesium.InfoBox
         const infoBox = new Cesium.InfoBox('infoBoxContainer');
+        infoBox.container.style.display = 'none';
+
+        // Toggle InfoBox visibility
+        document.getElementById('toggleInfoBoxButton').onclick = () => {
+            if (infoBox.container.style.display === 'none') {
+                infoBox.container.style.display = 'block';
+            } else {
+                infoBox.container.style.display = 'none';
+            }
+        };
 
         let allMeteorites = [];
         let filteredMeteorites = [];
@@ -558,8 +496,8 @@ HTML_TEMPLATE = """
                         pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
                         color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
                         id: {
-                            isMeteorite: true,
-                            meteoriteIndex: index
+                            name: meteorite.name || 'Unknown Meteorite',
+                            description: getMeteoriteDescription(meteorite)
                         }
                     });
                 }
@@ -591,6 +529,7 @@ HTML_TEMPLATE = """
                             outlineColor: Cesium.Color.BLACK,
                             outlineWidth: 1
                         },
+                        name: properties.crater_name || 'Unknown Crater',
                         description: getCraterDescription(properties),
                         isImpactCrater: true,
                         craterIndex: index
@@ -788,30 +727,6 @@ HTML_TEMPLATE = """
             }).join('');
             document.getElementById('craterModal').style.display = 'block';
         }
-
-        const tooltip = document.getElementById('tooltip');
-        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-
-        handler.setInputAction(movement => {
-            const pickedObject = viewer.scene.pick(movement.endPosition);
-            if (Cesium.defined(pickedObject)) {
-                if (pickedObject.id && (pickedObject.id.isMeteorite || pickedObject.id.isImpactCrater)) {
-                    tooltip.style.display = 'block';
-                    if (pickedObject.id.isImpactCrater) {
-                        tooltip.innerHTML = pickedObject.id.description.getValue();
-                    } else if (pickedObject.id.isMeteorite) {
-                        const index = pickedObject.id.meteoriteIndex;
-                        const meteorite = filteredMeteorites[index];
-                        tooltip.innerHTML = getMeteoriteDescription(meteorite);
-                    }
-                    updateTooltipPosition(movement.endPosition);
-                } else {
-                    tooltip.style.display = 'none';
-                }
-            } else {
-                tooltip.style.display = 'none';
-            }
-        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
         function getMeteoriteDescription(meteorite) {
             let lat, lon;
@@ -1175,7 +1090,61 @@ HTML_TEMPLATE = """
             controls.style.display = 'none';
         };
 
+        // Update tooltip functionality to use InfoBox
+        viewer.selectedEntityChanged.addEventListener(function(selectedEntity) {
+            if (Cesium.defined(selectedEntity)) {
+                infoBox.viewModel.titleText = selectedEntity.name || 'Information';
+                infoBox.viewModel.description = selectedEntity.description;
+                infoBox.container.style.display = 'block';
+            } else {
+                infoBox.container.style.display = 'none';
+            }
+        });
+
+        // Ensure InfoBox is hidden initially
+        infoBox.container.style.display = 'none';
     </script>
+    <!-- Modal for Meteorites -->
+    <div id="modal" style="display:none;">
+        <div id="modal-content">
+            <span id="closeModal">&times;</span>
+            <h2>All Meteorites</h2>
+            <table id="fullMeteoriteTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Modal for Craters -->
+    <div id="craterModal" style="display:none;">
+        <div id="craterModal-content">
+            <span id="closeCraterModal">&times;</span>
+            <h2>All Impact Craters</h2>
+            <table id="fullCraterTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('fullCraterTable', 0)">Name &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 1)">Diameter (km) &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 2)">Age (Ma) &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 3)">Country &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 4)">Exposed &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 5)">Drilled &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullCraterTable', 6)">Bolide Type &#x25B2;&#x25BC;</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </body>
 </html>
 """
