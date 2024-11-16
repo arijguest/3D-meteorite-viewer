@@ -116,10 +116,10 @@ HTML_TEMPLATE = """
             z-index: 1;
         }
         #craterBar {
-            bottom: 40px;
+            bottom: -80px;
         }
         #meteoriteBar {
-            bottom: 0;
+            bottom: -40px;
         }
         .bar-item {
             color: white;
