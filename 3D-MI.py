@@ -404,17 +404,17 @@ HTML_TEMPLATE = """
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
-            baseLayerPicker: true,
+            baseLayerPicker: false,
             navigationHelpButton: true,
             sceneModePicker: true,
-            animation: true,
+            animation: false,
             timeline: false,
             fullscreenButton: true,
             homeButton: true,
             geocoder: false,
             infoBox: false,
             selectionIndicator: false,
-            navigationInstructionsInitiallyVisible: true
+            navigationInstructionsInitiallyVisible: false
         });
 
         let allMeteorites = [];
