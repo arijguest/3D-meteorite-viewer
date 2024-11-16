@@ -374,7 +374,7 @@ HTML_TEMPLATE = """
             homeButton: true,
             geocoder: false,
             infoBox: true, // Enable Cesium's default InfoBox
-            selectionIndicator: true, // Enable the selection indicator
+            selectionIndicator: false, // Enable the selection indicator
             navigationInstructionsInitiallyVisible: false
         });
 
