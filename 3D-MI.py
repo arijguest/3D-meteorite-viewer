@@ -407,14 +407,14 @@ HTML_TEMPLATE = """
             baseLayerPicker: true,
             navigationHelpButton: true,
             sceneModePicker: true,
-            animation: true,
+            animation: false,
             timeline: true,
-            fullscreenButton: false,
+            fullscreenButton: true,
             homeButton: true,
             geocoder: false,
             infoBox: false,
             selectionIndicator: true,
-            navigationInstructionsInitiallyVisible: true
+            navigationInstructionsInitiallyVisible: false
         });
 
         let allMeteorites = [];
