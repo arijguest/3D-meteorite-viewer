@@ -380,7 +380,7 @@ HTML_TEMPLATE = """
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
-            baseLayerPicker: false,
+            baseLayerPicker: true,
             navigationHelpButton: true,
             sceneModePicker: true,
             animation: false,
