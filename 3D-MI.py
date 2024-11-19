@@ -246,6 +246,7 @@ HTML_TEMPLATE = """
         <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
         <div>
             <button id="optionsButton">⚙️ Options</button>
+            <button id="keyButton">🔑 Key</button>
         </div>
     </div>
     <div id="controls">
@@ -307,6 +308,22 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <button id="infoButton">ℹ️ Info</button>
+        </div>
+        <div id="keyMenu">
+        <button class="close-button" id="closeKey">&times;</button>
+        <h3>Map Key</h3>
+        <div>
+            <p><span class="key-circle" style="background-color: cyan;"></span> Mass &lt; 10,000 g</p>
+            <p><span class="key-circle" style="background-color: green;"></span> Mass &ge; 10,000 g</p>
+            <p><span class="key-circle" style="background-color: yellow;"></span> Mass &ge; 50,000 g</p>
+            <p><span class="key-circle" style="background-color: orange;"></span> Mass &ge; 100,000 g</p>
+            <p><span class="key-circle" style="background-color: red;"></span> Mass &ge; 500,000 g</p>
+        </div>
+        <div>
+            <p><span class="key-circle" style="background-color: lightblue;"></span> Diameter &lt; 10 km</p>
+            <p><span class="key-circle" style="background-color: blue;"></span> Diameter &ge; 10 km</p>
+            <p><span class="key-circle" style="background-color: darkblue;"></span> Diameter &ge; 30 km</p>
+            <p><span class="key-circle" style="background-color: navy;"></span> Diameter &ge; 50 km</p>
         </div>
     </div>
     <div id="craterBar"></div>
@@ -419,7 +436,24 @@ HTML_TEMPLATE = """
             if (mass >= 10000)  return Cesium.Color.GREEN.withAlpha(0.6);
             return Cesium.Color.CYAN.withAlpha(0.6);
         }
+        
+        // Show/hide key menu
+        const keyButton = document.getElementById('keyButton');
+        const keyMenu = document.getElementById('keyMenu');
+        const closeKey = document.getElementById('closeKey');
 
+        keyButton.onclick = () => {
+            if (keyMenu.style.display === 'none' || keyMenu.style.display === '') {
+                keyMenu.style.display = 'block';
+            } else {
+                keyMenu.style.display = 'none';
+            }
+        };
+
+        closeKey.onclick = () => {
+            keyMenu.style.display = 'none';
+        };
+        
         function getCraterColor(diameter) {
             if (diameter >= 50) return Cesium.Color.NAVY.withAlpha(0.8);
             if (diameter >= 30) return Cesium.Color.DARKBLUE.withAlpha(0.8);
