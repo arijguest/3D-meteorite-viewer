@@ -413,9 +413,9 @@ HTML_TEMPLATE = """
         const entityCluster = new Cesium.EntityCluster(clusterOptions);
 
         function getMeteoriteColor(mass) {
-            if (mass >= 500000) return Cesium.Color.PURPLE.withAlpha(0.6);
-            if (mass >= 100000) return Cesium.Color.DARKRED.withAlpha(0.6);
-            if (mass >= 50000)  return Cesium.Color.DARKORANGE.withAlpha(0.6);
+            if (mass >= 500000) return Cesium.Color.FUCHSIA.withAlpha(0.6);
+            if (mass >= 100000) return Cesium.Color.LIGHTPINK.withAlpha(0.6);
+            if (mass >= 50000)  return Cesium.Color.RED.withAlpha(0.6);
             if (mass >= 10000)  return Cesium.Color.ORANGE.withAlpha(0.6);
             return Cesium.Color.YELLOW.withAlpha(0.6);
         }
