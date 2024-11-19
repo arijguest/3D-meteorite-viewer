@@ -116,10 +116,10 @@ HTML_TEMPLATE = """
             z-index: 1;
         }
         #craterBar {
-            bottom: 120px;
+            bottom: 40px;
         }
         #meteoriteBar {
-            bottom: 80px;
+            bottom: 0;
         }
         .bar-item {
             color: white;
@@ -145,7 +145,7 @@ HTML_TEMPLATE = """
             color: lightblue;
             text-decoration: underline;
         }
-        #modal, #craterModal {
+        #modal, #infoModal, #craterModal {
             display: none;
             position: fixed;
             z-index: 9999;
@@ -156,7 +156,7 @@ HTML_TEMPLATE = """
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
         }
-        #modal-content, #craterModal-content {
+        #modal-content, #infoModal-content, #craterModal-content {
             background-color: #2b2b2b;
             margin: 5% auto;
             padding: 20px;
@@ -165,7 +165,7 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             position: relative;
         }
-        #closeModal, #closeCraterModal, #controls .close-button {
+        #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button {
             color: #aaa;
             position: absolute;
             top: 10px;
@@ -173,7 +173,7 @@ HTML_TEMPLATE = """
             font-weight: bold;
             cursor: pointer;
         }
-        #closeModal:hover, #closeModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus {
+        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus {
             color: white;
             text-decoration: none;
         }
@@ -246,7 +246,6 @@ HTML_TEMPLATE = """
         <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
         <div>
             <button id="optionsButton">⚙️ Options</button>
-            <button id="infoButton">ℹ️ Info</button>
         </div>
     </div>
     <div id="controls">
@@ -254,6 +253,13 @@ HTML_TEMPLATE = """
         <div id="searchContainer">
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">Search</button>
+        </div>
+        <div>
+            <label for="basemapSelector"><strong>Basemap:</strong></label>
+            <select id="basemapSelector">
+                <option value="Cesium World Imagery">Cesium World Imagery</option>
+                <option value="OpenStreetMap">OpenStreetMap</option>
+            </select>
         </div>
         <hr>
         <div>
@@ -299,6 +305,9 @@ HTML_TEMPLATE = """
             <span id="totalMeteorites">Total Meteorites: 0</span><br>
             <span id="totalCraters">Total Craters: 0</span>
         </div>
+        <div>
+            <button id="infoButton">ℹ️ Info</button>
+        </div>
     </div>
     <div id="craterBar"></div>
     <div id="meteoriteBar"></div>
@@ -342,19 +351,44 @@ HTML_TEMPLATE = """
             </table>
         </div>
     </div>
+    <div id="infoModal">
+        <div id="infoModal-content">
+            <span id="closeInfoModal">&times;</span>
+            <h2>Information</h2>
+            <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
+            <h3>How to Use:</h3>
+            <ul>
+                <li><strong>Navigation:</strong> Use your mouse or touch controls to navigate around the globe.</li>
+                <li><strong>Search:</strong> Use the search bar to fly to a specific location.</li>
+                <li><strong>Filters:</strong> Adjust the sliders and dropdowns in the controls menu to filter meteorites and craters based on various criteria such as year, mass, diameter, age, and target rock type.</li>
+                <li><strong>Show/Hide Data:</strong> Toggle the visibility of meteorites and craters using the checkboxes.</li>
+                <li><strong>Reset Filters:</strong> Click the "Reset Filters" button to return all filters to their default settings.</li>
+                <li><strong>Top Meteorites:</strong> View the top meteorites by mass at the bottom bar and click on them to fly to their location.</li>
+                <li><strong>Top Impact Craters:</strong> View the top impact craters by diameter in the bar above and click on them to fly to their location.</li>
+                <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information.</li>
+                <li><strong>View All:</strong> Click on "View All" in the top meteorites or craters bar to see a full list.</li>
+            </ul>
+            <h3>Data Sources:</h3>
+            <ul>
+                <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
+                <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database via Antash</a></li>
+            </ul>
+            <p>This application utilizes CesiumJS for 3D globe visualization.</p>
+        </div>
+    </div>
     <script>
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain(),
-            baseLayerPicker: false,
+            baseLayerPicker: true,
             navigationHelpButton: true,
             sceneModePicker: true,
             animation: false,
             timeline: false,
-            fullscreenButton: false,
+            fullscreenButton: true,
             homeButton: true,
             geocoder: false,
-            infoBox: true,
+            infoBox: false,
             selectionIndicator: false,
             navigationInstructionsInitiallyVisible: false
         });
@@ -365,11 +399,18 @@ HTML_TEMPLATE = """
         let filteredCraters = [];
         const allCraters = impactCraters.features;
 
-        let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
-        viewer.dataSources.add(meteoriteDataSource);
-
+        let meteoritePoints = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
+
+        // Enhanced clustering parameters
+        const clusterOptions = {
+            enabled: true,
+            pixelRange: 100,
+            minimumClusterSize: 50
+        };
+
+        const entityCluster = new Cesium.EntityCluster(clusterOptions);
 
         function getMeteoriteColor(mass) {
             if (mass >= 500000) return Cesium.Color.RED.withAlpha(0.6);
@@ -474,7 +515,7 @@ HTML_TEMPLATE = """
         }
 
         function updateMeteoriteData() {
-            meteoriteDataSource.entities.removeAll();
+            meteoritePoints.removeAll();
 
             filteredMeteorites.forEach((meteorite, index) => {
                 let lat, lon;
@@ -494,40 +535,23 @@ HTML_TEMPLATE = """
 
                 if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                     const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                    const pixelSize = mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5;
-
-                    const entity = new Cesium.Entity({
+                    meteoritePoints.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        point: {
-                            pixelSize: pixelSize,
-                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
-                            outlineColor: Cesium.Color.BLACK,
-                            outlineWidth: 1
-                        },
+                        pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
+                        color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
                         id: {
                             isMeteorite: true,
                             meteoriteIndex: index
                         }
                     });
-
-                    meteoriteDataSource.entities.add(entity);
                 }
             });
 
-            meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
-            meteoriteDataSource.clustering.pixelRange = 50;
-            meteoriteDataSource.clustering.minimumClusterSize = 5;
-
-            meteoriteDataSource.clustering.clusterEvent.removeEventListener(clusterMeteorites);
-            meteoriteDataSource.clustering.clusterEvent.addEventListener(clusterMeteorites);
-        }
-
-        function clusterMeteorites(clusteredEntities, cluster) {
-            cluster.label.show = true;
-            cluster.label.text = clusteredEntities.length.toLocaleString();
-            cluster.label.fillColor = Cesium.Color.WHITE;
-            cluster.point.show = false;
-            cluster.billboard.show = false;
+            meteoritePoints.cluster = new Cesium.EntityCluster({
+                enabled: document.getElementById('clusterMeteorites').checked,
+                pixelRange: 50,
+                minimumClusterSize: 5
+            });
         }
 
         function updateCraterData() {
@@ -550,10 +574,8 @@ HTML_TEMPLATE = """
                             outlineWidth: 1
                         },
                         description: getCraterDescription(properties),
-                        id: {
-                            isImpactCrater: true,
-                            craterIndex: index
-                        }
+                        isImpactCrater: true,
+                        craterIndex: index
                     });
                 }
             });
@@ -688,7 +710,7 @@ HTML_TEMPLATE = """
             viewer.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                 duration: 2,
-                orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-45) }
+                orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
             });
         }
 
@@ -755,12 +777,12 @@ HTML_TEMPLATE = """
         handler.setInputAction(movement => {
             const pickedObject = viewer.scene.pick(movement.endPosition);
             if (Cesium.defined(pickedObject)) {
-                if (pickedObject.id && (pickedObject.id.id.isMeteorite || pickedObject.id.id.isImpactCrater)) {
+                if (pickedObject.id && (pickedObject.id.isMeteorite || pickedObject.id.isImpactCrater)) {
                     tooltip.style.display = 'block';
-                    if (pickedObject.id.id.isImpactCrater) {
+                    if (pickedObject.id.isImpactCrater) {
                         tooltip.innerHTML = pickedObject.id.description.getValue();
-                    } else if (pickedObject.id.id.isMeteorite) {
-                        const index = pickedObject.id.id.meteoriteIndex;
+                    } else if (pickedObject.id.isMeteorite) {
+                        const index = pickedObject.id.meteoriteIndex;
                         const meteorite = filteredMeteorites[index];
                         tooltip.innerHTML = getMeteoriteDescription(meteorite);
                     }
@@ -823,6 +845,7 @@ HTML_TEMPLATE = """
         window.onclick = event => {
             if (event.target == modal) modal.style.display = 'none';
             if (event.target == craterModal) craterModal.style.display = 'none';
+            if (event.target == infoModal) infoModal.style.display = 'none';
         };
 
         function updateModalTable() {
@@ -963,6 +986,25 @@ HTML_TEMPLATE = """
                 });
         }
 
+        document.getElementById('basemapSelector').onchange = function() {
+            const selectedBasemap = this.value;
+            while (viewer.imageryLayers.length > 1) {
+                viewer.imageryLayers.remove(viewer.imageryLayers.get(1));
+            }
+            switch(selectedBasemap) {
+                case 'OpenStreetMap':
+                    viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({
+                        url : 'https://a.tile.openstreetmap.org/'
+                    }));
+                    break;
+                case 'Cesium World Imagery':
+                default:
+                    viewer.imageryLayers.addImageryProvider(new Cesium.IonImageryProvider({ assetId: 2 }));
+            }
+        };
+
+        document.getElementById('basemapSelector').value = 'Cesium World Imagery';
+
         document.getElementById('yearRangeMin').addEventListener('input', () => {
             applyFilters();
             updateSlidersDisplay();
@@ -1001,11 +1043,11 @@ HTML_TEMPLATE = """
         });
 
         document.getElementById('toggleMeteorites').addEventListener('change', function() {
-            meteoriteDataSource.show = this.checked;
+            meteoritePoints.show = this.checked;
         });
 
         document.getElementById('clusterMeteorites').addEventListener('change', function() {
-            meteoriteDataSource.clustering.enabled = this.checked;
+            meteoritePoints.cluster.enabled = this.checked;
         });
 
         document.getElementById('toggleCraters').addEventListener('change', function() {
@@ -1085,6 +1127,18 @@ HTML_TEMPLATE = """
 
         fetchAllMeteorites();
 
+        const infoModal = document.getElementById('infoModal');
+        const infoButton = document.getElementById('infoButton');
+        const closeInfoModal = document.getElementById('closeInfoModal');
+
+        infoButton.onclick = () => {
+            infoModal.style.display = 'block';
+        };
+
+        closeInfoModal.onclick = () => {
+            infoModal.style.display = 'none';
+        };
+
         window.flyToCrater = flyToCrater;
 
         const optionsButton = document.getElementById('optionsButton');
@@ -1101,40 +1155,6 @@ HTML_TEMPLATE = """
 
         closeOptions.onclick = () => {
             controls.style.display = 'none';
-        };
-
-        const infoButton = document.getElementById('infoButton');
-
-        const infoContent = `
-            <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
-            <h3>How to Use:</h3>
-            <ul>
-                <li><strong>Navigation:</strong> Use your mouse or touch controls to navigate around the globe.</li>
-                <li><strong>Search:</strong> Use the search bar to fly to a specific location.</li>
-                <li><strong>Filters:</strong> Adjust the sliders and dropdowns in the controls menu to filter meteorites and craters based on various criteria such as year, mass, diameter, age, and target rock type.</li>
-                <li><strong>Show/Hide Data:</strong> Toggle the visibility of meteorites and craters using the checkboxes.</li>
-                <li><strong>Reset Filters:</strong> Click the "Reset Filters" button to return all filters to their default settings.</li>
-                <li><strong>Top Meteorites:</strong> View the top meteorites by mass at the bottom bar and click on them to fly to their location.</li>
-                <li><strong>Top Impact Craters:</strong> View the top impact craters by diameter in the bar above and click on them to fly to their location.</li>
-                <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information.</li>
-                <li><strong>View All:</strong> Click on "View All" in the top meteorites or craters bar to see a full list.</li>
-            </ul>
-            <h3>Data Sources:</h3>
-            <ul>
-                <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
-                <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database via Antash</a></li>
-            </ul>
-            <p>This application utilizes CesiumJS for 3D globe visualization.</p>
-            <p>Created by <a href="https://github.com/arijguest" target="_blank">arijguest</a>.</p>
-        `;
-
-        const infoEntity = new Cesium.Entity({
-            name: 'Information',
-            description: infoContent
-        });
-
-        infoButton.onclick = () => {
-            viewer.selectedEntity = infoEntity;
         };
 
     </script>
