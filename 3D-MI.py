@@ -155,6 +155,32 @@ HTML_TEMPLATE = """
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
+            
+            /* Key menu styles */
+        #keyMenu {
+            position: absolute;
+            top: 100px;
+            left: 320px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px 10px 10px 10px;
+            z-index: 1000;
+            color: white;
+            border-radius: 5px;
+            max-height: calc(100% - 120px);
+            overflow-y: auto;
+            display: none;
+            width: 200px;
+        }
+        #keyMenu .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
         }
         #modal-content, #infoModal-content, #craterModal-content {
             background-color: #2b2b2b;
@@ -309,22 +335,22 @@ HTML_TEMPLATE = """
         <div>
             <button id="infoButton">ℹ️ Info</button>
         </div>
-        <div id="keyMenu">
-        <button class="close-button" id="closeKey">&times;</button>
-        <h3>Map Key</h3>
-        <div>
-            <p><span class="key-circle" style="background-color: cyan;"></span> Mass &lt; 10,000 g</p>
-            <p><span class="key-circle" style="background-color: green;"></span> Mass &ge; 10,000 g</p>
-            <p><span class="key-circle" style="background-color: yellow;"></span> Mass &ge; 50,000 g</p>
-            <p><span class="key-circle" style="background-color: orange;"></span> Mass &ge; 100,000 g</p>
-            <p><span class="key-circle" style="background-color: red;"></span> Mass &ge; 500,000 g</p>
-        </div>
-        <div>
-            <p><span class="key-circle" style="background-color: lightblue;"></span> Diameter &lt; 10 km</p>
-            <p><span class="key-circle" style="background-color: blue;"></span> Diameter &ge; 10 km</p>
-            <p><span class="key-circle" style="background-color: darkblue;"></span> Diameter &ge; 30 km</p>
-            <p><span class="key-circle" style="background-color: navy;"></span> Diameter &ge; 50 km</p>
-        </div>
+    <div id="keyMenu">
+    <button class="close-button" id="closeKey">&times;</button>
+    <h3>Map Key</h3>
+    <div>
+        <p><span class="key-circle" style="background-color: cyan;"></span> Mass &lt; 10,000 g</p>
+        <p><span class="key-circle" style="background-color: green;"></span> Mass &ge; 10,000 g</p>
+        <p><span class="key-circle" style="background-color: yellow;"></span> Mass &ge; 50,000 g</p>
+        <p><span class="key-circle" style="background-color: orange;"></span> Mass &ge; 100,000 g</p>
+        <p><span class="key-circle" style="background-color: red;"></span> Mass &ge; 500,000 g</p>
+    </div>
+    <div>
+        <p><span class="key-circle" style="background-color: lightblue;"></span> Diameter &lt; 10 km</p>
+        <p><span class="key-circle" style="background-color: blue;"></span> Diameter &ge; 10 km</p>
+        <p><span class="key-circle" style="background-color: darkblue;"></span> Diameter &ge; 30 km</p>
+        <p><span class="key-circle" style="background-color: navy;"></span> Diameter &ge; 50 km</p>
+    </div>
     </div>
     <div id="craterBar"></div>
     <div id="meteoriteBar"></div>
