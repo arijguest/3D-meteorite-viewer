@@ -73,29 +73,13 @@ HTML_TEMPLATE = """
             color: white;
             text-align: center;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         #header h1 {
             margin: 0;
             font-size: 24px;
-            flex: 1;
         }
         #header div {
             margin-top: 10px;
-        }
-        #optionsButton, #keyButton {
-            background: rgba(0, 0, 0, 0.7);
-            border: none;
-            color: white;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #optionsButton:hover, #keyButton:hover {
-            background: rgba(255, 255, 255, 0.1);
         }
         #controls {
             position: absolute;
@@ -161,7 +145,7 @@ HTML_TEMPLATE = """
             color: lightblue;
             text-decoration: underline;
         }
-        #modal, #infoModal, #craterModal, #keyModal {
+        #modal, #infoModal, #craterModal {
             display: none;
             position: fixed;
             z-index: 9999;
@@ -172,7 +156,7 @@ HTML_TEMPLATE = """
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
         }
-        #modal-content, #infoModal-content, #craterModal-content, #keyModal-content {
+        #modal-content, #infoModal-content, #craterModal-content {
             background-color: #2b2b2b;
             margin: 5% auto;
             padding: 20px;
@@ -181,7 +165,7 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             position: relative;
         }
-        #closeModal, #closeInfoModal, #closeCraterModal, #closeKeyModal, #controls .close-button {
+        #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button {
             color: #aaa;
             position: absolute;
             top: 10px;
@@ -189,7 +173,7 @@ HTML_TEMPLATE = """
             font-weight: bold;
             cursor: pointer;
         }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #closeKeyModal:hover, #closeKeyModal:focus, #controls .close-button:hover, #controls .close-button:focus {
+        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus {
             color: white;
             text-decoration: none;
         }
@@ -235,7 +219,7 @@ HTML_TEMPLATE = """
             display: block;
             margin-bottom: 10px;
         }
-        #modal-content, #craterModal-content, #keyModal-content {
+        #modal-content, #craterModal-content {
             max-height: 80vh;
             overflow: hidden;
         }
@@ -260,8 +244,9 @@ HTML_TEMPLATE = """
     <div id="cesiumContainer"></div>
     <div id="header">
         <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
-        <button id="optionsButton">⚙️ Options</button>
-        <button id="keyButton">🔑 Key</button>
+        <div>
+            <button id="optionsButton">⚙️ Options</button>
+        </div>
     </div>
     <div id="controls">
         <button class="close-button" id="closeOptions">&times;</button>
@@ -382,7 +367,6 @@ HTML_TEMPLATE = """
                 <li><strong>Top Impact Craters:</strong> View the top impact craters by diameter in the bar above and click on them to fly to their location.</li>
                 <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information.</li>
                 <li><strong>View All:</strong> Click on "View All" in the top meteorites or craters bar to see a full list.</li>
-                <li><strong>Key:</strong> Click the 🔑 Key button to view the legend explaining the symbols and colors used.</li>
             </ul>
             <h3>Data Sources:</h3>
             <ul>
@@ -390,29 +374,6 @@ HTML_TEMPLATE = """
                 <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database via Antash</a></li>
             </ul>
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
-        </div>
-    </div>
-    <div id="keyModal">
-        <div id="keyModal-content">
-            <span id="closeKeyModal">&times;</span>
-            <h2>Key / Legend</h2>
-            <h3>Meteorites</h3>
-            <ul>
-                <li><span style="color: red;">●</span> Mass >= 500,000g</li>
-                <li><span style="color: orange;">●</span> Mass >= 100,000g</li>
-                <li><span style="color: yellow;">●</span> Mass >= 50,000g</li>
-                <li><span style="color: green;">●</span> Mass >= 10,000g</li>
-                <li><span style="color: cyan;">●</span> Mass < 10,000g</li>
-                <li><span style="color: gray;">●</span> Mass Unknown</li>
-            </ul>
-            <h3>Impact Craters</h3>
-            <ul>
-                <li><span style="color: navy;">●</span> Diameter >= 50 km</li>
-                <li><span style="color: darkblue;">●</span> Diameter >= 30 km</li>
-                <li><span style="color: blue;">●</span> Diameter >= 10 km</li>
-                <li><span style="color: lightblue;">●</span> Diameter < 10 km</li>
-            </ul>
-            <p>Click on markers or items in the bars to navigate to their locations.</p>
         </div>
     </div>
     <script>
@@ -550,7 +511,7 @@ HTML_TEMPLATE = """
 
         function updateTotalCounts() {
             document.getElementById('totalMeteorites').innerText = `Total Meteorites: ${filteredMeteorites.length}`;
-            document.getElementById('totalCraters').innerText = `Total Craters: ${filteredCraters.length}`;
+            document.getElementById('totalCraters').innerText = `Total Impact Craters: ${filteredCraters.length}`;
         }
 
         function updateMeteoriteData() {
@@ -879,17 +840,12 @@ HTML_TEMPLATE = """
 
         const modal = document.getElementById('modal');
         const craterModal = document.getElementById('craterModal');
-        const keyModal = document.getElementById('keyModal');
-        const infoModal = document.getElementById('infoModal');
         document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
         document.getElementById('closeCraterModal').onclick = () => craterModal.style.display = 'none';
-        document.getElementById('closeInfoModal').onclick = () => infoModal.style.display = 'none';
-        document.getElementById('closeKeyModal').onclick = () => keyModal.style.display = 'none';
         window.onclick = event => {
             if (event.target == modal) modal.style.display = 'none';
             if (event.target == craterModal) craterModal.style.display = 'none';
             if (event.target == infoModal) infoModal.style.display = 'none';
-            if (event.target == keyModal) keyModal.style.display = 'none';
         };
 
         function updateModalTable() {
@@ -1199,19 +1155,6 @@ HTML_TEMPLATE = """
 
         closeOptions.onclick = () => {
             controls.style.display = 'none';
-        };
-
-        // Key Menu Functionality
-        const keyButton = document.getElementById('keyButton');
-        const keyModal = document.getElementById('keyModal');
-        const closeKeyModal = document.getElementById('closeKeyModal');
-
-        keyButton.onclick = () => {
-            keyModal.style.display = 'block';
-        };
-
-        closeKeyModal.onclick = () => {
-            keyModal.style.display = 'none';
         };
 
     </script>
