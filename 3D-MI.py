@@ -73,13 +73,29 @@ HTML_TEMPLATE = """
             color: white;
             text-align: center;
             border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         #header h1 {
             margin: 0;
             font-size: 24px;
+            flex: 1;
         }
         #header div {
             margin-top: 10px;
+        }
+        #optionsButton, #keyButton {
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #optionsButton:hover, #keyButton:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
         #controls {
             position: absolute;
@@ -238,34 +254,15 @@ HTML_TEMPLATE = """
             width: 100%;
             table-layout: fixed;
         }
-        /* Key Menu Styles */
-        #keyButton {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            border: none;
-            color: white;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1;
-        }
-        #keyButton:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
     </style>
 </head>
 <body>
     <div id="cesiumContainer"></div>
     <div id="header">
         <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
-        <div>
-            <button id="optionsButton">⚙️ Options</button>
-        </div>
+        <button id="optionsButton">⚙️ Options</button>
+        <button id="keyButton">🔑 Key</button>
     </div>
-    <button id="keyButton">🔑 Key</button>
     <div id="controls">
         <button class="close-button" id="closeOptions">&times;</button>
         <div id="searchContainer">
