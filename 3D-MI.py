@@ -406,18 +406,18 @@ HTML_TEMPLATE = """
         // Enhanced clustering parameters
         const clusterOptions = {
             enabled: true,
-            pixelRange: 100,
-            minimumClusterSize: 50
+            pixelRange: 500,
+            minimumClusterSize: 20
         };
 
         const entityCluster = new Cesium.EntityCluster(clusterOptions);
 
         function getMeteoriteColor(mass) {
-            if (mass >= 500000) return Cesium.Color.RED.withAlpha(0.6);
-            if (mass >= 100000) return Cesium.Color.ORANGE.withAlpha(0.6);
-            if (mass >= 50000)  return Cesium.Color.YELLOW.withAlpha(0.6);
-            if (mass >= 10000)  return Cesium.Color.GREEN.withAlpha(0.6);
-            return Cesium.Color.CYAN.withAlpha(0.6);
+            if (mass >= 500000) return Cesium.Color.PURPLE.withAlpha(0.6);
+            if (mass >= 100000) return Cesium.Color.DARKRED.withAlpha(0.6);
+            if (mass >= 50000)  return Cesium.Color.DARKORANGE.withAlpha(0.6);
+            if (mass >= 10000)  return Cesium.Color.ORANGE.withAlpha(0.6);
+            return Cesium.Color.YELLOW.withAlpha(0.6);
         }
 
         function getCraterColor(diameter) {
@@ -549,8 +549,8 @@ HTML_TEMPLATE = """
 
             meteoritePoints.cluster = new Cesium.EntityCluster({
                 enabled: document.getElementById('clusterMeteorites').checked,
-                pixelRange: 50,
-                minimumClusterSize: 5
+                pixelRange: 500,
+                minimumClusterSize: 15
             });
         }
 
