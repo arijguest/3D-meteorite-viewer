@@ -887,7 +887,7 @@ HTML_TEMPLATE = """
             const diameter = properties['Crater diamter [km]'] || 'Unknown';
             const country = properties.Country || 'Unknown';
             const target = properties.Target || 'Unknown';
-            const type = properties['Type of structure'] || 'Unknown';
+            const type = properties['Crater type'] || 'Unknown';
 
             return `
                 <b>Name:</b> ${name}<br>
