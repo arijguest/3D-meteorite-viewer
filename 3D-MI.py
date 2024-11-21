@@ -820,7 +820,7 @@ HTML_TEMPLATE = """
 
         function createClusterIcon(clusterSize) {
             const digits = clusterSize.toString().length;
-            const size = 20 + (digits * 7);
+            const size = 20 + (digits * 5);
             const canvas = document.createElement('canvas');
             canvas.width = canvas.height = size;
             const context = canvas.getContext('2d');
@@ -841,7 +841,7 @@ HTML_TEMPLATE = """
 
         function updateClusteringOnZoom() {
             const altitude = viewer.camera.positionCartographic.height;
-            if (altitude < 700000) {
+            if (altitude < 500000) {
                 meteoriteDataSource.clustering.enabled = false;
             } else {
                 meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
