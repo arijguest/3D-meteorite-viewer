@@ -1519,6 +1519,27 @@ HTML_TEMPLATE = """
             updateCraterLegend();
         };
 
+        function updateCraterLegend() {
+            const legendContainer = document.getElementById('craterLegend');
+            legendContainer.innerHTML = '<h3>💥 Impact Craters</h3><ul class="legend-list"></ul>';
+            const list = legendContainer.querySelector('.legend-list');
+            const selectedScheme = document.getElementById('craterColorScheme').value;
+            const scheme = colorSchemes[selectedScheme].craterColors;
+
+            scheme.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
+                let label = '';
+                if (item.threshold === 0) {
+                    label = `Diameter < ${scheme.find(s => s.threshold > 0).threshold} km`;
+                } else {
+                    label = `Diameter ≥ ${item.threshold} km`;
+                }
+                li.innerHTML += label;
+                list.appendChild(li);
+            });
+        }
+
         function updateMeteoriteLegend() {
             const legendContainer = document.getElementById('meteoriteLegend');
             legendContainer.innerHTML = '<h3>🌠 Meteorites</h3><ul class="legend-list"></ul>';
@@ -1540,26 +1561,6 @@ HTML_TEMPLATE = """
             });
         }
 
-        function updateCraterLegend() {
-            const legendContainer = document.getElementById('craterLegend');
-            legendContainer.innerHTML = '<h3>💥 Impact Craters</h3><ul class="legend-list"></ul>';
-            const list = legendContainer.querySelector('.legend-list');
-            const selectedScheme = document.getElementById('craterColorScheme').value;
-            const scheme = colorSchemes[selectedScheme].craterColors;
-
-            scheme.forEach(item => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
-                let label = '';
-                if (item.threshold === 0) {
-                    label = `Diameter < ${scheme.find(s => s.threshold > 0).threshold} km`;
-                } else {
-                    label = `Diameter ≥ ${item.threshold} km`;
-                }
-                li.innerHTML += label;
-                list.appendChild(li);
-            });
-        }
 
         updateMeteoriteLegend();
         updateCraterLegend();
