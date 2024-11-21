@@ -197,12 +197,6 @@ HTML_TEMPLATE = """
             table-layout: auto;
             overflow-x: auto;
         }
-        #fullCraterTable {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-            overflow-x: auto;
-        }
         #fullMeteoriteTable th, #fullMeteoriteTable td,
         #fullCraterTable th, #fullCraterTable td {
             border: 1px solid #444;
