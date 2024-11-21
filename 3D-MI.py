@@ -258,35 +258,6 @@ HTML_TEMPLATE = """
             border-radius: 50%;
             margin-right: 10px;
         }
-        /* Meteorite colors */
-        .meteorite-color-1 {
-            background-color: rgba(255, 0, 255, 0.6);
-        }
-        .meteorite-color-2 {
-            background-color: rgba(255, 182, 193, 0.6);
-        }
-        .meteorite-color-3 {
-            background-color: rgba(255, 0, 0, 0.6);
-        }
-        .meteorite-color-4 {
-            background-color: rgba(255, 165, 0, 0.6);
-        }
-        .meteorite-color-5 {
-            background-color: rgba(255, 255, 0, 0.6);
-        }
-        /* Crater colors */
-        .crater-color-1 {
-            background-color: rgba(0, 0, 128, 0.8);
-        }
-        .crater-color-2 {
-            background-color: rgba(0, 0, 139, 0.8);
-        }
-        .crater-color-3 {
-            background-color: rgba(0, 0, 255, 0.8);
-        }
-        .crater-color-4 {
-            background-color: rgba(173, 216, 230, 0.8);
-        }
         /* Styles for search input in modals */
         .modal-search {
             margin-bottom: 10px;
@@ -300,6 +271,7 @@ HTML_TEMPLATE = """
         <div>
             <button id="optionsButton">⚙️ Options</button>
             <button id="keyButton">🔑 Key</button>
+            <button id="infoButton">ℹ️ Info</button>
         </div>
     </div>
     <div id="controls">
@@ -359,31 +331,31 @@ HTML_TEMPLATE = """
             <span id="totalMeteorites">Total Meteorites: 0</span><br>
             <span id="totalCraters">Total Craters: 0</span>
         </div>
-        <div>
-            <button id="infoButton">ℹ️ Info</button>
-        </div>
     </div>
     <div id="keyMenu">
         <button class="close-button" id="closeKeyMenu">&times;</button>
         <h2>Key</h2>
-        <div class="legend-section">
-            <h3>🌠 Meteorites</h3>
-            <ul class="legend-list">
-                <li><span class="legend-icon meteorite-color-1"></span> Mass ≥ 500,000g</li>
-                <li><span class="legend-icon meteorite-color-2"></span> Mass ≥ 100,000g</li>
-                <li><span class="legend-icon meteorite-color-3"></span> Mass ≥ 50,000g</li>
-                <li><span class="legend-icon meteorite-color-4"></span> Mass ≥ 10,000g</li>
-                <li><span class="legend-icon meteorite-color-5"></span> Mass < 10,000g</li>
-            </ul>
+        <div>
+            <label for="meteoriteColorScheme"><strong>Meteorite Color Scheme:</strong></label>
+            <select id="meteoriteColorScheme">
+                <option value="default">Default</option>
+                <option value="green">Green Scale</option>
+                <option value="blue">Blue Scale</option>
+            </select>
         </div>
-        <div class="legend-section">
-            <h3>💥 Impact Craters</h3>
-            <ul class="legend-list">
-                <li><span class="legend-icon crater-color-1"></span> Diameter ≥ 50km</li>
-                <li><span class="legend-icon crater-color-2"></span> Diameter ≥ 30km</li>
-                <li><span class="legend-icon crater-color-3"></span> Diameter ≥ 10km</li>
-                <li><span class="legend-icon crater-color-4"></span> Diameter < 10km</li>
-            </ul>
+        <div class="legend-section" id="meteoriteLegend">
+            <!-- Meteorite Legend will be populated dynamically -->
+        </div>
+        <div>
+            <label for="craterColorScheme"><strong>Crater Color Scheme:</strong></label>
+            <select id="craterColorScheme">
+                <option value="default">Default</option>
+                <option value="purple">Purple Scale</option>
+                <option value="brown">Brown Scale</option>
+            </select>
+        </div>
+        <div class="legend-section" id="craterLegend">
+            <!-- Crater Legend will be populated dynamically -->
         </div>
     </div>
     <div id="craterBar"></div>
@@ -487,19 +459,69 @@ HTML_TEMPLATE = """
         let meteoriteEntities = [];
         let craterEntitiesList = [];
 
+        const meteoriteColorSchemes = {
+            'default': [
+                { threshold: 500000, color: Cesium.Color.FUCHSIA.withAlpha(0.6), className: 'meteorite-color-1' },
+                { threshold: 100000, color: Cesium.Color.LIGHTPINK.withAlpha(0.6), className: 'meteorite-color-2' },
+                { threshold: 50000,  color: Cesium.Color.RED.withAlpha(0.6), className: 'meteorite-color-3' },
+                { threshold: 10000,  color: Cesium.Color.ORANGE.withAlpha(0.6), className: 'meteorite-color-4' },
+                { threshold: 0,      color: Cesium.Color.YELLOW.withAlpha(0.6), className: 'meteorite-color-5' }
+            ],
+            'green': [
+                { threshold: 500000, color: Cesium.Color.DARKGREEN.withAlpha(0.6), className: 'meteorite-color-1' },
+                { threshold: 100000, color: Cesium.Color.GREEN.withAlpha(0.6), className: 'meteorite-color-2' },
+                { threshold: 50000,  color: Cesium.Color.LIME.withAlpha(0.6), className: 'meteorite-color-3' },
+                { threshold: 10000,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.6), className: 'meteorite-color-4' },
+                { threshold: 0,      color: Cesium.Color.LIGHTYELLOW.withAlpha(0.6), className: 'meteorite-color-5' }
+            ],
+            'blue': [
+                { threshold: 500000, color: Cesium.Color.DARKBLUE.withAlpha(0.6), className: 'meteorite-color-1' },
+                { threshold: 100000, color: Cesium.Color.BLUE.withAlpha(0.6), className: 'meteorite-color-2' },
+                { threshold: 50000,  color: Cesium.Color.SKYBLUE.withAlpha(0.6), className: 'meteorite-color-3' },
+                { threshold: 10000,  color: Cesium.Color.CYAN.withAlpha(0.6), className: 'meteorite-color-4' },
+                { threshold: 0,      color: Cesium.Color.LIGHTCYAN.withAlpha(0.6), className: 'meteorite-color-5' }
+            ]
+        };
+
+        const craterColorSchemes = {
+            'default': [
+                { threshold: 50, color: Cesium.Color.NAVY.withAlpha(0.8), className: 'crater-color-1' },
+                { threshold: 30, color: Cesium.Color.DARKBLUE.withAlpha(0.8), className: 'crater-color-2' },
+                { threshold: 10, color: Cesium.Color.BLUE.withAlpha(0.8), className: 'crater-color-3' },
+                { threshold: 0,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8), className: 'crater-color-4' }
+            ],
+            'purple': [
+                { threshold: 50, color: Cesium.Color.DARKVIOLET.withAlpha(0.8), className: 'crater-color-1' },
+                { threshold: 30, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8), className: 'crater-color-2' },
+                { threshold: 10, color: Cesium.Color.VIOLET.withAlpha(0.8), className: 'crater-color-3' },
+                { threshold: 0,  color: Cesium.Color.PLUM.withAlpha(0.8), className: 'crater-color-4' }
+            ],
+            'brown': [
+                { threshold: 50, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8), className: 'crater-color-1' },
+                { threshold: 30, color: Cesium.Color.SIENNA.withAlpha(0.8), className: 'crater-color-2' },
+                { threshold: 10, color: Cesium.Color.PERU.withAlpha(0.8), className: 'crater-color-3' },
+                { threshold: 0,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8), className: 'crater-color-4' }
+            ]
+        };
+
         function getMeteoriteColor(mass) {
-            if (mass >= 500000) return Cesium.Color.FUCHSIA.withAlpha(0.6);
-            if (mass >= 100000) return Cesium.Color.LIGHTPINK.withAlpha(0.6);
-            if (mass >= 50000)  return Cesium.Color.RED.withAlpha(0.6);
-            if (mass >= 10000)  return Cesium.Color.ORANGE.withAlpha(0.6);
-            return Cesium.Color.YELLOW.withAlpha(0.6);
+            const scheme = meteoriteColorSchemes[document.getElementById('meteoriteColorScheme').value];
+            for (let i = 0; i < scheme.length; i++) {
+                if (mass >= scheme[i].threshold) {
+                    return scheme[i].color;
+                }
+            }
+            return Cesium.Color.GRAY.withAlpha(0.6);
         }
 
         function getCraterColor(diameter) {
-            if (diameter >= 50) return Cesium.Color.NAVY.withAlpha(0.8);
-            if (diameter >= 30) return Cesium.Color.DARKBLUE.withAlpha(0.8);
-            if (diameter >= 10) return Cesium.Color.BLUE.withAlpha(0.8);
-            return Cesium.Color.LIGHTBLUE.withAlpha(0.8);
+            const scheme = craterColorSchemes[document.getElementById('craterColorScheme').value];
+            for (let i = 0; i < scheme.length; i++) {
+                if (diameter >= scheme[i].threshold) {
+                    return scheme[i].color;
+                }
+            }
+            return Cesium.Color.GRAY.withAlpha(0.8);
         }
 
         function fetchAllMeteorites() {
@@ -643,12 +665,15 @@ HTML_TEMPLATE = """
                 cluster.label.show = false;
                 cluster.billboard.show = true;
                 cluster.billboard.id = cluster;
-                cluster.billboard.image = createClusterIcon(clusteredEntities.length);
+
+                const clusterSize = clusteredEntities.length;
+                cluster.billboard.image = createClusterIcon(clusterSize);
             });
         }
 
         function createClusterIcon(clusterSize) {
-            const size = 40;
+            const digits = clusterSize.toString().length;
+            const size = 30 + (digits * 10); // Adjust size based on number of digits
             const canvas = document.createElement('canvas');
             canvas.width = canvas.height = size;
             const context = canvas.getContext('2d');
@@ -659,7 +684,7 @@ HTML_TEMPLATE = """
             context.fill();
 
             context.fillStyle = 'black';
-            context.font = 'bold 20px sans-serif';
+            context.font = `bold ${20 + (digits * 2)}px sans-serif`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             context.fillText(clusterSize, size/2, size/2);
@@ -1242,6 +1267,60 @@ HTML_TEMPLATE = """
         closeKeyMenu.onclick = () => {
             keyMenu.style.display = 'none';
         };
+
+        document.getElementById('meteoriteColorScheme').onchange = function() {
+            applyFilters();
+            updateMeteoriteLegend();
+        };
+
+        document.getElementById('craterColorScheme').onchange = function() {
+            applyFilters();
+            updateCraterLegend();
+        };
+
+        function updateMeteoriteLegend() {
+            const legendContainer = document.getElementById('meteoriteLegend');
+            legendContainer.innerHTML = '<h3>🌠 Meteorites</h3><ul class="legend-list"></ul>';
+            const list = legendContainer.querySelector('.legend-list');
+            const scheme = meteoriteColorSchemes[document.getElementById('meteoriteColorScheme').value];
+
+            scheme.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
+                let label = '';
+                if (item.threshold === 0) {
+                    label = `Mass < ${scheme.find(s => s.threshold > 0).threshold}g`;
+                } else {
+                    label = `Mass ≥ ${item.threshold.toLocaleString()}g`;
+                }
+                li.innerHTML += label;
+                list.appendChild(li);
+            });
+        }
+
+        function updateCraterLegend() {
+            const legendContainer = document.getElementById('craterLegend');
+            legendContainer.innerHTML = '<h3>💥 Impact Craters</h3><ul class="legend-list"></ul>';
+            const list = legendContainer.querySelector('.legend-list');
+            const scheme = craterColorSchemes[document.getElementById('craterColorScheme').value];
+
+            scheme.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
+                let label = '';
+                if (item.threshold === 0) {
+                    label = `Diameter < ${scheme.find(s => s.threshold > 0).threshold} km`;
+                } else {
+                    label = `Diameter ≥ ${item.threshold} km`;
+                }
+                li.innerHTML += label;
+                list.appendChild(li);
+            });
+        }
+
+        // Initial legend update
+        updateMeteoriteLegend();
+        updateCraterLegend();
     </script>
 </body>
 </html>
