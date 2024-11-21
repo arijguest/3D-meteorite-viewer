@@ -1346,7 +1346,7 @@ HTML_TEMPLATE = """
         }
 
         function initializeCraterSliders() {
-            const diameters = allCraters.map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null).filter(d => d !== null);
+            const diameters = allCraters.map(c => c.properties['Crater diameter [km]'] ? parseFloat(c.properties['Crater diameter [km]']) : null).filter(d => d !== null);
             const ages = allCraters.map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null).filter(a => a !== null);
 
             const minDiameter = Math.min(...diameters);
@@ -1495,22 +1495,6 @@ HTML_TEMPLATE = """
             populateTargetRockOptions();
             initializeCraterSliders();
         }
-
-        function initializeMeteoriteFilters() {
-            populateMeteoriteClassOptions();
-            initializeMeteoriteSliders();
-        }
-
-
-        initializeSliders();
-        initializeCraterFilters();
-        populateColorSchemeSelectors();
-
-        fetchAllMeteorites();
-
-        initializeSliders();
-        initializeCraterFilters();
-        populateColorSchemeSelectors();
 
         fetchAllMeteorites();
 
