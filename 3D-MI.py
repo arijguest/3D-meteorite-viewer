@@ -1071,8 +1071,6 @@ HTML_TEMPLATE = """
             return `
                 <b>Name:</b> ${name}<br>
                 <b>ID:</b> ${id}<br>
-                <b>Latitude:</b> ${lat ? lat.toFixed(5) : 'Unknown'}<br>
-                <b>Longitude:</b> ${lon ? lon.toFixed(5) : 'Unknown'}<br>
                 <b>Mass:</b> ${massDisplay}<br>
                 <b>Class:</b> ${recclass}<br>
                 <b>Year:</b> ${year}<br>
