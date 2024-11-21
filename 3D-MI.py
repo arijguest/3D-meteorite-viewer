@@ -716,7 +716,7 @@ HTML_TEMPLATE = """
 
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
-                let diameter = parseFloat(properties['Crater diameter [km]']) || 0;
+                let diameter = parseFloat(properties['Crater diamter [km]']) || 0;
                 let age_str = properties['Age [Myr]'] || '';
                 let age_min, age_max;
                 [age_min, age_max] = parse_age_values(age_str);
@@ -860,7 +860,7 @@ HTML_TEMPLATE = """
 
                 if (geometry && geometry.type === "Point") {
                     const [lon, lat] = geometry.coordinates;
-                    let diameter = parseFloat(properties['Crater diameter [km]']) || 1;
+                    let diameter = parseFloat(properties['Crater diamter [km]']) || 1;
 
                     const entity = craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -884,7 +884,7 @@ HTML_TEMPLATE = """
         function getCraterDescription(properties) {
             const name = properties.Name || 'Unknown';
             const age = properties['Age [Myr]'] || 'Unknown';
-            const diameter = properties['Crater diameter [km]'] || 'Unknown';
+            const diameter = properties['Crater diamter [km]'] || 'Unknown';
             const country = properties.Country || 'Unknown';
             const target = properties.Target || 'Unknown';
             const type = properties['Type of structure'] || 'Unknown';
@@ -943,7 +943,7 @@ HTML_TEMPLATE = """
         }
 
         function updateTopCraters() {
-            const sortedCraters = filteredCraters.filter(c => c.properties['Crater diameter [km]']).sort((a, b) => parseFloat(b.properties['Crater diameter [km]']) - parseFloat(a.properties['Crater diameter [km]']));
+            const sortedCraters = filteredCraters.filter(c => c.properties['Crater diamter [km]']).sort((a, b) => parseFloat(b.properties['Crater diamter [km]']) - parseFloat(a.properties['Crater diamter [km]']));
             const top10Craters = sortedCraters.slice(0, 10);
             const craterBar = document.getElementById('craterBar');
             craterBar.innerHTML = '<div class="bar-item"><strong>Top Impact Craters:</strong></div>';
@@ -956,7 +956,7 @@ HTML_TEMPLATE = """
 
             top10Craters.forEach((crater, index) => {
                 const name = crater.properties.Name || 'Unknown';
-                const diameter = parseFloat(crater.properties['Crater diameter [km]']) || 0;
+                const diameter = parseFloat(crater.properties['Crater diamter [km]']) || 0;
                 const diameterDisplay = diameter ? `${diameter} km` : 'Unknown';
                 const div = document.createElement('div');
                 div.className = 'bar-item';
@@ -1284,7 +1284,7 @@ HTML_TEMPLATE = """
         }
 
         function initializeCraterSliders() {
-            const diameters = allCraters.map(c => c.properties['Crater diameter [km]'] ? parseFloat(c.properties['Crater diameter [km]']) : null).filter(d => d !== null);
+            const diameters = allCraters.map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null).filter(d => d !== null);
             const ages = allCraters.map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null).filter(a => a !== null);
 
             const minDiameter = Math.min(...diameters);
