@@ -18,7 +18,8 @@ def parse_age_string(age_str):
         r'^~?(?P<min>\d+)-(?P<max>\d+)$',
         r'^<?(?P<max>\d+)$',
         r'^>?(?P<min>\d+(\.\d+)?)$',
-        r'^(?P<age>\d+(\.\d+)?)$'
+        r'^(?P<age>\d+(\.\d+)?)$',
+        r'^~?(?P<age>\d+(\.\d+)?)$'
     ]
     for pattern in patterns:
         match = re.match(pattern, age_str)
