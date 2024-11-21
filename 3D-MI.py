@@ -282,6 +282,16 @@ HTML_TEMPLATE = """
         #craterTableContainer {
             overflow-x: auto;
         }
+        /* Adjust table to allow infinite width */
+        #fullCraterTable {
+            min-width: 100%;
+        }
+        /* Handle data too wide for the column gracefully */
+        #fullCraterTable td {
+            max-width: 200px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
@@ -403,19 +413,13 @@ HTML_TEMPLATE = """
             <div id="craterTableContainer">
                 <table id="fullCraterTable">
                     <thead>
-                        <tr>
-                            <th onclick="sortCraterTable(0)">Name &#x25B2;&#x25BC;</th>
-                            <th onclick="sortCraterTable(1)">Diameter (km) &#x25B2;&#x25BC;</th>
-                            <th onclick="sortCraterTable(2)">Age (Ma) &#x25B2;&#x25BC;</th>
-                            <th onclick="sortCraterTable(3)">Country &#x25B2;&#x25BC;</th>
-                            <th onclick="sortCraterTable(4)">Exposure &#x25B2;&#x25BC;</th>
-                            <th onclick="sortCraterTable(5)">Target Rock &#x25B2;&#x25BC;</th>
-                            <th onclick="sortCraterTable(6)">Confirmation &#x25B2;&#x25BC;</th>
-                        </tr>
+                        <tr id="craterTableHeaders"></tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
+            <p>For details on the abbreviations used in this table, please visit <a href="https://impact-craters.com/" target="_blank">impact-craters.com</a>.</p>
+            <p>Data source: <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021 "The terrestrial impact crater record: A statistical analysis of morphologies, structures, ages, lithologies, and more"</a>. Website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</p>
         </div>
     </div>
     <div id="infoModal">
@@ -441,7 +445,7 @@ HTML_TEMPLATE = """
             <h3>Data Sources:</h3>
             <ul>
                 <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
-                <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database via Antash</a></li>
+                <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> and the website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a></li>
             </ul>
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
         </div>
@@ -468,6 +472,12 @@ HTML_TEMPLATE = """
         const impactCraters = {{ impact_craters | tojson }};
         let filteredCraters = [];
         const allCraters = impactCraters.features;
+
+        let craterPropertyNames = [];
+
+        if (allCraters.length > 0) {
+            craterPropertyNames = Object.keys(allCraters[0].properties);
+        }
 
         let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
         viewer.dataSources.add(meteoriteDataSource);
@@ -877,7 +887,7 @@ HTML_TEMPLATE = """
             const diameter = properties['Crater diamter [km]'] || 'Unknown';
             const country = properties.Country || 'Unknown';
             const target = properties.Target || 'Unknown';
-            const exposure = properties.Exposure !== undefined ? properties.Exposure : 'Unknown';
+            const type = properties['Type of structure'] || 'Unknown';
 
             return `
                 <b>Name:</b> ${name}<br>
@@ -885,7 +895,7 @@ HTML_TEMPLATE = """
                 <b>Diameter:</b> ${diameter} km<br>
                 <b>Country:</b> ${country}<br>
                 <b>Target:</b> ${target}<br>
-                <b>Exposure:</b> ${exposure}<br>
+                <b>Type:</b> ${type}<br>
             `;
         }
 
@@ -1120,34 +1130,37 @@ HTML_TEMPLATE = """
 
         function updateCraterModalTable() {
             const tbody = document.querySelector('#fullCraterTable tbody');
+            const thead = document.querySelector('#fullCraterTable thead');
+            const headerRow = document.getElementById('craterTableHeaders');
             if (!filteredCraters.length) {
                 tbody.innerHTML = '<tr><td colspan="7">No crater data available.</td></tr>';
                 return;
             }
             const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
             tbody.innerHTML = '';
+            headerRow.innerHTML = '';
+
+            // Populate table headers
+            craterPropertyNames.forEach((propName, index) => {
+                const th = document.createElement('th');
+                th.innerHTML = `${propName} &#x25B2;&#x25BC;`;
+                th.onclick = () => sortCraterTable(index);
+                headerRow.appendChild(th);
+            });
+
             filteredCraters.forEach((crater, index) => {
                 const properties = crater.properties;
                 const name = properties.Name || 'Unknown';
                 if (name.toLowerCase().includes(searchQuery)) {
-                    const diameter = parseFloat(properties['Crater diamter [km]']) || 'Unknown';
-                    const age = properties['Age [Myr]'] || 'Unknown';
-                    const country = properties.Country || 'Unknown';
-                    const exposure = properties.Exposure !== undefined ? properties.Exposure : 'Unknown';
-                    const target = properties.Target || 'Unknown';
-                    const confirmation = properties.Confirmation || 'Unknown';
                     const tr = document.createElement('tr');
                     tr.style.cursor = 'pointer';
                     tr.onclick = () => flyToCrater(index);
-                    tr.innerHTML = `
-                        <td>${name}</td>
-                        <td>${diameter}</td>
-                        <td>${age}</td>
-                        <td>${country}</td>
-                        <td>${exposure}</td>
-                        <td>${target}</td>
-                        <td>${confirmation}</td>
-                    `;
+                    craterPropertyNames.forEach(propName => {
+                        const td = document.createElement('td');
+                        const value = properties[propName] !== undefined ? properties[propName] : 'Unknown';
+                        td.innerText = value;
+                        tr.appendChild(td);
+                    });
                     tbody.appendChild(tr);
                 }
             });
@@ -1193,25 +1206,17 @@ HTML_TEMPLATE = """
                 let x = a.cells[colIndex].innerText || a.cells[colIndex].textContent;
                 let y = b.cells[colIndex].innerText || b.cells[colIndex].textContent;
 
-                if (colIndex === 2) {
-                    const xIndex = filteredCraters.findIndex(c => c.properties.Name === a.cells[0].innerText);
-                    const yIndex = filteredCraters.findIndex(c => c.properties.Name === b.cells[0].innerText);
-                    const xAgeMin = filteredCraters[xIndex].properties.age_min;
-                    const yAgeMin = filteredCraters[yIndex].properties.age_min;
-                    return dir === 'asc' ? xAgeMin - yAgeMin : yAgeMin - xAgeMin;
-                } else {
-                    const xNum = parseFloat(x.replace(/[^\d.-]/g, ''));
-                    const yNum = parseFloat(y.replace(/[^\d.-]/g, ''));
+                const xNum = parseFloat(x.replace(/[^\d.-]/g, ''));
+                const yNum = parseFloat(y.replace(/[^\d.-]/g, ''));
 
-                    if (!isNaN(xNum) && !isNaN(yNum)) {
-                        return dir === 'asc' ? xNum - yNum : yNum - xNum;
-                    } else {
-                        x = x.toLowerCase();
-                        y = y.toLowerCase();
-                        if (x < y) return dir === 'asc' ? -1 : 1;
-                        if (x > y) return dir === 'asc' ? 1 : -1;
-                        return 0;
-                    }
+                if (!isNaN(xNum) && !isNaN(yNum)) {
+                    return dir === 'asc' ? xNum - yNum : yNum - xNum;
+                } else {
+                    x = x.toLowerCase();
+                    y = y.toLowerCase();
+                    if (x < y) return dir === 'asc' ? -1 : 1;
+                    if (x > y) return dir === 'asc' ? 1 : -1;
+                    return 0;
                 }
             });
 
