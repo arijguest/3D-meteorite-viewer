@@ -82,7 +82,7 @@ HTML_TEMPLATE = """
         #header div {
             margin-top: 10px;
         }
-        #controls {
+        #controls, #keyMenu {
             position: absolute;
             top: 100px;
             left: 10px;
@@ -96,7 +96,7 @@ HTML_TEMPLATE = """
             display: none;
             width: 300px;
         }
-        #controls .close-button {
+        #controls .close-button, #keyMenu .close-button {
             position: absolute;
             top: 10px;
             right: 10px;
@@ -166,7 +166,7 @@ HTML_TEMPLATE = """
             border-radius: 5px;
             position: relative;
         }
-        #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button {
+        #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button, #keyMenu .close-button {
             color: #aaa;
             position: absolute;
             top: 10px;
@@ -174,7 +174,7 @@ HTML_TEMPLATE = """
             font-weight: bold;
             cursor: pointer;
         }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus {
+        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus, #keyMenu .close-button:hover, #keyMenu .close-button:focus {
             color: white;
             text-decoration: none;
         }
@@ -239,6 +239,54 @@ HTML_TEMPLATE = """
             width: 100%;
             table-layout: fixed;
         }
+        .legend-section {
+            margin-bottom: 20px;
+        }
+        .legend-list {
+            list-style: none;
+            padding: 0;
+        }
+        .legend-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        /* Meteorite colors */
+        .meteorite-color-1 {
+            background-color: rgba(255, 0, 255, 0.6);
+        }
+        .meteorite-color-2 {
+            background-color: rgba(255, 182, 193, 0.6);
+        }
+        .meteorite-color-3 {
+            background-color: rgba(255, 0, 0, 0.6);
+        }
+        .meteorite-color-4 {
+            background-color: rgba(255, 165, 0, 0.6);
+        }
+        .meteorite-color-5 {
+            background-color: rgba(255, 255, 0, 0.6);
+        }
+        /* Crater colors */
+        .crater-color-1 {
+            background-color: rgba(0, 0, 128, 0.8);
+        }
+        .crater-color-2 {
+            background-color: rgba(0, 0, 139, 0.8);
+        }
+        .crater-color-3 {
+            background-color: rgba(0, 0, 255, 0.8);
+        }
+        .crater-color-4 {
+            background-color: rgba(173, 216, 230, 0.8);
+        }
     </style>
 </head>
 <body>
@@ -247,6 +295,7 @@ HTML_TEMPLATE = """
         <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
         <div>
             <button id="optionsButton">⚙️ Options</button>
+            <button id="keyButton">🔑 Key</button>
         </div>
     </div>
     <div id="controls">
@@ -308,6 +357,29 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <button id="infoButton">ℹ️ Info</button>
+        </div>
+    </div>
+    <div id="keyMenu">
+        <button class="close-button" id="closeKeyMenu">&times;</button>
+        <h2>Key</h2>
+        <div class="legend-section">
+            <h3>🌠 Meteorites</h3>
+            <ul class="legend-list">
+                <li><span class="legend-icon meteorite-color-1"></span> Mass ≥ 500,000g</li>
+                <li><span class="legend-icon meteorite-color-2"></span> Mass ≥ 100,000g</li>
+                <li><span class="legend-icon meteorite-color-3"></span> Mass ≥ 50,000g</li>
+                <li><span class="legend-icon meteorite-color-4"></span> Mass ≥ 10,000g</li>
+                <li><span class="legend-icon meteorite-color-5"></span> Mass < 10,000g</li>
+            </ul>
+        </div>
+        <div class="legend-section">
+            <h3>💥 Impact Craters</h3>
+            <ul class="legend-list">
+                <li><span class="legend-icon crater-color-1"></span> Diameter ≥ 50km</li>
+                <li><span class="legend-icon crater-color-2"></span> Diameter ≥ 30km</li>
+                <li><span class="legend-icon crater-color-3"></span> Diameter ≥ 10km</li>
+                <li><span class="legend-icon crater-color-4"></span> Diameter < 10km</li>
+            </ul>
         </div>
     </div>
     <div id="craterBar"></div>
@@ -404,7 +476,6 @@ HTML_TEMPLATE = """
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
 
-        // Enhanced clustering parameters
         const clusterOptions = {
             enabled: true,
             pixelRange: 500,
@@ -1158,6 +1229,21 @@ HTML_TEMPLATE = """
             controls.style.display = 'none';
         };
 
+        const keyButton = document.getElementById('keyButton');
+        const keyMenu = document.getElementById('keyMenu');
+        const closeKeyMenu = document.getElementById('closeKeyMenu');
+
+        keyButton.onclick = () => {
+            if (keyMenu.style.display === 'none' || keyMenu.style.display === '') {
+                keyMenu.style.display = 'block';
+            } else {
+                keyMenu.style.display = 'none';
+            }
+        };
+
+        closeKeyMenu.onclick = () => {
+            keyMenu.style.display = 'none';
+        };
     </script>
 </body>
 </html>
