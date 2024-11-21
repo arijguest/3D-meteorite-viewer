@@ -472,17 +472,11 @@ HTML_TEMPLATE = """
         let filteredCraters = [];
         const allCraters = impactCraters.features;
 
-        let meteoritePoints = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+        let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
+        viewer.dataSources.add(meteoriteDataSource);
+
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
-
-        const clusterOptions = {
-            enabled: true,
-            pixelRange: 500,
-            minimumClusterSize: 20
-        };
-
-        const entityCluster = new Cesium.EntityCluster(clusterOptions);
 
         function getMeteoriteColor(mass) {
             if (mass >= 500000) return Cesium.Color.FUCHSIA.withAlpha(0.6);
@@ -587,7 +581,7 @@ HTML_TEMPLATE = """
         }
 
         function updateMeteoriteData() {
-            meteoritePoints.removeAll();
+            meteoriteDataSource.entities.removeAll();
 
             filteredMeteorites.forEach((meteorite, index) => {
                 let lat, lon;
@@ -607,11 +601,15 @@ HTML_TEMPLATE = """
 
                 if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                     const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                    meteoritePoints.add({
+                    const pointSize = mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5;
+                    meteoriteDataSource.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        pixelSize: mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5,
-                        color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
-                        id: {
+                        point: {
+                            pixelSize: pointSize,
+                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                        },
+                        properties: {
                             isMeteorite: true,
                             meteoriteIndex: index
                         }
@@ -619,12 +617,60 @@ HTML_TEMPLATE = """
                 }
             });
 
-            meteoritePoints.cluster = new Cesium.EntityCluster({
-                enabled: document.getElementById('clusterMeteorites').checked,
-                pixelRange: 500,
-                minimumClusterSize: 15
+            meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
+            meteoriteDataSource.clustering.pixelRange = 45;
+            meteoriteDataSource.clustering.minimumClusterSize = 3;
+            meteoriteDataSource.clustering.clusterBillboards = true;
+            meteoriteDataSource.clustering.clusterLabels = false;
+            meteoriteDataSource.clustering.clusterPoints = true;
+
+            meteoriteDataSource.clustering.eventHandler = createClusterEventHandler(meteoriteDataSource.clustering);
+        }
+
+        function createClusterEventHandler(clustering) {
+            clustering.clusterEvent.addEventListener(function(clusteredEntities, cluster) {
+                cluster.label.show = true;
+                cluster.label.text = clusteredEntities.length.toLocaleString();
+                cluster.billboard.show = true;
+                cluster.billboard.id = cluster.label.id = cluster;
+                cluster.billboard.image = createClusterIcon(clusteredEntities.length);
             });
         }
+
+        function createClusterIcon(clusterSize) {
+            const size = 40;
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = size;
+            const context = canvas.getContext('2d');
+
+            const gradient = context.createRadialGradient(size/2, size/2, size/4, size/2, size/2, size/2);
+            gradient.addColorStop(0, 'rgba(0, 122, 255, 0.9)');
+            gradient.addColorStop(1, 'rgba(0, 122, 255, 0.7)');
+
+            context.fillStyle = gradient;
+            context.beginPath();
+            context.arc(size/2, size/2, size/2, 0, 2 * Math.PI);
+            context.fill();
+
+            context.fillStyle = 'white';
+            context.font = 'bold 20px sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(clusterSize, size/2, size/2);
+
+            return canvas.toDataURL();
+        }
+
+        function updateClusteringOnZoom() {
+            const altitude = viewer.camera.positionCartographic.height;
+            if (altitude < 300000) {
+                meteoriteDataSource.clustering.enabled = false;
+            } else {
+                meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
+            }
+        }
+
+        viewer.camera.changed.addEventListener(updateClusteringOnZoom);
 
         function updateCraterData() {
             craterEntities.entities.removeAll();
@@ -643,11 +689,14 @@ HTML_TEMPLATE = """
                             pixelSize: getCraterSize(diameter),
                             color: getCraterColor(diameter),
                             outlineColor: Cesium.Color.BLACK,
-                            outlineWidth: 1
+                            outlineWidth: 1,
+                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
                         },
                         description: getCraterDescription(properties),
-                        isImpactCrater: true,
-                        craterIndex: index
+                        properties: {
+                            isImpactCrater: true,
+                            craterIndex: index
+                        }
                     });
                 }
             });
@@ -849,12 +898,13 @@ HTML_TEMPLATE = """
         handler.setInputAction(movement => {
             const pickedObject = viewer.scene.pick(movement.endPosition);
             if (Cesium.defined(pickedObject)) {
-                if (pickedObject.id && (pickedObject.id.isMeteorite || pickedObject.id.isImpactCrater)) {
+                let id = pickedObject.id;
+                if (id && (id.properties && (id.properties.isMeteorite || id.properties.isImpactCrater))) {
                     tooltip.style.display = 'block';
-                    if (pickedObject.id.isImpactCrater) {
-                        tooltip.innerHTML = pickedObject.id.description.getValue();
-                    } else if (pickedObject.id.isMeteorite) {
-                        const index = pickedObject.id.meteoriteIndex;
+                    if (id.properties.isImpactCrater) {
+                        tooltip.innerHTML = id.description.getValue();
+                    } else if (id.properties.isMeteorite) {
+                        const index = id.properties.meteoriteIndex;
                         const meteorite = filteredMeteorites[index];
                         tooltip.innerHTML = getMeteoriteDescription(meteorite);
                     }
@@ -1115,11 +1165,11 @@ HTML_TEMPLATE = """
         });
 
         document.getElementById('toggleMeteorites').addEventListener('change', function() {
-            meteoritePoints.show = this.checked;
+            meteoriteDataSource.show = this.checked;
         });
 
         document.getElementById('clusterMeteorites').addEventListener('change', function() {
-            meteoritePoints.cluster.enabled = this.checked;
+            meteoriteDataSource.clustering.enabled = this.checked;
         });
 
         document.getElementById('toggleCraters').addEventListener('change', function() {
