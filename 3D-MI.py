@@ -36,35 +36,16 @@ def parse_age_string(age_str):
                 return 0, float(groups['max'])
     return None, None
 
-def clean_confirmation_entry(entry):
-    if not entry:
-        return entry
-    # Remove patterns like '2.3.CO;2" title="See details" target="_blank">'
-    cleaned_entry = re.sub(r'\d+\.\d+\.CO;2" title="See details" target="_blank">', '', entry)
-    return cleaned_entry
-
 IMPACT_CRATERS_FILE = 'earth-impact-craters-v2.geojson'
 impact_craters = {"type": "FeatureCollection", "features": []}
-max_crater_diameter = 0
 if os.path.exists(IMPACT_CRATERS_FILE):
     with open(IMPACT_CRATERS_FILE, 'r', encoding='utf-8') as geojson_file:
         impact_craters = json.load(geojson_file)
         for feature in impact_craters['features']:
-            properties = feature['properties']
-            age_str = properties.get('Age [Myr]', '')
+            age_str = feature['properties'].get('Age [Myr]', '')
             age_min, age_max = parse_age_string(age_str)
-            properties['age_min'] = age_min if age_min is not None else 0
-            properties['age_max'] = age_max if age_max is not None else 2500
-            # Clean 'Confirmation' entries
-            properties['Confirmation'] = clean_confirmation_entry(properties.get('Confirmation', ''))
-            # Update max crater diameter
-            diameter = properties.get('Crater diameter [km]', 0)
-            try:
-                diameter = float(diameter)
-                if diameter > max_crater_diameter:
-                    max_crater_diameter = diameter
-            except ValueError:
-                pass
+            feature['properties']['age_min'] = age_min if age_min is not None else 0
+            feature['properties']['age_max'] = age_max if age_max is not None else 2500
 else:
     print(f"{IMPACT_CRATERS_FILE} not found. Impact craters will not be displayed.")
 
@@ -137,9 +118,6 @@ HTML_TEMPLATE = """
         #controls, #keyMenu {
             padding-bottom: 20px;
             bottom: 20px;
-        }
-        #controls header {
-            margin-bottom: 10px; /* Add space after header */
         }
         #meteoriteBar, #craterBar {
             position: absolute;
@@ -216,7 +194,8 @@ HTML_TEMPLATE = """
         #fullMeteoriteTable, #fullCraterTable {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed; /* Use fixed table layout */
+            table-layout: auto;
+            overflow-x: auto;
         }
         #fullMeteoriteTable th, #fullMeteoriteTable td,
         #fullCraterTable th, #fullCraterTable td {
@@ -267,12 +246,12 @@ HTML_TEMPLATE = """
         #fullMeteoriteTable thead, #fullCraterTable thead {
             display: table;
             width: 100%;
-            table-layout: fixed; /* Use fixed table layout */
+            table-layout: auto;
         }
         #fullMeteoriteTable tbody tr, #fullCraterTable tbody tr {
             display: table;
             width: 100%;
-            table-layout: fixed; /* Use fixed table layout */
+            table-layout: auto;
         }
         .legend-section {
             margin-bottom: 20px;
@@ -313,15 +292,6 @@ HTML_TEMPLATE = """
             white-space: nowrap;
             text-overflow: ellipsis;
         }
-        /* Adjust link color in modal */
-        #craterModal-content a {
-            color: lightblue;
-        }
-        /* Adjust cluster icon size for large numbers */
-        .cluster-icon {
-            width: auto;
-            padding: 5px;
-        }
     </style>
 </head>
 <body>
@@ -339,7 +309,6 @@ HTML_TEMPLATE = """
             <h2>Options</h2>
             <button class="close-button" id="closeOptions">&times;</button>
         </header>
-        <br> <!-- Add blank line -->
         <div id="searchContainer">
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">Search</button>
@@ -374,20 +343,16 @@ HTML_TEMPLATE = """
         <div>
             <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue"></span></label>
             <input type="range" id="diameterRangeMin" value="0">
-            <input type="range" id="diameterRangeMax" value="{{ max_crater_diameter }}">
+            <input type="range" id="diameterRangeMax" value="300">
         </div>
         <div>
-            <label><strong>Age Range (Myr):</strong> <span id="ageRangeValue"></span></label>
+            <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
             <input type="range" id="ageRangeMin" value="0">
             <input type="range" id="ageRangeMax" value="2500">
         </div>
         <div>
             <label><strong>Target Rock:</strong></label>
             <select id="targetRockSelect" multiple size="5"></select>
-        </div>
-        <div>
-            <label><strong>Crater Type:</strong></label>
-            <select id="craterTypeSelect" multiple size="5"></select>
         </div>
         <hr>
         <div>
@@ -454,7 +419,7 @@ HTML_TEMPLATE = """
                 </table>
             </div>
             <p>For details on the abbreviations used in this table, please visit <a href="https://impact-craters.com/" target="_blank">impact-craters.com</a>.</p>
-            <p>Data source: <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021 "The terrestrial impact crater record: A statistical analysis of morphologies, structures, ages, lithologies, and more"</a>. Thank you to <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a> for creating the impact-craters.com webpage.</p>
+            <p>Data source: <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021 "The terrestrial impact crater record: A statistical analysis of morphologies, structures, ages, lithologies, and more"</a>. Website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</p>
         </div>
     </div>
     <div id="infoModal">
@@ -466,7 +431,7 @@ HTML_TEMPLATE = """
             <ul>
                 <li><strong>Navigation:</strong> Use mouse or touch controls to rotate, zoom, and pan around the globe.</li>
                 <li><strong>Search:</strong> Fly to a specific location using the search bar in the Options menu.</li>
-                <li><strong>Filters:</strong> Adjust filters like year, mass, diameter, age, class, target rock type, and crater type in the Options menu to refine the displayed data.</li>
+                <li><strong>Filters:</strong> Adjust filters like year, mass, diameter, age, class, and target rock type in the Options menu to refine the displayed data.</li>
                 <li><strong>Show/Hide Data:</strong> Toggle meteorites and impact craters visibility using the checkboxes in the Options menu.</li>
                 <li><strong>Color Schemes:</strong> Customize color schemes for meteorites and impact craters in the Key menu. Choose from various palettes, including colorblind-friendly options.</li>
                 <li><strong>Legends:</strong> View legends for meteorite and crater color schemes in the Key menu to understand data representation.</li>
@@ -480,7 +445,7 @@ HTML_TEMPLATE = """
             <h3>Data Sources:</h3>
             <ul>
                 <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
-                <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> and the impact-crater.com website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a></li>
+                <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> and the website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a></li>
             </ul>
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
         </div>
@@ -512,21 +477,6 @@ HTML_TEMPLATE = """
 
         if (allCraters.length > 0) {
             craterPropertyNames = Object.keys(allCraters[0].properties);
-            // Reorder properties
-            const preferredOrder = ['Name', 'Continent', 'Country', 'Age [Myr]', 'Crater diameter [km]', 'Crater type'];
-            craterPropertyNames.sort((a, b) => {
-                const aIndex = preferredOrder.indexOf(a);
-                const bIndex = preferredOrder.indexOf(b);
-                if (aIndex !== -1 && bIndex !== -1) {
-                    return aIndex - bIndex;
-                } else if (aIndex !== -1) {
-                    return -1;
-                } else if (bIndex !== -1) {
-                    return 1;
-                } else {
-                    return a.localeCompare(b);
-                }
-            });
         }
 
         let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
@@ -658,7 +608,6 @@ HTML_TEMPLATE = """
                     { threshold: 0,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) }
                 ]
             }
-
         };
 
         function populateColorSchemeSelectors() {
@@ -728,7 +677,6 @@ HTML_TEMPLATE = """
             let ageMax = parseFloat(document.getElementById('ageRangeMax').value);
             const selectedRocks = Array.from(document.getElementById('targetRockSelect').selectedOptions).map(option => option.value);
             const selectedClasses = Array.from(document.getElementById('meteoriteClassSelect').selectedOptions).map(option => option.value);
-            const selectedTypes = Array.from(document.getElementById('craterTypeSelect').selectedOptions).map(option => option.value);
 
             if (yearMin > yearMax) {
                 [yearMin, yearMax] = [yearMax, yearMin];
@@ -768,18 +716,19 @@ HTML_TEMPLATE = """
 
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
-                let diameter = parseFloat(properties['Crater diameter [km]']) || 0;
-                let age_min = properties.age_min || 0;
-                let age_max = properties.age_max || 2500;
+                let diameter = parseFloat(properties['Crater diamter [km]']) || 0;
+                let age_str = properties['Age [Myr]'] || '';
+                let age_min, age_max;
+                [age_min, age_max] = parse_age_values(age_str);
+                age_min = age_min !== null ? age_min : 0;
+                age_max = age_max !== null ? age_max : 2500;
                 const targetRock = properties.Target || 'Unknown';
-                const craterType = properties['Crater type'] || 'Unknown';
 
                 const diameterMatch = diameter >= diameterMin && diameter <= diameterMax;
                 const ageMatch = (age_max >= ageMin && age_min <= ageMax);
                 const rockMatch = selectedRocks.length ? selectedRocks.includes(targetRock) : true;
-                const typeMatch = selectedTypes.length ? selectedTypes.includes(craterType) : true;
 
-                return diameterMatch && ageMatch && rockMatch && typeMatch;
+                return diameterMatch && ageMatch && rockMatch;
             });
 
             updateMeteoriteData();
@@ -789,6 +738,20 @@ HTML_TEMPLATE = """
             updateTotalCounts();
             updateModalTable();
             updateCraterModalTable();
+        }
+
+        function parse_age_values(age_str) {
+            if (!age_str) return [null, null];
+            age_str = age_str.trim();
+            const match = age_str.match(/([><~]?)([\d\.]+)/);
+            if (match) {
+                const operator = match[1];
+                const value = parseFloat(match[2]);
+                if (operator === '>') return [value, 2500];
+                if (operator === '<') return [0, value];
+                return [value, value];
+            }
+            return [null, null];
         }
 
         function updateTotalCounts() {
@@ -897,7 +860,7 @@ HTML_TEMPLATE = """
 
                 if (geometry && geometry.type === "Point") {
                     const [lon, lat] = geometry.coordinates;
-                    let diameter = parseFloat(properties['Crater diameter [km]']) || 1;
+                    let diameter = parseFloat(properties['Crater diamter [km]']) || 1;
 
                     const entity = craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -920,18 +883,16 @@ HTML_TEMPLATE = """
 
         function getCraterDescription(properties) {
             const name = properties.Name || 'Unknown';
-            const age = properties['Age [Myr]'] ? properties['Age [Myr]'] + ' Myr' : 'Unknown';
-            const diameter = properties['Crater diameter [km]'] || 'Unknown';
+            const age = properties['Age [Myr]'] || 'Unknown';
+            const diameter = properties['Crater diamter [km]'] || 'Unknown';
             const country = properties.Country || 'Unknown';
-            const continent = properties.Continent || 'Unknown';
             const target = properties.Target || 'Unknown';
-            const type = properties['Crater type'] || 'Unknown';
+            const type = properties['Type of structure'] || 'Unknown';
 
             return `
                 <b>Name:</b> ${name}<br>
                 <b>Age:</b> ${age}<br>
                 <b>Diameter:</b> ${diameter} km<br>
-                <b>Continent:</b> ${continent}<br>
                 <b>Country:</b> ${country}<br>
                 <b>Target:</b> ${target}<br>
                 <b>Type:</b> ${type}<br>
@@ -982,7 +943,7 @@ HTML_TEMPLATE = """
         }
 
         function updateTopCraters() {
-            const sortedCraters = filteredCraters.filter(c => c.properties['Crater diameter [km]']).sort((a, b) => parseFloat(b.properties['Crater diameter [km]']) - parseFloat(a.properties['Crater diameter [km]']));
+            const sortedCraters = filteredCraters.filter(c => c.properties['Crater diamter [km]']).sort((a, b) => parseFloat(b.properties['Crater diamter [km]']) - parseFloat(a.properties['Crater diamter [km]']));
             const top10Craters = sortedCraters.slice(0, 10);
             const craterBar = document.getElementById('craterBar');
             craterBar.innerHTML = '<div class="bar-item"><strong>Top Impact Craters:</strong></div>';
@@ -995,7 +956,7 @@ HTML_TEMPLATE = """
 
             top10Craters.forEach((crater, index) => {
                 const name = crater.properties.Name || 'Unknown';
-                const diameter = parseFloat(crater.properties['Crater diameter [km]']) || 0;
+                const diameter = parseFloat(crater.properties['Crater diamter [km]']) || 0;
                 const diameterDisplay = diameter ? `${diameter} km` : 'Unknown';
                 const div = document.createElement('div');
                 div.className = 'bar-item';
@@ -1003,29 +964,6 @@ HTML_TEMPLATE = """
                 div.onclick = () => flyToCrater(filteredCraters.indexOf(crater));
                 craterBar.appendChild(div);
             });
-        }
-
-        // ... (The rest of the script remains mostly the same)
-
-        function populateCraterTypeOptions() {
-            const craterTypeSet = new Set();
-            allCraters.forEach(crater => {
-                const craterType = crater.properties['Crater type'] || 'Unknown';
-                craterTypeSet.add(craterType);
-            });
-            const craterTypeSelect = document.getElementById('craterTypeSelect');
-            craterTypeSet.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.text = type;
-                craterTypeSelect.add(option);
-            });
-        }
-
-        function initializeCraterFilters() {
-            populateTargetRockOptions();
-            populateCraterTypeOptions();
-            initializeCraterSliders();
         }
 
         function flyToMeteorite(index) {
@@ -1346,7 +1284,7 @@ HTML_TEMPLATE = """
         }
 
         function initializeCraterSliders() {
-            const diameters = allCraters.map(c => c.properties['Crater diameter [km]'] ? parseFloat(c.properties['Crater diameter [km]']) : null).filter(d => d !== null);
+            const diameters = allCraters.map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null).filter(d => d !== null);
             const ages = allCraters.map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null).filter(a => a !== null);
 
             const minDiameter = Math.min(...diameters);
@@ -1496,6 +1434,15 @@ HTML_TEMPLATE = """
             initializeCraterSliders();
         }
 
+        function initializeMeteoriteFilters() {
+            populateMeteoriteClassOptions();
+            initializeMeteoriteSliders();
+        }
+
+        initializeSliders();
+        initializeCraterFilters();
+        populateColorSchemeSelectors();
+
         fetchAllMeteorites();
 
         const infoModal = document.getElementById('infoModal');
@@ -1628,8 +1575,7 @@ def index():
     return render_template_string(
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN,
-        impact_craters=impact_craters,
-        max_crater_diameter=max_crater_diameter
+        impact_craters=impact_craters
     )
 
 if __name__ == '__main__':
