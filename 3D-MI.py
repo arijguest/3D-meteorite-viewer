@@ -31,7 +31,7 @@ def parse_age_string(age_str):
             elif 'min' in groups and 'max' in groups and groups['min'] and groups['max']:
                 return float(groups['min']), float(groups['max'])
             elif 'min' in groups and groups['min']:
-                return float(groups['min']), 2000
+                return float(groups['min']), 2500
             elif 'max' in groups and groups['max']:
                 return 0, float(groups['max'])
     return None, None
@@ -45,7 +45,7 @@ if os.path.exists(IMPACT_CRATERS_FILE):
             age_str = feature['properties'].get('age_millions_years_ago', '')
             age_min, age_max = parse_age_string(age_str)
             feature['properties']['age_min'] = age_min if age_min is not None else 0
-            feature['properties']['age_max'] = age_max if age_max is not None else 2000
+            feature['properties']['age_max'] = age_max if age_max is not None else 2500
 else:
     print(f"{IMPACT_CRATERS_FILE} not found. Impact craters will not be displayed.")
 
@@ -289,8 +289,8 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
-            <input type="range" id="ageRangeMin" min="0" max="2000" value="0">
-            <input type="range" id="ageRangeMax" min="0" max="2000" value="2000">
+            <input type="range" id="ageRangeMin" min="0" max="2500" value="0">
+            <input type="range" id="ageRangeMax" min="0" max="2500" value="2500">
         </div>
         <div>
             <label><strong>Target Rock:</strong></label>
@@ -490,7 +490,7 @@ HTML_TEMPLATE = """
                 const properties = feature.properties;
                 let diameter = parseFloat(properties.diameter_km) || 0;
                 let age_min = parseFloat(properties.age_min) || 0;
-                let age_max = parseFloat(properties.age_max) || 2000;
+                let age_max = parseFloat(properties.age_max) || 2500;
                 const targetRock = properties.target_rock || 'Unknown';
 
                 const diameterMatch = diameter >= diameterMin && diameter <= diameterMax;
@@ -1065,7 +1065,7 @@ HTML_TEMPLATE = """
             document.getElementById('diameterRangeMin').value = 0;
             document.getElementById('diameterRangeMax').value = 300;
             document.getElementById('ageRangeMin').value = 0;
-            document.getElementById('ageRangeMax').value = 2000;
+            document.getElementById('ageRangeMax').value = 2500;
 
             const targetRockSelect = document.getElementById('targetRockSelect');
             for (let i = 0; i < targetRockSelect.options.length; i++) {
