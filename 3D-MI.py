@@ -314,8 +314,8 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <label><strong>Mass Range:</strong> <span id="massRangeValue"></span></label>
-            <input type="range" id="massRangeMin" min="0" max="1000000" value="0">
-            <input type="range" id="massRangeMax" min="0" max="1000000" value="1000000">
+            <input type="range" id="massRangeMin" min="0" max="60000000" value="0">
+            <input type="range" id="massRangeMax" min="0" max="60000000" value="60000000">
         </div>
         <div>
             <label><strong>Meteorite Class:</strong></label>
@@ -450,7 +450,6 @@ HTML_TEMPLATE = """
                 <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database via Antash</a></li>
             </ul>
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
-            <p><strong>Note:</strong> The application includes colorblind-friendly color schemes to enhance accessibility for users with color vision deficiencies.</p>
         </div>
     </div>
     <script>
@@ -780,7 +779,7 @@ HTML_TEMPLATE = """
 
             meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
             meteoriteDataSource.clustering.pixelRange = 45;
-            meteoriteDataSource.clustering.minimumClusterSize = 3;
+            meteoriteDataSource.clustering.minimumClusterSize = 10;
             meteoriteDataSource.clustering.clusterBillboards = true;
             meteoriteDataSource.clustering.clusterLabels = false;
             meteoriteDataSource.clustering.clusterPoints = true;
@@ -822,7 +821,7 @@ HTML_TEMPLATE = """
 
         function updateClusteringOnZoom() {
             const altitude = viewer.camera.positionCartographic.height;
-            if (altitude < 300000) {
+            if (altitude < 500000) {
                 meteoriteDataSource.clustering.enabled = false;
             } else {
                 meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
@@ -872,7 +871,6 @@ HTML_TEMPLATE = """
             const exposed = properties.exposed !== undefined ? properties.exposed : 'Unknown';
             const drilled = properties.drilled !== undefined ? properties.drilled : 'Unknown';
             const bolide_type = properties.bolid_type || 'Unknown';
-            const url = properties.url || '#';
             return `
                 <b>Name:</b> ${name}<br>
                 <b>Age:</b> ${age} Ma<br>
@@ -882,7 +880,6 @@ HTML_TEMPLATE = """
                 <b>Exposed:</b> ${exposed}<br>
                 <b>Drilled:</b> ${drilled}<br>
                 <b>Bolide Type:</b> ${bolide_type}<br>
-                <b>URL:</b> <a href="${url}" target="_blank">More Info</a>
             `;
         }
 
