@@ -87,7 +87,7 @@ HTML_TEMPLATE = """
             top: 100px;
             left: 10px;
             background: rgba(0, 0, 0, 0.9);
-            padding: 10px;
+            padding: 30px 10px 10px 10px;
             z-index: 1000;
             color: white;
             border-radius: 5px;
@@ -95,16 +95,6 @@ HTML_TEMPLATE = """
             overflow-y: auto;
             display: none;
             width: 300px;
-        }
-        #controls header, #keyMenu header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        #controls h2, #keyMenu h2 {
-            margin: 0;
-            padding-right: 30px;
         }
         #controls .close-button, #keyMenu .close-button {
             position: absolute;
@@ -115,14 +105,6 @@ HTML_TEMPLATE = """
             color: white;
             font-size: 20px;
             cursor: pointer;
-        }
-        /* Adjust padding to prevent bottom being cut off */
-        #controls, #keyMenu {
-            padding-bottom: 20px;
-            bottom: 20px;
-        }
-        #controls > header + * {
-            margin-top: 10px; /* Added spacing */
         }
         #meteoriteBar, #craterBar {
             position: absolute;
@@ -297,11 +279,7 @@ HTML_TEMPLATE = """
         </div>
     </div>
     <div id="controls">
-        <header>
-            <h2>Options</h2>
-            <button class="close-button" id="closeOptions">&times;</button>
-        </header>
-        
+        <button class="close-button" id="closeOptions">&times;</button>
         <div id="searchContainer">
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">Search</button>
@@ -335,8 +313,8 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue"></span></label>
-            <input type="range" id="diameterRangeMin" min="0" max="500" value="0">
-            <input type="range" id="diameterRangeMax" min="0" max="500" value="500">
+            <input type="range" id="diameterRangeMin" value="0">
+            <input type="range" id="diameterRangeMax" value="300">
         </div>
         <div>
             <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
@@ -358,10 +336,8 @@ HTML_TEMPLATE = """
         </div>
     </div>
     <div id="keyMenu">
-        <header>
-            <h2>Key</h2>
-            <button class="close-button" id="closeKeyMenu">&times;</button>
-        </header>
+        <button class="close-button" id="closeKeyMenu">&times;</button>
+        <h2>Key</h2>
         <div>
             <label for="meteoriteColorScheme"><strong>Meteorite Color Scheme:</strong></label>
             <select id="meteoriteColorScheme">
@@ -478,7 +454,7 @@ HTML_TEMPLATE = """
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
         let filteredCraters = [];
-        const allCraters = impact_craters.features;
+        const allCraters = impactCraters.features;
 
         let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
         viewer.dataSources.add(meteoriteDataSource);
@@ -626,7 +602,7 @@ HTML_TEMPLATE = """
                 craterSelect.appendChild(craterOption);
             }
             meteoriteSelect.value = 'Default';
-            craterSelect.value = 'Blue Scale'; // Set default crater color scheme to Blue Scale
+            craterSelect.value = 'Default';
         }
 
         function getMeteoriteColor(mass) {
@@ -783,8 +759,8 @@ HTML_TEMPLATE = """
             });
 
             meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
-            meteoriteDataSource.clustering.pixelRange = 45;
-            meteoriteDataSource.clustering.minimumClusterSize = 3;
+            meteoriteDataSource.clustering.pixelRange = 30;
+            meteoriteDataSource.clustering.minimumClusterSize = 50;
             meteoriteDataSource.clustering.clusterBillboards = true;
             meteoriteDataSource.clustering.clusterLabels = false;
             meteoriteDataSource.clustering.clusterPoints = true;
@@ -810,7 +786,7 @@ HTML_TEMPLATE = """
             canvas.width = canvas.height = size;
             const context = canvas.getContext('2d');
 
-            context.fillStyle = 'rgba(255, 165, 0, 0.7)';
+            context.fillStyle = 'rgba(255, 165, 0, 0.4)';
             context.beginPath();
             context.arc(size/2, size/2, size/2, 0, 2 * Math.PI);
             context.fill();
@@ -826,7 +802,7 @@ HTML_TEMPLATE = """
 
         function updateClusteringOnZoom() {
             const altitude = viewer.camera.positionCartographic.height;
-            if (altitude < 300000) {
+            if (altitude < 500000) {
                 meteoriteDataSource.clustering.enabled = false;
             } else {
                 meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
@@ -876,7 +852,6 @@ HTML_TEMPLATE = """
             const exposed = properties.exposed !== undefined ? properties.exposed : 'Unknown';
             const drilled = properties.drilled !== undefined ? properties.drilled : 'Unknown';
             const bolide_type = properties.bolid_type || 'Unknown';
-            const url = properties.url || '#';
             return `
                 <b>Name:</b> ${name}<br>
                 <b>Age:</b> ${age} Ma<br>
@@ -886,7 +861,6 @@ HTML_TEMPLATE = """
                 <b>Exposed:</b> ${exposed}<br>
                 <b>Drilled:</b> ${drilled}<br>
                 <b>Bolide Type:</b> ${bolide_type}<br>
-                <b>URL:</b> <a href="${url}" target="_blank">More Info</a>
             `;
         }
 
@@ -902,10 +876,7 @@ HTML_TEMPLATE = """
         }
 
         function getCraterSize(diameter) {
-            if (diameter >= 300) return 30;
-            if (diameter >= 200) return 25;
-            if (diameter >= 130) return 20;
-            if (diameter >= 50) return 18;
+            if (diameter >= 50) return 20;
             if (diameter >= 30) return 15;
             if (diameter >= 10) return 10;
             return 7;
@@ -1294,18 +1265,18 @@ HTML_TEMPLATE = """
             const minAge = Math.min(...ages);
             const maxAge = Math.max(...ages);
 
-            document.getElementById('diameterRangeMin').min = Math.floor(minDiameter);
-            document.getElementById('diameterRangeMin').max = Math.ceil(maxDiameter);
-            document.getElementById('diameterRangeMax').min = Math.floor(minDiameter);
-            document.getElementById('diameterRangeMax').max = Math.ceil(maxDiameter);
-            document.getElementById('diameterRangeMin').value = Math.floor(minDiameter);
-            document.getElementById('diameterRangeMax').value = Math.ceil(maxDiameter);
+            document.getElementById('diameterRangeMin').min = minDiameter;
+            document.getElementById('diameterRangeMin').max = maxDiameter;
+            document.getElementById('diameterRangeMax').min = minDiameter;
+            document.getElementById('diameterRangeMax').max = maxDiameter;
+            document.getElementById('diameterRangeMin').value = minDiameter;
+            document.getElementById('diameterRangeMax').value = maxDiameter;
 
             document.getElementById('ageRangeMin').min = minAge;
             document.getElementById('ageRangeMin').max = maxAge;
-            document.getElementById('ageRangeMin').value = minAge;
             document.getElementById('ageRangeMax').min = minAge;
             document.getElementById('ageRangeMax').max = maxAge;
+            document.getElementById('ageRangeMin').value = minAge;
             document.getElementById('ageRangeMax').value = maxAge;
 
             updateCraterSlidersDisplay();
@@ -1517,7 +1488,7 @@ HTML_TEMPLATE = """
 
         document.getElementById('resetColorSchemes').onclick = function() {
             document.getElementById('meteoriteColorScheme').value = 'Default';
-            document.getElementById('craterColorScheme').value = 'Blue Scale'; // Set default crater color scheme to Blue Scale
+            document.getElementById('craterColorScheme').value = 'Default';
             applyFilters();
             updateMeteoriteLegend();
             updateCraterLegend();
