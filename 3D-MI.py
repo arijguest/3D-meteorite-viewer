@@ -87,7 +87,7 @@ HTML_TEMPLATE = """
             top: 100px;
             left: 10px;
             background: rgba(0, 0, 0, 0.9);
-            padding: 30px 10px 10px 10px;
+            padding: 10px;
             z-index: 1000;
             color: white;
             border-radius: 5px;
@@ -95,6 +95,16 @@ HTML_TEMPLATE = """
             overflow-y: auto;
             display: none;
             width: 300px;
+        }
+        #controls header, #keyMenu header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #controls h2, #keyMenu h2 {
+            margin: 0;
+            padding-right: 30px;
         }
         #controls .close-button, #keyMenu .close-button {
             position: absolute;
@@ -105,6 +115,11 @@ HTML_TEMPLATE = """
             color: white;
             font-size: 20px;
             cursor: pointer;
+        }
+        /* Adjust padding to prevent bottom being cut off */
+        #controls, #keyMenu {
+            padding-bottom: 20px;
+            bottom: 20px;
         }
         #meteoriteBar, #craterBar {
             position: absolute;
@@ -279,7 +294,10 @@ HTML_TEMPLATE = """
         </div>
     </div>
     <div id="controls">
-        <button class="close-button" id="closeOptions">&times;</button>
+        <header>
+            <h2>Options</h2>
+            <button class="close-button" id="closeOptions">&times;</button>
+        </header>
         <div id="searchContainer">
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">Search</button>
@@ -336,8 +354,10 @@ HTML_TEMPLATE = """
         </div>
     </div>
     <div id="keyMenu">
-        <button class="close-button" id="closeKeyMenu">&times;</button>
-        <h2>Key</h2>
+        <header>
+            <h2>Key</h2>
+            <button class="close-button" id="closeKeyMenu">&times;</button>
+        </header>
         <div>
             <label for="meteoriteColorScheme"><strong>Meteorite Color Scheme:</strong></label>
             <select id="meteoriteColorScheme">
@@ -602,7 +622,7 @@ HTML_TEMPLATE = """
                 craterSelect.appendChild(craterOption);
             }
             meteoriteSelect.value = 'Default';
-            craterSelect.value = 'Default';
+            craterSelect.value = 'Blue Scale'; // Set default crater color scheme to Blue Scale
         }
 
         function getMeteoriteColor(mass) {
@@ -759,8 +779,8 @@ HTML_TEMPLATE = """
             });
 
             meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
-            meteoriteDataSource.clustering.pixelRange = 30;
-            meteoriteDataSource.clustering.minimumClusterSize = 50;
+            meteoriteDataSource.clustering.pixelRange = 45;
+            meteoriteDataSource.clustering.minimumClusterSize = 3;
             meteoriteDataSource.clustering.clusterBillboards = true;
             meteoriteDataSource.clustering.clusterLabels = false;
             meteoriteDataSource.clustering.clusterPoints = true;
@@ -786,7 +806,7 @@ HTML_TEMPLATE = """
             canvas.width = canvas.height = size;
             const context = canvas.getContext('2d');
 
-            context.fillStyle = 'rgba(255, 165, 0, 0.4)';
+            context.fillStyle = 'rgba(255, 165, 0, 0.7)';
             context.beginPath();
             context.arc(size/2, size/2, size/2, 0, 2 * Math.PI);
             context.fill();
@@ -802,7 +822,7 @@ HTML_TEMPLATE = """
 
         function updateClusteringOnZoom() {
             const altitude = viewer.camera.positionCartographic.height;
-            if (altitude < 500000) {
+            if (altitude < 300000) {
                 meteoriteDataSource.clustering.enabled = false;
             } else {
                 meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
@@ -852,6 +872,7 @@ HTML_TEMPLATE = """
             const exposed = properties.exposed !== undefined ? properties.exposed : 'Unknown';
             const drilled = properties.drilled !== undefined ? properties.drilled : 'Unknown';
             const bolide_type = properties.bolid_type || 'Unknown';
+            const url = properties.url || '#';
             return `
                 <b>Name:</b> ${name}<br>
                 <b>Age:</b> ${age} Ma<br>
@@ -861,6 +882,7 @@ HTML_TEMPLATE = """
                 <b>Exposed:</b> ${exposed}<br>
                 <b>Drilled:</b> ${drilled}<br>
                 <b>Bolide Type:</b> ${bolide_type}<br>
+                <b>URL:</b> <a href="${url}" target="_blank">More Info</a>
             `;
         }
 
@@ -1488,7 +1510,7 @@ HTML_TEMPLATE = """
 
         document.getElementById('resetColorSchemes').onclick = function() {
             document.getElementById('meteoriteColorScheme').value = 'Default';
-            document.getElementById('craterColorScheme').value = 'Default';
+            document.getElementById('craterColorScheme').value = 'Blue Scale'; // Set default crater color scheme to Blue Scale
             applyFilters();
             updateMeteoriteLegend();
             updateCraterLegend();
