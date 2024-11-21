@@ -841,7 +841,7 @@ HTML_TEMPLATE = """
 
         function updateClusteringOnZoom() {
             const altitude = viewer.camera.positionCartographic.height;
-            if (altitude < 500000) {
+            if (altitude < 1000000) {
                 meteoriteDataSource.clustering.enabled = false;
             } else {
                 meteoriteDataSource.clustering.enabled = document.getElementById('clusterMeteorites').checked;
@@ -1126,25 +1126,64 @@ HTML_TEMPLATE = """
             });
         }
 
-        function updateCraterModalTable() {
-            const tbody = document.querySelector('#fullCraterTable tbody');
-            const thead = document.querySelector('#fullCraterTable thead');
-            const headerRow = document.getElementById('craterTableHeaders');
-            if (!filteredCraters.length) {
-                tbody.innerHTML = '<tr><td colspan="7">No crater data available.</td></tr>';
-                return;
-            }
-            const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
-            tbody.innerHTML = '';
-            headerRow.innerHTML = '';
+function updateCraterModalTable() {
+    const tbody = document.querySelector('#fullCraterTable tbody');
+    const thead = document.querySelector('#fullCraterTable thead');
+    const headerRow = document.getElementById('craterTableHeaders');
+    if (!filteredCraters.length) {
+        tbody.innerHTML = '<tr><td colspan="7">No crater data available.</td></tr>';
+        return;
+    }
+    const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
+    tbody.innerHTML = '';
+    headerRow.innerHTML = '';
 
-            // Populate table headers
-            craterPropertyNames.forEach((propName, index) => {
-                const th = document.createElement('th');
-                th.innerHTML = `${propName} &#x25B2;&#x25BC;`;
-                th.onclick = () => sortCraterTable(index);
-                headerRow.appendChild(th);
+    // Populate table headers
+    craterPropertyNames.forEach((propName, index) => {
+        const th = document.createElement('th');
+        th.innerHTML = `${propName} &#x25B2;&#x25BC;`;
+        th.onclick = () => sortCraterTable(index);
+        headerRow.appendChild(th);
+    });
+
+    // Create a temporary row to calculate column widths
+    const tempRow = document.createElement('tr');
+    filteredCraters.forEach((crater, index) => {
+        const properties = crater.properties;
+        craterPropertyNames.forEach(propName => {
+            const td = document.createElement('td');
+            const value = properties[propName] !== undefined ? properties[propName] : 'Unknown';
+            td.innerText = value;
+            tempRow.appendChild(td);
+        });
+    });
+    tbody.appendChild(tempRow);
+
+    // Calculate and set column widths
+    const columnWidths = Array.from(tempRow.children).map(td => td.offsetWidth);
+    headerRow.querySelectorAll('th').forEach((th, index) => {
+        th.style.width = `${columnWidths[index]}px`;
+    });
+    tbody.removeChild(tempRow);
+
+    // Populate table rows
+    filteredCraters.forEach((crater, index) => {
+        const properties = crater.properties;
+        const name = properties.Name || 'Unknown';
+        if (name.toLowerCase().includes(searchQuery)) {
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => flyToCrater(index);
+            craterPropertyNames.forEach(propName => {
+                const td = document.createElement('td');
+                const value = properties[propName] !== undefined ? properties[propName] : 'Unknown';
+                td.innerText = value;
+                tr.appendChild(td);
             });
+            tbody.appendChild(tr);
+        }
+    });
+}
 
             filteredCraters.forEach((crater, index) => {
                 const properties = crater.properties;
