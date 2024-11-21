@@ -14,12 +14,11 @@ def parse_age_string(age_str):
         return None, None
     age_str = age_str.strip()
     patterns = [
-        r'^(?P<age>\d+)\s*\±\s*(?P<uncertainty>\d+)$',
-        r'^~?(?P<min>\d+)-(?P<max>\d+)$',
-        r'^<?(?P<max>\d+)$',
+        r'^(?P<age>\d+(\.\d+)?)\s*\±\s*(?P<uncertainty>\d+(\.\d+)?)$',
+        r'^~?(?P<min>\d+(\.\d+)?)-(?P<max>\d+(\.\d+)?)$',
+        r'^<?(?P<max>\d+(\.\d+)?)$',
         r'^>?(?P<min>\d+(\.\d+)?)$',
-        r'^(?P<age>\d+(\.\d+)?)$',
-        r'^~?(?P<age>\d+(\.\d+)?)$'
+        r'^\~?(?P<age>\d+(\.\d+)?)$'
     ]
     for pattern in patterns:
         match = re.match(pattern, age_str)
@@ -37,13 +36,13 @@ def parse_age_string(age_str):
                 return 0, float(groups['max'])
     return None, None
 
-IMPACT_CRATERS_FILE = 'earth-impact-craters.geojson'
+IMPACT_CRATERS_FILE = 'earth-impact-craters-v2.geojson'
 impact_craters = {"type": "FeatureCollection", "features": []}
 if os.path.exists(IMPACT_CRATERS_FILE):
     with open(IMPACT_CRATERS_FILE, 'r', encoding='utf-8') as geojson_file:
         impact_craters = json.load(geojson_file)
         for feature in impact_craters['features']:
-            age_str = feature['properties'].get('age_millions_years_ago', '')
+            age_str = feature['properties'].get('Age [Myr]', '')
             age_min, age_max = parse_age_string(age_str)
             feature['properties']['age_min'] = age_min if age_min is not None else 0
             feature['properties']['age_max'] = age_max if age_max is not None else 2500
@@ -116,7 +115,6 @@ HTML_TEMPLATE = """
             font-size: 20px;
             cursor: pointer;
         }
-        /* Adjust padding to prevent bottom being cut off */
         #controls, #keyMenu {
             padding-bottom: 20px;
             bottom: 20px;
@@ -196,7 +194,8 @@ HTML_TEMPLATE = """
         #fullMeteoriteTable, #fullCraterTable {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
+            table-layout: auto;
+            overflow-x: auto;
         }
         #fullMeteoriteTable th, #fullMeteoriteTable td,
         #fullCraterTable th, #fullCraterTable td {
@@ -247,12 +246,12 @@ HTML_TEMPLATE = """
         #fullMeteoriteTable thead, #fullCraterTable thead {
             display: table;
             width: 100%;
-            table-layout: fixed;
+            table-layout: auto;
         }
         #fullMeteoriteTable tbody tr, #fullCraterTable tbody tr {
             display: table;
             width: 100%;
-            table-layout: fixed;
+            table-layout: auto;
         }
         .legend-section {
             margin-bottom: 20px;
@@ -273,13 +272,15 @@ HTML_TEMPLATE = """
             border-radius: 50%;
             margin-right: 10px;
         }
-        /* Styles for search input in modals */
         .modal-search {
             margin-bottom: 10px;
         }
-        /* Disabled option styles */
         option[disabled] {
             color: #888;
+        }
+        /* Wrap crater table in a div to allow horizontal scrolling */
+        #craterTableContainer {
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -360,22 +361,14 @@ HTML_TEMPLATE = """
         </header>
         <div>
             <label for="meteoriteColorScheme"><strong>Meteorite Color Scheme:</strong></label>
-            <select id="meteoriteColorScheme">
-                <!-- Options will be populated dynamically -->
-            </select>
+            <select id="meteoriteColorScheme"></select>
         </div>
-        <div class="legend-section" id="meteoriteLegend">
-            <!-- Meteorite Legend will be populated dynamically -->
-        </div>
+        <div class="legend-section" id="meteoriteLegend"></div>
         <div>
             <label for="craterColorScheme"><strong>Crater Color Scheme:</strong></label>
-            <select id="craterColorScheme">
-                <!-- Options will be populated dynamically -->
-            </select>
+            <select id="craterColorScheme"></select>
         </div>
-        <div class="legend-section" id="craterLegend">
-            <!-- Crater Legend will be populated dynamically -->
-        </div>
+        <div class="legend-section" id="craterLegend"></div>
         <div>
             <button id="resetColorSchemes">Reset Color Schemes</button>
         </div>
@@ -407,21 +400,22 @@ HTML_TEMPLATE = """
             <span id="closeCraterModal">&times;</span>
             <h2>All Impact Craters</h2>
             <input type="text" id="craterSearchInput" class="modal-search" placeholder="Search impact crater...">
-            <table id="fullCraterTable">
-                <thead>
-                    <tr>
-                        <th onclick="sortCraterTable(0)">Name &#x25B2;&#x25BC;</th>
-                        <th onclick="sortCraterTable(1)">Diameter (km) &#x25B2;&#x25BC;</th>
-                        <th onclick="sortCraterTable(2)">Age (Ma) &#x25B2;&#x25BC;</th>
-                        <th onclick="sortCraterTable(3)">Country &#x25B2;&#x25BC;</th>
-                        <th onclick="sortCraterTable(4)">Exposed &#x25B2;&#x25BC;</th>
-                        <th onclick="sortCraterTable(5)">Drilled &#x25B2;&#x25BC;</th>
-                        <th onclick="sortCraterTable(6)">Bolide Type &#x25B2;&#x25BC;</th>
-                        <th>Link</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div id="craterTableContainer">
+                <table id="fullCraterTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortCraterTable(0)">Name &#x25B2;&#x25BC;</th>
+                            <th onclick="sortCraterTable(1)">Diameter (km) &#x25B2;&#x25BC;</th>
+                            <th onclick="sortCraterTable(2)">Age (Ma) &#x25B2;&#x25BC;</th>
+                            <th onclick="sortCraterTable(3)">Country &#x25B2;&#x25BC;</th>
+                            <th onclick="sortCraterTable(4)">Exposure &#x25B2;&#x25BC;</th>
+                            <th onclick="sortCraterTable(5)">Target Rock &#x25B2;&#x25BC;</th>
+                            <th onclick="sortCraterTable(6)">Confirmation &#x25B2;&#x25BC;</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div id="infoModal">
@@ -621,7 +615,7 @@ HTML_TEMPLATE = """
                 craterSelect.appendChild(craterOption);
             }
             meteoriteSelect.value = 'Default';
-            craterSelect.value = 'Blue Scale'; // Set default crater color scheme to Blue Scale
+            craterSelect.value = 'Blue Scale';
         }
 
         function getMeteoriteColor(mass) {
@@ -712,13 +706,13 @@ HTML_TEMPLATE = """
 
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
-                let diameter = parseFloat(properties.diameter_km) || 0;
-                let age_min = parseFloat(properties.age_min);
-                let age_max = parseFloat(properties.age_max);
-                const targetRock = properties.target_rock || 'Unknown';
-
-                if (isNaN(age_min)) age_min = 0;
-                if (isNaN(age_max)) age_max = 2500;
+                let diameter = parseFloat(properties['Crater diamter [km]']) || 0;
+                let age_str = properties['Age [Myr]'] || '';
+                let age_min, age_max;
+                [age_min, age_max] = parse_age_values(age_str);
+                age_min = age_min !== null ? age_min : 0;
+                age_max = age_max !== null ? age_max : 2500;
+                const targetRock = properties.Target || 'Unknown';
 
                 const diameterMatch = diameter >= diameterMin && diameter <= diameterMax;
                 const ageMatch = (age_max >= ageMin && age_min <= ageMax);
@@ -734,6 +728,20 @@ HTML_TEMPLATE = """
             updateTotalCounts();
             updateModalTable();
             updateCraterModalTable();
+        }
+
+        function parse_age_values(age_str) {
+            if (!age_str) return [null, null];
+            age_str = age_str.trim();
+            const match = age_str.match(/([><~]?)([\d\.]+)/);
+            if (match) {
+                const operator = match[1];
+                const value = parseFloat(match[2]);
+                if (operator === '>') return [value, 2500];
+                if (operator === '<') return [0, value];
+                return [value, value];
+            }
+            return [null, null];
         }
 
         function updateTotalCounts() {
@@ -802,7 +810,7 @@ HTML_TEMPLATE = """
 
         function createClusterIcon(clusterSize) {
             const digits = clusterSize.toString().length;
-            const size = 20 + (digits * 5); // Adjust size based on number of digits
+            const size = 20 + (digits * 5);
             const canvas = document.createElement('canvas');
             canvas.width = canvas.height = size;
             const context = canvas.getContext('2d');
@@ -842,7 +850,7 @@ HTML_TEMPLATE = """
 
                 if (geometry && geometry.type === "Point") {
                     const [lon, lat] = geometry.coordinates;
-                    let diameter = parseFloat(properties.diameter_km) || 1;
+                    let diameter = parseFloat(properties['Crater diamter [km]']) || 1;
 
                     const entity = craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
@@ -864,23 +872,20 @@ HTML_TEMPLATE = """
         }
 
         function getCraterDescription(properties) {
-            const name = properties.crater_name || 'Unknown';
-            const age = properties.age_millions_years_ago || 'Unknown';
-            const diameter = properties.diameter_km || 'Unknown';
-            const country = properties.country || 'Unknown';
-            const target_rock = properties.target_rock || 'Unknown';
-            const exposed = properties.exposed !== undefined ? properties.exposed : 'Unknown';
-            const drilled = properties.drilled !== undefined ? properties.drilled : 'Unknown';
-            const bolide_type = properties.bolid_type || 'Unknown';
+            const name = properties.Name || 'Unknown';
+            const age = properties['Age [Myr]'] || 'Unknown';
+            const diameter = properties['Crater diamter [km]'] || 'Unknown';
+            const country = properties.Country || 'Unknown';
+            const target = properties.Target || 'Unknown';
+            const exposure = properties.Exposure !== undefined ? properties.Exposure : 'Unknown';
+
             return `
                 <b>Name:</b> ${name}<br>
-                <b>Age:</b> ${age} Ma<br>
+                <b>Age:</b> ${age}<br>
                 <b>Diameter:</b> ${diameter} km<br>
                 <b>Country:</b> ${country}<br>
-                <b>Target Rock:</b> ${target_rock}<br>
-                <b>Exposed:</b> ${exposed}<br>
-                <b>Drilled:</b> ${drilled}<br>
-                <b>Bolide Type:</b> ${bolide_type}<br>
+                <b>Target:</b> ${target}<br>
+                <b>Exposure:</b> ${exposure}<br>
             `;
         }
 
@@ -928,7 +933,7 @@ HTML_TEMPLATE = """
         }
 
         function updateTopCraters() {
-            const sortedCraters = filteredCraters.filter(c => c.properties.diameter_km).sort((a, b) => parseFloat(b.properties.diameter_km) - parseFloat(a.properties.diameter_km));
+            const sortedCraters = filteredCraters.filter(c => c.properties['Crater diamter [km]']).sort((a, b) => parseFloat(b.properties['Crater diamter [km]']) - parseFloat(a.properties['Crater diamter [km]']));
             const top10Craters = sortedCraters.slice(0, 10);
             const craterBar = document.getElementById('craterBar');
             craterBar.innerHTML = '<div class="bar-item"><strong>Top Impact Craters:</strong></div>';
@@ -940,8 +945,8 @@ HTML_TEMPLATE = """
             craterBar.appendChild(viewAllCraters);
 
             top10Craters.forEach((crater, index) => {
-                const name = crater.properties.crater_name || 'Unknown';
-                const diameter = parseFloat(crater.properties.diameter_km) || 0;
+                const name = crater.properties.Name || 'Unknown';
+                const diameter = parseFloat(crater.properties['Crater diamter [km]']) || 0;
                 const diameterDisplay = diameter ? `${diameter} km` : 'Unknown';
                 const div = document.createElement('div');
                 div.className = 'bar-item';
@@ -1116,23 +1121,21 @@ HTML_TEMPLATE = """
         function updateCraterModalTable() {
             const tbody = document.querySelector('#fullCraterTable tbody');
             if (!filteredCraters.length) {
-                tbody.innerHTML = '<tr><td colspan="8">No crater data available.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7">No crater data available.</td></tr>';
                 return;
             }
             const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
             tbody.innerHTML = '';
             filteredCraters.forEach((crater, index) => {
-                const name = crater.properties.crater_name || 'Unknown';
+                const properties = crater.properties;
+                const name = properties.Name || 'Unknown';
                 if (name.toLowerCase().includes(searchQuery)) {
-                    const diameter = parseFloat(crater.properties.diameter_km) || 'Unknown';
-                    const age = crater.properties.age_millions_years_ago || 'Unknown';
-                    const age_min = crater.properties.age_min;
-                    const age_max = crater.properties.age_max;
-                    const country = crater.properties.country || 'Unknown';
-                    const exposed = crater.properties.exposed !== undefined ? crater.properties.exposed : 'Unknown';
-                    const drilled = crater.properties.drilled !== undefined ? crater.properties.drilled : 'Unknown';
-                    const bolide_type = crater.properties.bolid_type || 'Unknown';
-                    const url = crater.properties.url || '#';
+                    const diameter = parseFloat(properties['Crater diamter [km]']) || 'Unknown';
+                    const age = properties['Age [Myr]'] || 'Unknown';
+                    const country = properties.Country || 'Unknown';
+                    const exposure = properties.Exposure !== undefined ? properties.Exposure : 'Unknown';
+                    const target = properties.Target || 'Unknown';
+                    const confirmation = properties.Confirmation || 'Unknown';
                     const tr = document.createElement('tr');
                     tr.style.cursor = 'pointer';
                     tr.onclick = () => flyToCrater(index);
@@ -1141,10 +1144,9 @@ HTML_TEMPLATE = """
                         <td>${diameter}</td>
                         <td>${age}</td>
                         <td>${country}</td>
-                        <td>${exposed}</td>
-                        <td>${drilled}</td>
-                        <td>${bolide_type}</td>
-                        <td><a href="${url}" target="_blank">Visit</a></td>
+                        <td>${exposure}</td>
+                        <td>${target}</td>
+                        <td>${confirmation}</td>
                     `;
                     tbody.appendChild(tr);
                 }
@@ -1191,9 +1193,9 @@ HTML_TEMPLATE = """
                 let x = a.cells[colIndex].innerText || a.cells[colIndex].textContent;
                 let y = b.cells[colIndex].innerText || b.cells[colIndex].textContent;
 
-                if (colIndex === 2) { // Age column
-                    const xIndex = filteredCraters.findIndex(c => c.properties.crater_name === a.cells[0].innerText);
-                    const yIndex = filteredCraters.findIndex(c => c.properties.crater_name === b.cells[0].innerText);
+                if (colIndex === 2) {
+                    const xIndex = filteredCraters.findIndex(c => c.properties.Name === a.cells[0].innerText);
+                    const yIndex = filteredCraters.findIndex(c => c.properties.Name === b.cells[0].innerText);
                     const xAgeMin = filteredCraters[xIndex].properties.age_min;
                     const yAgeMin = filteredCraters[yIndex].properties.age_min;
                     return dir === 'asc' ? xAgeMin - yAgeMin : yAgeMin - xAgeMin;
@@ -1277,7 +1279,7 @@ HTML_TEMPLATE = """
         }
 
         function initializeCraterSliders() {
-            const diameters = allCraters.map(c => c.properties.diameter_km ? parseFloat(c.properties.diameter_km) : null).filter(d => d !== null);
+            const diameters = allCraters.map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null).filter(d => d !== null);
             const ages = allCraters.map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null).filter(a => a !== null);
 
             const minDiameter = Math.min(...diameters);
@@ -1395,7 +1397,7 @@ HTML_TEMPLATE = """
         function populateTargetRockOptions() {
             const targetRockSet = new Set();
             allCraters.forEach(crater => {
-                const targetRock = crater.properties.target_rock || 'Unknown';
+                const targetRock = crater.properties.Target || 'Unknown';
                 targetRockSet.add(targetRock);
             });
             const targetRockSelect = document.getElementById('targetRockSelect');
@@ -1508,7 +1510,7 @@ HTML_TEMPLATE = """
 
         document.getElementById('resetColorSchemes').onclick = function() {
             document.getElementById('meteoriteColorScheme').value = 'Default';
-            document.getElementById('craterColorScheme').value = 'Blue Scale'; // Set default crater color scheme to Blue Scale
+            document.getElementById('craterColorScheme').value = 'Blue Scale';
             applyFilters();
             updateMeteoriteLegend();
             updateCraterLegend();
@@ -1556,7 +1558,6 @@ HTML_TEMPLATE = """
             });
         }
 
-        // Initial legend update
         updateMeteoriteLegend();
         updateCraterLegend();
     </script>
