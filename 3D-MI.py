@@ -262,6 +262,10 @@ HTML_TEMPLATE = """
         .modal-search {
             margin-bottom: 10px;
         }
+        /* Disabled option styles */
+        option[disabled] {
+            color: #888;
+        }
     </style>
 </head>
 <body>
@@ -338,9 +342,7 @@ HTML_TEMPLATE = """
         <div>
             <label for="meteoriteColorScheme"><strong>Meteorite Color Scheme:</strong></label>
             <select id="meteoriteColorScheme">
-                <option value="default">Default</option>
-                <option value="green">Green Scale</option>
-                <option value="blue">Blue Scale</option>
+                <!-- Options will be populated dynamically -->
             </select>
         </div>
         <div class="legend-section" id="meteoriteLegend">
@@ -349,9 +351,7 @@ HTML_TEMPLATE = """
         <div>
             <label for="craterColorScheme"><strong>Crater Color Scheme:</strong></label>
             <select id="craterColorScheme">
-                <option value="default">Default</option>
-                <option value="purple">Purple Scale</option>
-                <option value="brown">Brown Scale</option>
+                <!-- Options will be populated dynamically -->
             </select>
         </div>
         <div class="legend-section" id="craterLegend">
@@ -407,17 +407,19 @@ HTML_TEMPLATE = """
             <span id="closeInfoModal">&times;</span>
             <h2>Information</h2>
             <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
-            <h3>How to Use:</h3>
+            <h3>Features:</h3>
             <ul>
-                <li><strong>Navigation:</strong> Use your mouse or touch controls to navigate around the globe.</li>
-                <li><strong>Search:</strong> Use the search bar to fly to a specific location.</li>
-                <li><strong>Filters:</strong> Adjust the sliders and dropdowns in the controls menu to filter meteorites and craters based on various criteria such as year, mass, diameter, age, and target rock type.</li>
-                <li><strong>Show/Hide Data:</strong> Toggle the visibility of meteorites and craters using the checkboxes.</li>
-                <li><strong>Reset Filters:</strong> Click the "Reset Filters" button to return all filters to their default settings.</li>
-                <li><strong>Top Meteorites:</strong> View the top meteorites by mass at the bottom bar and click on them to fly to their location.</li>
-                <li><strong>Top Impact Craters:</strong> View the top impact craters by diameter in the bar above and click on them to fly to their location.</li>
-                <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information.</li>
-                <li><strong>View All:</strong> Click on "View All" in the top meteorites or craters bar to see a full list.</li>
+                <li><strong>Navigation:</strong> Use mouse or touch controls to rotate, zoom, and pan around the globe.</li>
+                <li><strong>Search:</strong> Fly to a specific location using the search bar in the Options menu.</li>
+                <li><strong>Filters:</strong> Adjust filters like year, mass, diameter, age, and target rock type in the Options menu to refine the displayed data.</li>
+                <li><strong>Show/Hide Data:</strong> Toggle meteorites and impact craters visibility using the checkboxes in the Options menu.</li>
+                <li><strong>Color Schemes:</strong> Customize color schemes for meteorites and impact craters in the Key menu. Choose from various palettes, including colorblind-friendly options.</li>
+                <li><strong>Legends:</strong> View legends for meteorite and crater color schemes in the Key menu to understand data representation.</li>
+                <li><strong>Clustering:</strong> Enable or disable clustering of meteorite markers to manage display density at different zoom levels.</li>
+                <li><strong>Top Lists:</strong> Explore top meteorites and impact craters in the bars at the bottom and top of the screen, respectively. Click to fly to their locations.</li>
+                <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information in a tooltip.</li>
+                <li><strong>View All:</strong> Access full lists of meteorites and craters by clicking "View All" in the respective bars.</li>
+                <li><strong>Reset Filters:</strong> Quickly reset all filters to default settings using the "Reset Filters" button.</li>
             </ul>
             <h3>Data Sources:</h3>
             <ul>
@@ -425,6 +427,7 @@ HTML_TEMPLATE = """
                 <li><a href="https://github.com/Antash/earth-impact-db" target="_blank">Earth Impact Database via Antash</a></li>
             </ul>
             <p>This application utilizes CesiumJS for 3D globe visualization.</p>
+            <p><strong>Note:</strong> The application includes colorblind-friendly color schemes to enhance accessibility for users with color vision deficiencies.</p>
         </div>
     </div>
     <script>
@@ -459,53 +462,161 @@ HTML_TEMPLATE = """
         let meteoriteEntities = [];
         let craterEntitiesList = [];
 
-        const meteoriteColorSchemes = {
-            'default': [
-                { threshold: 500000, color: Cesium.Color.FUCHSIA.withAlpha(0.6), className: 'meteorite-color-1' },
-                { threshold: 100000, color: Cesium.Color.LIGHTPINK.withAlpha(0.6), className: 'meteorite-color-2' },
-                { threshold: 50000,  color: Cesium.Color.RED.withAlpha(0.6), className: 'meteorite-color-3' },
-                { threshold: 10000,  color: Cesium.Color.ORANGE.withAlpha(0.6), className: 'meteorite-color-4' },
-                { threshold: 0,      color: Cesium.Color.YELLOW.withAlpha(0.6), className: 'meteorite-color-5' }
-            ],
-            'green': [
-                { threshold: 500000, color: Cesium.Color.DARKGREEN.withAlpha(0.6), className: 'meteorite-color-1' },
-                { threshold: 100000, color: Cesium.Color.GREEN.withAlpha(0.6), className: 'meteorite-color-2' },
-                { threshold: 50000,  color: Cesium.Color.LIME.withAlpha(0.6), className: 'meteorite-color-3' },
-                { threshold: 10000,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.6), className: 'meteorite-color-4' },
-                { threshold: 0,      color: Cesium.Color.LIGHTYELLOW.withAlpha(0.6), className: 'meteorite-color-5' }
-            ],
-            'blue': [
-                { threshold: 500000, color: Cesium.Color.DARKBLUE.withAlpha(0.6), className: 'meteorite-color-1' },
-                { threshold: 100000, color: Cesium.Color.BLUE.withAlpha(0.6), className: 'meteorite-color-2' },
-                { threshold: 50000,  color: Cesium.Color.SKYBLUE.withAlpha(0.6), className: 'meteorite-color-3' },
-                { threshold: 10000,  color: Cesium.Color.CYAN.withAlpha(0.6), className: 'meteorite-color-4' },
-                { threshold: 0,      color: Cesium.Color.LIGHTCYAN.withAlpha(0.6), className: 'meteorite-color-5' }
-            ]
+        const colorSchemes = {
+            'Default': {
+                name: 'Default',
+                description: 'Red to Yellow Scale',
+                colors: [
+                    { threshold: 500000, color: Cesium.Color.RED.withAlpha(0.6) },
+                    { threshold: 100000, color: Cesium.Color.ORANGE.withAlpha(0.6) },
+                    { threshold: 50000,  color: Cesium.Color.YELLOW.withAlpha(0.6) },
+                    { threshold: 10000,  color: Cesium.Color.LIGHTYELLOW.withAlpha(0.6) },
+                    { threshold: 0,      color: Cesium.Color.WHITE.withAlpha(0.6) }
+                ],
+                craterColors: [
+                    { threshold: 50, color: Cesium.Color.RED.withAlpha(0.8) },
+                    { threshold: 30, color: Cesium.Color.ORANGE.withAlpha(0.8) },
+                    { threshold: 10, color: Cesium.Color.YELLOW.withAlpha(0.8) },
+                    { threshold: 0,  color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) }
+                ]
+            },
+            'Blue Scale': {
+                name: 'Blue Scale',
+                description: 'Dark Blue to Light Blue',
+                colors: [
+                    { threshold: 500000, color: Cesium.Color.DARKBLUE.withAlpha(0.6) },
+                    { threshold: 100000, color: Cesium.Color.BLUE.withAlpha(0.6) },
+                    { threshold: 50000,  color: Cesium.Color.SKYBLUE.withAlpha(0.6) },
+                    { threshold: 10000,  color: Cesium.Color.CYAN.withAlpha(0.6) },
+                    { threshold: 0,      color: Cesium.Color.LIGHTCYAN.withAlpha(0.6) }
+                ],
+                craterColors: [
+                    { threshold: 50, color: Cesium.Color.DARKBLUE.withAlpha(0.8) },
+                    { threshold: 30, color: Cesium.Color.BLUE.withAlpha(0.8) },
+                    { threshold: 10, color: Cesium.Color.SKYBLUE.withAlpha(0.8) },
+                    { threshold: 0,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8) }
+                ]
+            },
+            'Green Scale': {
+                name: 'Green Scale',
+                description: 'Dark Green to Light Green',
+                colors: [
+                    { threshold: 500000, color: Cesium.Color.DARKGREEN.withAlpha(0.6) },
+                    { threshold: 100000, color: Cesium.Color.GREEN.withAlpha(0.6) },
+                    { threshold: 50000,  color: Cesium.Color.LIME.withAlpha(0.6) },
+                    { threshold: 10000,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.6) },
+                    { threshold: 0,      color: Cesium.Color.YELLOWGREEN.withAlpha(0.6) }
+                ],
+                craterColors: [
+                    { threshold: 50, color: Cesium.Color.DARKGREEN.withAlpha(0.8) },
+                    { threshold: 30, color: Cesium.Color.GREEN.withAlpha(0.8) },
+                    { threshold: 10, color: Cesium.Color.LIME.withAlpha(0.8) },
+                    { threshold: 0,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.8) }
+                ]
+            },
+            'Purple Scale': {
+                name: 'Purple Scale',
+                description: 'Dark Purple to Light Purple',
+                colors: [
+                    { threshold: 500000, color: Cesium.Color.DARKVIOLET.withAlpha(0.6) },
+                    { threshold: 100000, color: Cesium.Color.BLUEVIOLET.withAlpha(0.6) },
+                    { threshold: 50000,  color: Cesium.Color.VIOLET.withAlpha(0.6) },
+                    { threshold: 10000,  color: Cesium.Color.PLUM.withAlpha(0.6) },
+                    { threshold: 0,      color: Cesium.Color.LAVENDER.withAlpha(0.6) }
+                ],
+                craterColors: [
+                    { threshold: 50, color: Cesium.Color.DARKVIOLET.withAlpha(0.8) },
+                    { threshold: 30, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8) },
+                    { threshold: 10, color: Cesium.Color.VIOLET.withAlpha(0.8) },
+                    { threshold: 0,  color: Cesium.Color.PLUM.withAlpha(0.8) }
+                ]
+            },
+            'Brown Scale': {
+                name: 'Brown Scale',
+                description: 'Dark Brown to Light Brown',
+                colors: [
+                    { threshold: 500000, color: Cesium.Color.SIENNA.withAlpha(0.6) },
+                    { threshold: 100000, color: Cesium.Color.SADDLEBROWN.withAlpha(0.6) },
+                    { threshold: 50000,  color: Cesium.Color.PERU.withAlpha(0.6) },
+                    { threshold: 10000,  color: Cesium.Color.BURLYWOOD.withAlpha(0.6) },
+                    { threshold: 0,      color: Cesium.Color.WHEAT.withAlpha(0.6) }
+                ],
+                craterColors: [
+                    { threshold: 50, color: Cesium.Color.SIENNA.withAlpha(0.8) },
+                    { threshold: 30, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8) },
+                    { threshold: 10, color: Cesium.Color.PERU.withAlpha(0.8) },
+                    { threshold: 0,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8) }
+                ]
+            },
+            'Colorblind-Friendly (Deutan)': {
+                name: 'Colorblind-Friendly (Deutan)',
+                description: 'Accessible palette for deuteranomaly',
+                colors: [
+                    { threshold: 500000, color: Cesium.Color.fromCssColorString('#CC79A7').withAlpha(0.6) },
+                    { threshold: 100000, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.6) },
+                    { threshold: 50000,  color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.6) },
+                    { threshold: 10000,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.6) },
+                    { threshold: 0,      color: Cesium.Color.fromCssColorString('#F0E442').withAlpha(0.6) }
+                ],
+                craterColors: [
+                    { threshold: 50, color: Cesium.Color.fromCssColorString('#CC79A7').withAlpha(0.8) },
+                    { threshold: 30, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.8) },
+                    { threshold: 10, color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.8) },
+                    { threshold: 0,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.8) }
+                ]
+            },
+            'Colorblind-Friendly (Protan)': {
+                name: 'Colorblind-Friendly (Protan)',
+                description: 'Accessible palette for protanomaly',
+                colors: [
+                    { threshold: 500000, color: Cesium.Color.fromCssColorString('#117733').withAlpha(0.6) },
+                    { threshold: 100000, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.6) },
+                    { threshold: 50000,  color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.6) },
+                    { threshold: 10000,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.6) },
+                    { threshold: 0,      color: Cesium.Color.fromCssColorString('#DDCC77').withAlpha(0.6) }
+                ],
+                craterColors: [
+                    { threshold: 50, color: Cesium.Color.fromCssColorString('#117733').withAlpha(0.8) },
+                    { threshold: 30, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.8) },
+                    { threshold: 10, color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.8) },
+                    { threshold: 0,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) }
+                ]
+            }
         };
 
-        const craterColorSchemes = {
-            'default': [
-                { threshold: 50, color: Cesium.Color.NAVY.withAlpha(0.8), className: 'crater-color-1' },
-                { threshold: 30, color: Cesium.Color.DARKBLUE.withAlpha(0.8), className: 'crater-color-2' },
-                { threshold: 10, color: Cesium.Color.BLUE.withAlpha(0.8), className: 'crater-color-3' },
-                { threshold: 0,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8), className: 'crater-color-4' }
-            ],
-            'purple': [
-                { threshold: 50, color: Cesium.Color.DARKVIOLET.withAlpha(0.8), className: 'crater-color-1' },
-                { threshold: 30, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8), className: 'crater-color-2' },
-                { threshold: 10, color: Cesium.Color.VIOLET.withAlpha(0.8), className: 'crater-color-3' },
-                { threshold: 0,  color: Cesium.Color.PLUM.withAlpha(0.8), className: 'crater-color-4' }
-            ],
-            'brown': [
-                { threshold: 50, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8), className: 'crater-color-1' },
-                { threshold: 30, color: Cesium.Color.SIENNA.withAlpha(0.8), className: 'crater-color-2' },
-                { threshold: 10, color: Cesium.Color.PERU.withAlpha(0.8), className: 'crater-color-3' },
-                { threshold: 0,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8), className: 'crater-color-4' }
-            ]
-        };
+        function populateColorSchemeSelectors() {
+            const meteoriteSelect = document.getElementById('meteoriteColorScheme');
+            const craterSelect = document.getElementById('craterColorScheme');
+            for (let scheme in colorSchemes) {
+                const meteoriteOption = document.createElement('option');
+                meteoriteOption.value = scheme;
+                meteoriteOption.textContent = scheme;
+                meteoriteSelect.appendChild(meteoriteOption);
+
+                const craterOption = document.createElement('option');
+                craterOption.value = scheme;
+                craterOption.textContent = scheme;
+                craterSelect.appendChild(craterOption);
+            }
+        }
+
+        function updateColorSchemeSelectors() {
+            const meteoriteSelect = document.getElementById('meteoriteColorScheme');
+            const craterSelect = document.getElementById('craterColorScheme');
+            const selectedMeteoriteScheme = meteoriteSelect.value;
+            const selectedCraterScheme = craterSelect.value;
+
+            Array.from(meteoriteSelect.options).forEach(option => {
+                option.disabled = option.value === selectedCraterScheme;
+            });
+            Array.from(craterSelect.options).forEach(option => {
+                option.disabled = option.value === selectedMeteoriteScheme;
+            });
+        }
 
         function getMeteoriteColor(mass) {
-            const scheme = meteoriteColorSchemes[document.getElementById('meteoriteColorScheme').value];
+            const selectedScheme = document.getElementById('meteoriteColorScheme').value;
+            const scheme = colorSchemes[selectedScheme].colors;
             for (let i = 0; i < scheme.length; i++) {
                 if (mass >= scheme[i].threshold) {
                     return scheme[i].color;
@@ -515,7 +626,8 @@ HTML_TEMPLATE = """
         }
 
         function getCraterColor(diameter) {
-            const scheme = craterColorSchemes[document.getElementById('craterColorScheme').value];
+            const selectedScheme = document.getElementById('craterColorScheme').value;
+            const scheme = colorSchemes[selectedScheme].craterColors;
             for (let i = 0; i < scheme.length; i++) {
                 if (diameter >= scheme[i].threshold) {
                     return scheme[i].color;
@@ -673,7 +785,7 @@ HTML_TEMPLATE = """
 
         function createClusterIcon(clusterSize) {
             const digits = clusterSize.toString().length;
-            const size = 30 + (digits * 10); // Adjust size based on number of digits
+            const size = 20 + (digits * 5); // Adjust size based on number of digits
             const canvas = document.createElement('canvas');
             canvas.width = canvas.height = size;
             const context = canvas.getContext('2d');
@@ -684,7 +796,7 @@ HTML_TEMPLATE = """
             context.fill();
 
             context.fillStyle = 'black';
-            context.font = `bold ${20 + (digits * 2)}px sans-serif`;
+            context.font = `bold ${10 + (digits * 2)}px sans-serif`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             context.fillText(clusterSize, size/2, size/2);
@@ -770,10 +882,10 @@ HTML_TEMPLATE = """
         }
 
         function getCraterSize(diameter) {
-            if (diameter >= 50) return 25;
-            if (diameter >= 30) return 20;
-            if (diameter >= 10) return 15;
-            return 10;
+            if (diameter >= 50) return 20;
+            if (diameter >= 30) return 15;
+            if (diameter >= 10) return 10;
+            return 7;
         }
 
         function updateTopMeteorites() {
@@ -1218,6 +1330,8 @@ HTML_TEMPLATE = """
 
         initializeSliders();
         initializeCraterFilters();
+        populateColorSchemeSelectors();
+        updateColorSchemeSelectors();
 
         fetchAllMeteorites();
 
@@ -1259,6 +1373,8 @@ HTML_TEMPLATE = """
         keyButton.onclick = () => {
             if (keyMenu.style.display === 'none' || keyMenu.style.display === '') {
                 keyMenu.style.display = 'block';
+                updateMeteoriteLegend();
+                updateCraterLegend();
             } else {
                 keyMenu.style.display = 'none';
             }
@@ -1271,18 +1387,21 @@ HTML_TEMPLATE = """
         document.getElementById('meteoriteColorScheme').onchange = function() {
             applyFilters();
             updateMeteoriteLegend();
+            updateColorSchemeSelectors();
         };
 
         document.getElementById('craterColorScheme').onchange = function() {
             applyFilters();
             updateCraterLegend();
+            updateColorSchemeSelectors();
         };
 
         function updateMeteoriteLegend() {
             const legendContainer = document.getElementById('meteoriteLegend');
             legendContainer.innerHTML = '<h3>🌠 Meteorites</h3><ul class="legend-list"></ul>';
             const list = legendContainer.querySelector('.legend-list');
-            const scheme = meteoriteColorSchemes[document.getElementById('meteoriteColorScheme').value];
+            const selectedScheme = document.getElementById('meteoriteColorScheme').value;
+            const scheme = colorSchemes[selectedScheme].colors;
 
             scheme.forEach(item => {
                 const li = document.createElement('li');
@@ -1302,7 +1421,8 @@ HTML_TEMPLATE = """
             const legendContainer = document.getElementById('craterLegend');
             legendContainer.innerHTML = '<h3>💥 Impact Craters</h3><ul class="legend-list"></ul>';
             const list = legendContainer.querySelector('.legend-list');
-            const scheme = craterColorSchemes[document.getElementById('craterColorScheme').value];
+            const selectedScheme = document.getElementById('craterColorScheme').value;
+            const scheme = colorSchemes[selectedScheme].craterColors;
 
             scheme.forEach(item => {
                 const li = document.createElement('li');
