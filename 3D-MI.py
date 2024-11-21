@@ -121,6 +121,9 @@ HTML_TEMPLATE = """
             padding-bottom: 20px;
             bottom: 20px;
         }
+        #controls > header + * {
+            margin-top: 10px; /* Added spacing */
+        }
         #meteoriteBar, #craterBar {
             position: absolute;
             left: 0;
@@ -298,6 +301,7 @@ HTML_TEMPLATE = """
             <h2>Options</h2>
             <button class="close-button" id="closeOptions">&times;</button>
         </header>
+        
         <div id="searchContainer">
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">Search</button>
@@ -331,8 +335,8 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue"></span></label>
-            <input type="range" id="diameterRangeMin" value="0">
-            <input type="range" id="diameterRangeMax" value="300">
+            <input type="range" id="diameterRangeMin" min="0" max="500" value="0">
+            <input type="range" id="diameterRangeMax" min="0" max="500" value="500">
         </div>
         <div>
             <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
@@ -474,7 +478,7 @@ HTML_TEMPLATE = """
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
         let filteredCraters = [];
-        const allCraters = impactCraters.features;
+        const allCraters = impact_craters.features;
 
         let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
         viewer.dataSources.add(meteoriteDataSource);
@@ -898,7 +902,10 @@ HTML_TEMPLATE = """
         }
 
         function getCraterSize(diameter) {
-            if (diameter >= 50) return 20;
+            if (diameter >= 300) return 30;
+            if (diameter >= 200) return 25;
+            if (diameter >= 130) return 20;
+            if (diameter >= 50) return 18;
             if (diameter >= 30) return 15;
             if (diameter >= 10) return 10;
             return 7;
@@ -1287,18 +1294,18 @@ HTML_TEMPLATE = """
             const minAge = Math.min(...ages);
             const maxAge = Math.max(...ages);
 
-            document.getElementById('diameterRangeMin').min = minDiameter;
-            document.getElementById('diameterRangeMin').max = maxDiameter;
-            document.getElementById('diameterRangeMax').min = minDiameter;
-            document.getElementById('diameterRangeMax').max = maxDiameter;
-            document.getElementById('diameterRangeMin').value = minDiameter;
-            document.getElementById('diameterRangeMax').value = maxDiameter;
+            document.getElementById('diameterRangeMin').min = Math.floor(minDiameter);
+            document.getElementById('diameterRangeMin').max = Math.ceil(maxDiameter);
+            document.getElementById('diameterRangeMax').min = Math.floor(minDiameter);
+            document.getElementById('diameterRangeMax').max = Math.ceil(maxDiameter);
+            document.getElementById('diameterRangeMin').value = Math.floor(minDiameter);
+            document.getElementById('diameterRangeMax').value = Math.ceil(maxDiameter);
 
             document.getElementById('ageRangeMin').min = minAge;
             document.getElementById('ageRangeMin').max = maxAge;
+            document.getElementById('ageRangeMin').value = minAge;
             document.getElementById('ageRangeMax').min = minAge;
             document.getElementById('ageRangeMax').max = maxAge;
-            document.getElementById('ageRangeMin').value = minAge;
             document.getElementById('ageRangeMax').value = maxAge;
 
             updateCraterSlidersDisplay();
