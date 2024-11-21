@@ -287,6 +287,10 @@ HTML_TEMPLATE = """
         .crater-color-4 {
             background-color: rgba(173, 216, 230, 0.8);
         }
+        /* Styles for search input in modals */
+        .modal-search {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -389,6 +393,7 @@ HTML_TEMPLATE = """
         <div id="modal-content">
             <span id="closeModal">&times;</span>
             <h2>All Meteorites</h2>
+            <input type="text" id="meteoriteSearchInput" class="modal-search" placeholder="Search meteorite...">
             <table id="fullMeteoriteTable">
                 <thead>
                     <tr>
@@ -407,6 +412,7 @@ HTML_TEMPLATE = """
         <div id="craterModal-content">
             <span id="closeCraterModal">&times;</span>
             <h2>All Impact Craters</h2>
+            <input type="text" id="craterSearchInput" class="modal-search" placeholder="Search impact crater...">
             <table id="fullCraterTable">
                 <thead>
                     <tr>
@@ -477,6 +483,9 @@ HTML_TEMPLATE = """
 
         let craterEntities = new Cesium.CustomDataSource('craters');
         viewer.dataSources.add(craterEntities);
+
+        let meteoriteEntities = [];
+        let craterEntitiesList = [];
 
         function getMeteoriteColor(mass) {
             if (mass >= 500000) return Cesium.Color.FUCHSIA.withAlpha(0.6);
@@ -582,6 +591,7 @@ HTML_TEMPLATE = """
 
         function updateMeteoriteData() {
             meteoriteDataSource.entities.removeAll();
+            meteoriteEntities = [];
 
             filteredMeteorites.forEach((meteorite, index) => {
                 let lat, lon;
@@ -602,7 +612,7 @@ HTML_TEMPLATE = """
                 if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon)) {
                     const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
                     const pointSize = mass !== 'Unknown' ? Math.min(Math.max(mass / 10000, 5), 20) : 5;
-                    meteoriteDataSource.entities.add({
+                    const entity = meteoriteDataSource.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
                             pixelSize: pointSize,
@@ -614,6 +624,7 @@ HTML_TEMPLATE = """
                             meteoriteIndex: index
                         }
                     });
+                    meteoriteEntities.push(entity);
                 }
             });
 
@@ -629,10 +640,9 @@ HTML_TEMPLATE = """
 
         function createClusterEventHandler(clustering) {
             clustering.clusterEvent.addEventListener(function(clusteredEntities, cluster) {
-                cluster.label.show = true;
-                cluster.label.text = clusteredEntities.length.toLocaleString();
+                cluster.label.show = false;
                 cluster.billboard.show = true;
-                cluster.billboard.id = cluster.label.id = cluster;
+                cluster.billboard.id = cluster;
                 cluster.billboard.image = createClusterIcon(clusteredEntities.length);
             });
         }
@@ -643,16 +653,12 @@ HTML_TEMPLATE = """
             canvas.width = canvas.height = size;
             const context = canvas.getContext('2d');
 
-            const gradient = context.createRadialGradient(size/2, size/2, size/4, size/2, size/2, size/2);
-            gradient.addColorStop(0, 'rgba(0, 122, 255, 0.9)');
-            gradient.addColorStop(1, 'rgba(0, 122, 255, 0.7)');
-
-            context.fillStyle = gradient;
+            context.fillStyle = 'rgba(255, 165, 0, 0.7)';
             context.beginPath();
             context.arc(size/2, size/2, size/2, 0, 2 * Math.PI);
             context.fill();
 
-            context.fillStyle = 'white';
+            context.fillStyle = 'black';
             context.font = 'bold 20px sans-serif';
             context.textAlign = 'center';
             context.textBaseline = 'middle';
@@ -674,6 +680,7 @@ HTML_TEMPLATE = """
 
         function updateCraterData() {
             craterEntities.entities.removeAll();
+            craterEntitiesList = [];
 
             filteredCraters.forEach((feature, index) => {
                 const properties = feature.properties;
@@ -683,7 +690,7 @@ HTML_TEMPLATE = """
                     const [lon, lat] = geometry.coordinates;
                     let diameter = parseFloat(properties.diameter_km) || 1;
 
-                    craterEntities.entities.add({
+                    const entity = craterEntities.entities.add({
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
                             pixelSize: getCraterSize(diameter),
@@ -698,6 +705,7 @@ HTML_TEMPLATE = """
                             craterIndex: index
                         }
                     });
+                    craterEntitiesList.push(entity);
                 }
             });
         }
@@ -817,7 +825,7 @@ HTML_TEMPLATE = """
                 viewer.camera.flyTo({
                     destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                     duration: 2,
-                    orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
+                    orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-90) }
                 });
             }
         }
@@ -831,64 +839,17 @@ HTML_TEMPLATE = """
             viewer.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                 duration: 2,
-                orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
+                orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-90) }
             });
         }
 
         function openModal() {
-            const tbody = document.querySelector('#fullMeteoriteTable tbody');
-            if (!filteredMeteorites.length) {
-                tbody.innerHTML = '<tr><td colspan="5">No meteorite data available.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = filteredMeteorites.map((meteorite, index) => {
-                const name = meteorite.name || 'Unknown';
-                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                const massDisplay = formatMass(mass);
-                const recclass = meteorite.recclass || 'Unknown';
-                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
-                const fall = meteorite.fall || 'Unknown';
-                return `
-                    <tr onclick='flyToMeteorite(${index})' style="cursor:pointer;">
-                        <td>${name}</td>
-                        <td>${massDisplay}</td>
-                        <td>${recclass}</td>
-                        <td>${year}</td>
-                        <td>${fall}</td>
-                    </tr>
-                `;
-            }).join('');
+            updateModalTable();
             document.getElementById('modal').style.display = 'block';
         }
 
         function openCraterModal() {
-            const tbody = document.querySelector('#fullCraterTable tbody');
-            if (!filteredCraters.length) {
-                tbody.innerHTML = '<tr><td colspan="8">No crater data available.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = filteredCraters.map((crater, index) => {
-                const name = crater.properties.crater_name || 'Unknown';
-                const diameter = parseFloat(crater.properties.diameter_km) || 'Unknown';
-                const age = crater.properties.age_millions_years_ago || 'Unknown';
-                const country = crater.properties.country || 'Unknown';
-                const exposed = crater.properties.exposed !== undefined ? crater.properties.exposed : 'Unknown';
-                const drilled = crater.properties.drilled !== undefined ? crater.properties.drilled : 'Unknown';
-                const bolide_type = crater.properties.bolid_type || 'Unknown';
-                const url = crater.properties.url || '#';
-                return `
-                    <tr>
-                        <td>${name}</td>
-                        <td>${diameter}</td>
-                        <td>${age}</td>
-                        <td>${country}</td>
-                        <td>${exposed}</td>
-                        <td>${drilled}</td>
-                        <td>${bolide_type}</td>
-                        <td><a href="${url}" target="_blank">Visit</a></td>
-                    </tr>
-                `;
-            }).join('');
+            updateCraterModalTable();
             document.getElementById('craterModal').style.display = 'block';
         }
 
@@ -976,23 +937,29 @@ HTML_TEMPLATE = """
                 tbody.innerHTML = '<tr><td colspan="5">No meteorite data available.</td></tr>';
                 return;
             }
-            tbody.innerHTML = filteredMeteorites.map((meteorite, index) => {
+            const searchQuery = document.getElementById('meteoriteSearchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+            filteredMeteorites.forEach((meteorite, index) => {
                 const name = meteorite.name || 'Unknown';
-                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                const massDisplay = formatMass(mass);
-                const recclass = meteorite.recclass || 'Unknown';
-                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
-                const fall = meteorite.fall || 'Unknown';
-                return `
-                    <tr onclick='flyToMeteorite(${index})' style="cursor:pointer;">
+                if (name.toLowerCase().includes(searchQuery)) {
+                    const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
+                    const massDisplay = formatMass(mass);
+                    const recclass = meteorite.recclass || 'Unknown';
+                    const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
+                    const fall = meteorite.fall || 'Unknown';
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.onclick = () => flyToMeteorite(index);
+                    tr.innerHTML = `
                         <td>${name}</td>
                         <td>${massDisplay}</td>
                         <td>${recclass}</td>
                         <td>${year}</td>
                         <td>${fall}</td>
-                    </tr>
-                `;
-            }).join('');
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
         }
 
         function updateCraterModalTable() {
@@ -1001,17 +968,22 @@ HTML_TEMPLATE = """
                 tbody.innerHTML = '<tr><td colspan="8">No crater data available.</td></tr>';
                 return;
             }
-            tbody.innerHTML = filteredCraters.map((crater, index) => {
+            const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+            filteredCraters.forEach((crater, index) => {
                 const name = crater.properties.crater_name || 'Unknown';
-                const diameter = parseFloat(crater.properties.diameter_km) || 'Unknown';
-                const age = crater.properties.age_millions_years_ago || 'Unknown';
-                const country = crater.properties.country || 'Unknown';
-                const exposed = crater.properties.exposed !== undefined ? crater.properties.exposed : 'Unknown';
-                const drilled = crater.properties.drilled !== undefined ? crater.properties.drilled : 'Unknown';
-                const bolide_type = crater.properties.bolid_type || 'Unknown';
-                const url = crater.properties.url || '#';
-                return `
-                    <tr>
+                if (name.toLowerCase().includes(searchQuery)) {
+                    const diameter = parseFloat(crater.properties.diameter_km) || 'Unknown';
+                    const age = crater.properties.age_millions_years_ago || 'Unknown';
+                    const country = crater.properties.country || 'Unknown';
+                    const exposed = crater.properties.exposed !== undefined ? crater.properties.exposed : 'Unknown';
+                    const drilled = crater.properties.drilled !== undefined ? crater.properties.drilled : 'Unknown';
+                    const bolide_type = crater.properties.bolid_type || 'Unknown';
+                    const url = crater.properties.url || '#';
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.onclick = () => flyToCrater(index);
+                    tr.innerHTML = `
                         <td>${name}</td>
                         <td>${diameter}</td>
                         <td>${age}</td>
@@ -1020,68 +992,43 @@ HTML_TEMPLATE = """
                         <td>${drilled}</td>
                         <td>${bolide_type}</td>
                         <td><a href="${url}" target="_blank">Visit</a></td>
-                    </tr>
-                `;
-            }).join('');
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
         }
 
         function sortTable(tableId, colIndex) {
             const table = document.getElementById(tableId);
-            let switching = true;
-            let dir = "asc";
-            let switchcount = 0;
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.rows);
+            let dir = table.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
+            table.setAttribute('data-sort-dir', dir);
 
-            while (switching) {
-                switching = false;
-                const rows = table.querySelectorAll("tbody tr");
-                for (let i = 0; i < rows.length - 1; i++) {
-                    let shouldSwitch = false;
-                    const x = rows[i].getElementsByTagName("TD")[colIndex];
-                    const y = rows[i + 1].getElementsByTagName("TD")[colIndex];
-                    let xContent = x.textContent || x.innerText;
-                    let yContent = y.textContent || y.innerText;
+            rows.sort((a, b) => {
+                let x = a.cells[colIndex].innerText || a.cells[colIndex].textContent;
+                let y = b.cells[colIndex].innerText || b.cells[colIndex].textContent;
 
-                    const xNum = parseFloat(xContent.replace(/[^\d.-]/g, ''));
-                    const yNum = parseFloat(yContent.replace(/[^\d.-]/g, ''));
+                const xNum = parseFloat(x.replace(/[^\d.-]/g, ''));
+                const yNum = parseFloat(y.replace(/[^\d.-]/g, ''));
 
-                    if (!isNaN(xNum) && !isNaN(yNum)) {
-                        if (dir == "asc") {
-                            if (xNum > yNum) {
-                                shouldSwitch = true;
-                                break;
-                            }
-                        } else if (dir == "desc") {
-                            if (xNum < yNum) {
-                                shouldSwitch = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        if (dir == "asc") {
-                            if (xContent.toLowerCase() > yContent.toLowerCase()) {
-                                shouldSwitch = true;
-                                break;
-                            }
-                        } else if (dir == "desc") {
-                            if (xContent.toLowerCase() < yContent.toLowerCase()) {
-                                shouldSwitch = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
+                if (!isNaN(xNum) && !isNaN(yNum)) {
+                    return dir === 'asc' ? xNum - yNum : yNum - xNum;
                 } else {
-                    if (switchcount == 0 && dir == "asc") {
-                        dir = "desc";
-                        switching = true;
-                    }
+                    x = x.toLowerCase();
+                    y = y.toLowerCase();
+                    if (x < y) return dir === 'asc' ? -1 : 1;
+                    if (x > y) return dir === 'asc' ? 1 : -1;
+                    return 0;
                 }
-            }
+            });
+
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
         }
+
+        document.getElementById('meteoriteSearchInput').addEventListener('input', updateModalTable);
+        document.getElementById('craterSearchInput').addEventListener('input', updateCraterModalTable);
 
         document.getElementById('searchButton').onclick = searchLocation;
         document.getElementById('searchInput').onkeydown = e => { if (e.key === 'Enter') searchLocation(); };
@@ -1097,7 +1044,7 @@ HTML_TEMPLATE = """
                         viewer.camera.flyTo({
                             destination: Cesium.Cartesian3.fromDegrees(parseFloat(lon), parseFloat(lat), 1000000),
                             duration: 2,
-                            orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(270) }
+                            orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-90) }
                         });
                     } else {
                         alert('Location not found.');
@@ -1261,6 +1208,7 @@ HTML_TEMPLATE = """
             infoModal.style.display = 'none';
         };
 
+        window.flyToMeteorite = flyToMeteorite;
         window.flyToCrater = flyToCrater;
 
         const optionsButton = document.getElementById('optionsButton');
