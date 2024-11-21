@@ -713,12 +713,15 @@ HTML_TEMPLATE = """
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
                 let diameter = parseFloat(properties.diameter_km) || 0;
-                let age_min = parseFloat(properties.age_min) || 0;
-                let age_max = parseFloat(properties.age_max) || 2500;
+                let age_min = parseFloat(properties.age_min);
+                let age_max = parseFloat(properties.age_max);
                 const targetRock = properties.target_rock || 'Unknown';
 
+                if (isNaN(age_min)) age_min = 0;
+                if (isNaN(age_max)) age_max = 2500;
+
                 const diameterMatch = diameter >= diameterMin && diameter <= diameterMax;
-                const ageMatch = (age_min >= ageMin && age_max <= ageMax);
+                const ageMatch = (age_max >= ageMin && age_min <= ageMax);
                 const rockMatch = selectedRocks.length ? selectedRocks.includes(targetRock) : true;
 
                 return diameterMatch && ageMatch && rockMatch;
@@ -765,8 +768,7 @@ HTML_TEMPLATE = """
                         position: Cesium.Cartesian3.fromDegrees(lon, lat),
                         point: {
                             pixelSize: pointSize,
-                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6),
-                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                            color: mass !== 'Unknown' ? getMeteoriteColor(mass) : Cesium.Color.GRAY.withAlpha(0.6)
                         },
                         properties: {
                             isMeteorite: true,
@@ -848,8 +850,7 @@ HTML_TEMPLATE = """
                             pixelSize: getCraterSize(diameter),
                             color: getCraterColor(diameter),
                             outlineColor: Cesium.Color.BLACK,
-                            outlineWidth: 1,
-                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                            outlineWidth: 1
                         },
                         description: getCraterDescription(properties),
                         properties: {
