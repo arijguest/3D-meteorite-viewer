@@ -891,7 +891,7 @@ HTML_TEMPLATE = """
 
             return `
                 <b>Name:</b> ${name}<br>
-                <b>Age:</b> ${age}<br>
+                <b>Age:</b> ${age} Myr<br>
                 <b>Diameter:</b> ${diameter} km<br>
                 <b>Country:</b> ${country}<br>
                 <b>Target:</b> ${target}<br>
