@@ -1159,7 +1159,7 @@ HTML_TEMPLATE = """
                 viewer.camera.flyTo({
                     destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                     duration: 2,
-                    orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-90) }
+                    orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-90) }
                 });
             }
         }
@@ -1173,7 +1173,7 @@ HTML_TEMPLATE = """
             viewer.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1000000),
                 duration: 2,
-                orientation: { heading: Cesium.Math.toRadians(270), pitch: Cesium.Math.toRadians(-90) }
+                orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-90) }
             });
         }
 
