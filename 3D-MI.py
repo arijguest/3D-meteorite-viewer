@@ -736,6 +736,21 @@ HTML_TEMPLATE = """
                 return yearMatch && massMatch && classMatch;
             });
 
+            // Exclude meteorites with unknown locations from being plotted
+            plottedMeteorites = filteredMeteorites.filter(m => {
+                let hasLocation = false;
+                if (m.geolocation) {
+                    if (m.geolocation.latitude && m.geolocation.longitude) {
+                        hasLocation = true;
+                    } else if (m.geolocation.coordinates && m.geolocation.coordinates.length === 2) {
+                        hasLocation = true;
+                    }
+                } else if (m.reclat && m.reclong) {
+                    hasLocation = true;
+                }
+                return hasLocation;
+            });
+
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
                 let diameter = parseFloat(properties['Crater diamter [km]']) || 0;
@@ -784,7 +799,7 @@ HTML_TEMPLATE = """
             meteoriteDataSource.entities.removeAll();
             meteoriteEntities = [];
 
-            filteredMeteorites.forEach((meteorite, index) => {
+            plottedMeteorites.forEach((meteorite, index) => {
                 let lat, lon;
 
                 if (meteorite.geolocation) {
@@ -794,8 +809,8 @@ HTML_TEMPLATE = """
                     } else if (meteorite.geolocation.coordinates && meteorite.geolocation.coordinates.length === 2) {
                         lon = parseFloat(meteorite.geolocation.coordinates[0]);
                         lat = parseFloat(meteorite.geolocation.coordinates[1]);
-                    }
-                } else if (meteorite.reclat && meteorite.reclong) {
+                     }
+                   } else if (meteorite.reclat && meteorite.reclong) {
                     lat = parseFloat(meteorite.reclat);
                     lon = parseFloat(meteorite.reclong);
                 }
@@ -811,7 +826,7 @@ HTML_TEMPLATE = """
                         },
                         properties: {
                             isMeteorite: true,
-                            meteoriteIndex: index
+                            meteoriteIndex: filteredMeteorites.indexOf(meteorite)
                         }
                     });
                     meteoriteEntities.push(entity);
@@ -1659,9 +1674,9 @@ HTML_TEMPLATE = """
                 li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
                 let label = '';
                 if (item.threshold === 0) {
-                    label = `Mass < ${scheme.find(s => s.threshold > 0).threshold}g`;
+                    label = `Mass < ${(scheme.find(s => s.threshold > 0).threshold / 1000).toLocaleString()} kg`;
                 } else {
-                    label = `Mass ≥ ${item.threshold.toLocaleString()}g`;
+                    label = `Mass ≥ ${(item.threshold / 1000).toLocaleString()} kg`;
                 }
                 li.innerHTML += label;
                 list.appendChild(li);
