@@ -524,7 +524,7 @@ HTML_TEMPLATE = """
                     { threshold: 200, color: Cesium.Color.RED.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.ORANGE.withAlpha(0.8) },
                     { threshold: 50,  color: Cesium.Color.YELLOW.withAlpha(0.8) },
-                    { threshold: 10,   color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) }
+                    { threshold: 10,   color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) },
                     { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
@@ -542,7 +542,7 @@ HTML_TEMPLATE = """
                     { threshold: 200, color: Cesium.Color.DARKBLUE.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.BLUE.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.SKYBLUE.withAlpha(0.8) },
-                    { threshold: 10,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8) },
                     { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
@@ -560,7 +560,7 @@ HTML_TEMPLATE = """
                     { threshold: 200, color: Cesium.Color.DARKGREEN.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.GREEN.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.LIME.withAlpha(0.8) },
-                    { threshold: 10,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.8) },
                     { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
@@ -578,7 +578,7 @@ HTML_TEMPLATE = """
                     { threshold: 200, color: Cesium.Color.DARKVIOLET.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.VIOLET.withAlpha(0.8) },
-                    { threshold: 10,  color: Cesium.Color.PLUM.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.PLUM.withAlpha(0.8) },
                     { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
@@ -596,7 +596,7 @@ HTML_TEMPLATE = """
                     { threshold: 200, color: Cesium.Color.SIENNA.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.PERU.withAlpha(0.8) },
-                    { threshold: 10,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8) },
                     { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
@@ -614,7 +614,7 @@ HTML_TEMPLATE = """
                     { threshold: 200, color: Cesium.Color.fromCssColorString('#CC79A7').withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.8) },
-                    { threshold: 10,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.8) },
                     { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
@@ -632,7 +632,7 @@ HTML_TEMPLATE = """
                     { threshold: 200, color: Cesium.Color.fromCssColorString('#117733').withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.8) },
-                    { threshold: 10,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) },
                     { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             }
@@ -743,19 +743,30 @@ HTML_TEMPLATE = """
                 return yearMatch && massMatch && classMatch;
             });
 
-            // Exclude meteorites with unknown locations from being plotted
             plottedMeteorites = filteredMeteorites.filter(m => {
-                let hasLocation = false;
+                let lat, lon;
+
                 if (m.geolocation) {
-                    if (m.geolocation.latitude && m.geolocation.longitude) {
-                        hasLocation = true;
-                    } else if (m.geolocation.coordinates && m.geolocation.coordinates.length === 2) {
-                        hasLocation = true;
+                    if (
+                        m.geolocation.latitude !== undefined && 
+                        m.geolocation.longitude !== undefined
+                    ) {
+                        lat = parseFloat(m.geolocation.latitude);
+                        lon = parseFloat(m.geolocation.longitude);
+                    } else if (
+                        m.geolocation.coordinates && 
+                        m.geolocation.coordinates.length === 2
+                    ) {
+                        lon = parseFloat(m.geolocation.coordinates[0]);
+                        lat = parseFloat(m.geolocation.coordinates[1]);
                     }
                 } else if (m.reclat && m.reclong) {
-                    hasLocation = true;
+                    lat = parseFloat(m.reclat);
+                    lon = parseFloat(m.reclong);
                 }
-                return hasLocation;
+
+                // Ensure lat and lon are valid numbers
+                return !isNaN(lat) && !isNaN(lon);
             });
 
             filteredCraters = allCraters.filter(feature => {
