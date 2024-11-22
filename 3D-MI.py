@@ -1206,7 +1206,7 @@ HTML_TEMPLATE = """
                 const thead = document.querySelector('#fullCraterTable thead');
                 const headerRow = document.getElementById('craterTableHeaders');
                 if (!filteredCraters.length) {
-                    tbody.innerHTML = '<tr><td colspan="7">No crater data available.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5">No crater data available.</td></tr>';
                     return;
                 }
                 const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
@@ -1214,7 +1214,8 @@ HTML_TEMPLATE = """
                 headerRow.innerHTML = '';
 
                 // Populate table headers
-                craterPropertyNames.forEach((propName, index) => {
+                const filteredPropertyNames = craterPropertyNames.filter(propName => propName !== 'age_max' && propName !== 'age_min');
+                filteredPropertyNames.forEach((propName, index) => {
                     const th = document.createElement('th');
                     th.innerHTML = `${propName} &#x25B2;&#x25BC;`;
                     th.onclick = () => sortCraterTable(index);
@@ -1228,7 +1229,7 @@ HTML_TEMPLATE = """
                         const tr = document.createElement('tr');
                         tr.style.cursor = 'pointer';
                         tr.onclick = () => flyToCrater(index);
-                        craterPropertyNames.forEach(propName => {
+                        filteredPropertyNames.forEach(propName => {
                             const td = document.createElement('td');
                             const value = properties[propName] !== undefined ? properties[propName] : 'Unknown';
                             if (propName === 'Name') {
