@@ -1083,11 +1083,17 @@ HTML_TEMPLATE = """
         function openModal() {
             updateModalTable();
             document.getElementById('modal').style.display = 'block';
+            // Clear existing highlights
+            const rows = document.querySelectorAll('#fullMeteoriteTable tbody tr');
+            rows.forEach(row => row.style.backgroundColor = '');
         }
-
+    
         function openCraterModal() {
             updateCraterModalTable();
             document.getElementById('craterModal').style.display = 'block';
+            // Clear existing highlights
+            const rows = document.querySelectorAll('#fullCraterTable tbody tr');
+            rows.forEach(row => row.style.backgroundColor = '');
         }
 
         const tooltip = document.getElementById('tooltip');
@@ -1114,6 +1120,44 @@ HTML_TEMPLATE = """
                 tooltip.style.display = 'none';
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+                    // Double-click event handler
+        handler.setInputAction(movement => {
+            const pickedObject = viewer.scene.pick(movement.position);
+            if (Cesium.defined(pickedObject)) {
+                let id = pickedObject.id;
+                if (id && id.properties) {
+                    if (id.properties.isMeteorite) {
+                        const index = id.properties.meteoriteIndex;
+                        openModal(); // Open meteorite modal
+                        setTimeout(() => {
+                            const table = document.getElementById('fullMeteoriteTable');
+                            const row = table.querySelector(`tr[data-index='${index}']`);
+                            if (row) {
+                                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                row.style.backgroundColor = '#ffff99'; // Highlight the row
+                                setTimeout(() => { row.style.backgroundColor = ''; }, 2000); // Remove highlight after 2 seconds
+                            }
+                        }, 300); // Slight delay to ensure modal is open
+                    } else if (id.properties.isImpactCrater) {
+                        const index = id.properties.craterIndex;
+                        openCraterModal(); // Open crater modal
+                        setTimeout(() => {
+                            const table = document.getElementById('fullCraterTable');
+                            const row = table.querySelector(`tr[data-index='${index}']`);
+                            if (row) {
+                                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                row.style.backgroundColor = '#ffff99'; // Highlight the row
+                                setTimeout(() => { row.style.backgroundColor = ''; }, 2000); // Remove highlight after 2 seconds
+                            }
+                        }, 300); // Slight delay to ensure modal is open
+                    }
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+        window.flyToMeteorite = flyToMeteorite;
+        window.flyToCrater = flyToCrater;
 
         function getMeteoriteDescription(meteorite) {
             let lat, lon;
@@ -1167,39 +1211,44 @@ HTML_TEMPLATE = """
         };
 
         function updateModalTable() {
-            const tbody = document.querySelector('#fullMeteoriteTable tbody');
-            if (!filteredMeteorites.length) {
-                tbody.innerHTML = '<tr><td colspan="6">No meteorite data available.</td></tr>';
-                return;
-            }
-            const searchQuery = document.getElementById('meteoriteSearchInput').value.toLowerCase();
-            tbody.innerHTML = '';
-            filteredMeteorites.forEach((meteorite, index) => {
-                const name = meteorite.name || 'Unknown';
-                if (name.toLowerCase().includes(searchQuery)) {
-                    const id = meteorite.id || 'Unknown';
-                    const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                    const massDisplay = formatMass(mass);
-                    const recclass = meteorite.recclass || 'Unknown';
-                    const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
-                    const fall = meteorite.fall || 'Unknown';
-                    const metBullLink = id !== 'Unknown' ? `<a href="https://www.lpi.usra.edu/meteor/metbull.php?code=${id}" target="_blank">View</a>` : 'N/A';
-
-                    const tr = document.createElement('tr');
-                    tr.style.cursor = 'pointer';
-                    tr.onclick = () => flyToMeteorite(index);
-                    tr.innerHTML = `
-                        <td>${name}</td>
-                        <td>${massDisplay}</td>
-                        <td>${recclass}</td>
-                        <td>${year}</td>
-                        <td>${fall}</td>
-                        <td>${metBullLink}</td>
-                    `;
-                    tbody.appendChild(tr);
+                const tbody = document.querySelector('#fullMeteoriteTable tbody');
+                if (!filteredMeteorites.length) {
+                    tbody.innerHTML = '<tr><td colspan="6">No meteorite data available.</td></tr>';
+                    return;
                 }
-            });
-        }
+                const searchQuery = document.getElementById('meteoriteSearchInput').value.toLowerCase();
+                tbody.innerHTML = '';
+    
+                filteredMeteorites.forEach((meteorite, index) => {
+                    const name = meteorite.name || 'Unknown';
+                    if (name.toLowerCase().includes(searchQuery)) {
+                        const id = meteorite.id || 'Unknown';
+                        const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
+                        const massDisplay = formatMass(mass);
+                        const recclass = meteorite.recclass || 'Unknown';
+                        const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
+                        const fall = meteorite.fall || 'Unknown';
+                        const metBullLink = id !== 'Unknown' ? `<a href="https://www.lpi.usra.edu/meteor/metbull.php?code=${id}" target="_blank">View</a>` : 'N/A';
+    
+                        const tr = document.createElement('tr');
+                        tr.style.cursor = 'pointer';
+                        tr.setAttribute('data-index', index); // Add data-index attribute
+                        tr.onclick = () => {
+                            flyToMeteorite(index);
+                            document.getElementById('modal').style.display = 'none'; // Close modal
+                        };
+                        tr.innerHTML = `
+                            <td>${name}</td>
+                            <td>${massDisplay}</td>
+                            <td>${recclass}</td>
+                            <td>${year}</td>
+                            <td>${fall}</td>
+                            <td>${metBullLink}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+            }
 
         function updateCraterModalTable() {
                 const tbody = document.querySelector('#fullCraterTable tbody');
@@ -1212,7 +1261,7 @@ HTML_TEMPLATE = """
                 const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
                 tbody.innerHTML = '';
                 headerRow.innerHTML = '';
-
+    
                 // Populate table headers
                 const filteredPropertyNames = craterPropertyNames.filter(propName => propName !== 'age_max' && propName !== 'age_min');
                 filteredPropertyNames.forEach((propName, index) => {
@@ -1221,14 +1270,18 @@ HTML_TEMPLATE = """
                     th.onclick = () => sortCraterTable(index);
                     headerRow.appendChild(th);
                 });
-
+    
                 filteredCraters.forEach((crater, index) => {
                     const properties = crater.properties;
                     const name = properties.Name || 'Unknown';
                     if (name.toLowerCase().includes(searchQuery)) {
                         const tr = document.createElement('tr');
                         tr.style.cursor = 'pointer';
-                        tr.onclick = () => flyToCrater(index);
+                        tr.setAttribute('data-index', index); // Add data-index attribute
+                        tr.onclick = () => {
+                            flyToCrater(index);
+                            document.getElementById('craterModal').style.display = 'none'; // Close crater modal
+                         };
                         filteredPropertyNames.forEach(propName => {
                             const td = document.createElement('td');
                             const value = properties[propName] !== undefined ? properties[propName] : 'Unknown';
