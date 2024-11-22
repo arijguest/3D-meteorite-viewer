@@ -932,8 +932,10 @@ HTML_TEMPLATE = """
         }
 
         function getCraterSize(diameter) {
-            if (diameter >= 50) return 20;
-            if (diameter >= 30) return 15;
+            if (diameter >= 300) return 25;
+            if (diameter >= 200) return 22;
+            if (diameter >= 100) return 18;
+            if (diameter >= 50) return 14;
             if (diameter >= 10) return 10;
             return 7;
         }
