@@ -1319,49 +1319,49 @@ HTML_TEMPLATE = """
             updateSlidersDisplay();
         }
 
-function initializeCraterSliders() {
-    const diameters = allCraters
-        .map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null)
-        .filter(d => d !== null && !isNaN(d));
-    const ages = allCraters
-        .map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null)
-        .filter(a => a !== null && !isNaN(a));
+        function initializeCraterSliders() {
+            const diameters = allCraters
+                .map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null)
+                .filter(d => d !== null && !isNaN(d));
+            const ages = allCraters
+                .map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null)
+                .filter(a => a !== null && !isNaN(a));
 
-    if (diameters.length === 0) {
-        console.warn('No crater diameters found.');
-        return;
-    }
+            if (diameters.length === 0) {
+                console.warn('No crater diameters found.');
+                return;
+            }
 
-    const minDiameter = Math.min(...diameters);
-    const sliderMaxDiameter = 280; // Manually set the upper diameter limit to 280 km
-    const minAge = Math.min(...ages);
-    const maxAge = Math.max(...ages);
+            const minDiameter = Math.min(...diameters);
+            const sliderMaxDiameter = 280; // Manually set the upper diameter limit to 280 km
+            const minAge = Math.min(...ages);
+            const maxAge = Math.max(...ages);
 
-    const diameterRangeMin = document.getElementById('diameterRangeMin');
-    const diameterRangeMax = document.getElementById('diameterRangeMax');
-    const ageRangeMin = document.getElementById('ageRangeMin');
-    const ageRangeMax = document.getElementById('ageRangeMax');
+            const diameterRangeMin = document.getElementById('diameterRangeMin');
+            const diameterRangeMax = document.getElementById('diameterRangeMax');
+            const ageRangeMin = document.getElementById('ageRangeMin');
+            const ageRangeMax = document.getElementById('ageRangeMax');
 
-    // Set diameter sliders with manual upper limit
-    diameterRangeMin.min = minDiameter;
-    diameterRangeMin.max = sliderMaxDiameter;
-    diameterRangeMin.value = minDiameter;
+            // Set diameter sliders with manual upper limit
+            diameterRangeMin.min = minDiameter;
+            diameterRangeMin.max = sliderMaxDiameter;
+            diameterRangeMin.value = minDiameter;
 
-    diameterRangeMax.min = minDiameter;
-    diameterRangeMax.max = sliderMaxDiameter;
-    diameterRangeMax.value = sliderMaxDiameter;
+            diameterRangeMax.min = minDiameter;
+            diameterRangeMax.max = sliderMaxDiameter;
+            diameterRangeMax.value = sliderMaxDiameter;
 
-    // Set age sliders
-    ageRangeMin.min = minAge;
-    ageRangeMin.max = maxAge;
-    ageRangeMin.value = minAge;
+            // Set age sliders
+            ageRangeMin.min = minAge;
+            ageRangeMin.max = maxAge;
+            ageRangeMin.value = minAge;
 
-    ageRangeMax.min = minAge;
-    ageRangeMax.max = maxAge;
-    ageRangeMax.value = maxAge;
+            ageRangeMax.min = minAge;
+            ageRangeMax.max = maxAge;
+            ageRangeMax.value = maxAge;
 
-    updateCraterSlidersDisplay();
-}
+            updateCraterSlidersDisplay();
+        }
 
     const minDiameter = Math.min(...diameters);
     const maxDiameter = Math.max(...diameters);
