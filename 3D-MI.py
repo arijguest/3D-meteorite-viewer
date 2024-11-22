@@ -1202,42 +1202,47 @@ HTML_TEMPLATE = """
         }
 
         function updateCraterModalTable() {
-            const tbody = document.querySelector('#fullCraterTable tbody');
-            const thead = document.querySelector('#fullCraterTable thead');
-            const headerRow = document.getElementById('craterTableHeaders');
-            if (!filteredCraters.length) {
-                tbody.innerHTML = '<tr><td colspan="7">No crater data available.</td></tr>';
-                return;
-            }
-            const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
-            tbody.innerHTML = '';
-            headerRow.innerHTML = '';
-
-            // Populate table headers
-            craterPropertyNames.forEach((propName, index) => {
-                const th = document.createElement('th');
-                th.innerHTML = `${propName} &#x25B2;&#x25BC;`;
-                th.onclick = () => sortCraterTable(index);
-                headerRow.appendChild(th);
-            });
-
-            filteredCraters.forEach((crater, index) => {
-                const properties = crater.properties;
-                const name = properties.Name || 'Unknown';
-                if (name.toLowerCase().includes(searchQuery)) {
-                    const tr = document.createElement('tr');
-                    tr.style.cursor = 'pointer';
-                    tr.onclick = () => flyToCrater(index);
-                    craterPropertyNames.forEach(propName => {
-                        const td = document.createElement('td');
-                        const value = properties[propName] !== undefined ? properties[propName] : 'Unknown';
-                        td.innerText = value;
-                        tr.appendChild(td);
-                    });
-                    tbody.appendChild(tr);
+                const tbody = document.querySelector('#fullCraterTable tbody');
+                const thead = document.querySelector('#fullCraterTable thead');
+                const headerRow = document.getElementById('craterTableHeaders');
+                if (!filteredCraters.length) {
+                    tbody.innerHTML = '<tr><td colspan="7">No crater data available.</td></tr>';
+                    return;
                 }
-            });
-        }
+                const searchQuery = document.getElementById('craterSearchInput').value.toLowerCase();
+                tbody.innerHTML = '';
+                headerRow.innerHTML = '';
+
+                // Populate table headers
+                craterPropertyNames.forEach((propName, index) => {
+                    const th = document.createElement('th');
+                    th.innerHTML = `${propName} &#x25B2;&#x25BC;`;
+                    th.onclick = () => sortCraterTable(index);
+                    headerRow.appendChild(th);
+                });
+
+                filteredCraters.forEach((crater, index) => {
+                    const properties = crater.properties;
+                    const name = properties.Name || 'Unknown';
+                    if (name.toLowerCase().includes(searchQuery)) {
+                        const tr = document.createElement('tr');
+                        tr.style.cursor = 'pointer';
+                        tr.onclick = () => flyToCrater(index);
+                        craterPropertyNames.forEach(propName => {
+                            const td = document.createElement('td');
+                            const value = properties[propName] !== undefined ? properties[propName] : 'Unknown';
+                            if (propName === 'Name') {
+                                const id = properties.No || '';
+                                td.innerHTML = `<a href="https://impact-craters.com/craters_id${id}" target="_blank">${value}</a>`;
+                            } else {
+                                td.innerText = value;
+                            }
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    }
+                });
+            }
 
         function sortTable(tableId, colIndex) {
             const table = document.getElementById(tableId);
