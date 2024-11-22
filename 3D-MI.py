@@ -31,9 +31,10 @@ def parse_age_string(age_str):
             elif 'min' in groups and 'max' in groups and groups['min'] and groups['max']:
                 return float(groups['min']), float(groups['max'])
             elif 'min' in groups and groups['min']:
-                return float(groups['min']), 2500
+                return float(groups['min']), None  # Return None for max age
             elif 'max' in groups and groups['max']:
-                return 0, float(groups['max'])
+                return None, float(groups['max'])  # Return None for min age
+    # If no pattern matched, return None
     return None, None
 
 IMPACT_CRATERS_FILE = 'earth-impact-craters-v2.geojson'
