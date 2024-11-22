@@ -335,12 +335,12 @@ HTML_TEMPLATE = """
             <label><input type="checkbox" id="toggleMeteorites" checked> Show Meteorites</label>
         </div>
         <div>
-            <label><strong>Year Range:</strong> <span id="yearRangeValue"></span></label>
+            <label><strong>Year Range:</strong> <span id="yearRangeValue" class="editable-value" data-type="year"></span></label>
             <input type="range" id="yearRangeMin" min="860" max="2023" value="860">
             <input type="range" id="yearRangeMax" min="860" max="2023" value="2023">
         </div>
         <div>
-            <label><strong>Mass Range:</strong> <span id="massRangeValue"></span></label>
+            <label><strong>Mass Range:</strong> <span id="massRangeValue" class="editable-value" data-type="mass"></span></label>
             <input type="range" id="massRangeMin" min="0" max="60000000" value="0">
             <input type="range" id="massRangeMax" min="0" max="60000000" value="60000000">
         </div>
@@ -357,12 +357,12 @@ HTML_TEMPLATE = """
             <label><input type="checkbox" id="toggleCraters" checked> Show Impact Craters</label>
         </div>
         <div>
-            <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue"></span></label>
+            <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue" class="editable-value" data-type="diameter"></span></label>
             <input type="range" id="diameterRangeMin" value="0">
             <input type="range" id="diameterRangeMax" value="300">
         </div>
         <div>
-            <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
+            <label><strong>Age Range:</strong> <span id="ageRangeValue" class="editable-value" data-type="age"></span></label>
             <input type="range" id="ageRangeMin" value="0">
             <input type="range" id="ageRangeMax" value="3000">
         </div>
@@ -643,6 +643,85 @@ HTML_TEMPLATE = """
                 ]
             }
         };
+
+        // Function to handle editable range values
+        function makeRangeEditable() {
+            const editableSpans = document.querySelectorAll('.editable-value');
+    
+            editableSpans.forEach(span => {
+                span.style.cursor = 'pointer';
+                span.addEventListener('click', () => {
+                    const type = span.getAttribute('data-type');
+                    let newMin = null;
+                    let newMax = null;
+            
+                    if (type === 'year') {
+                        newMin = prompt('Enter new minimum year:', document.getElementById('yearRangeMin').value);
+                        newMax = prompt('Enter new maximum year:', document.getElementById('yearRangeMax').value);
+                        if (newMin !== null && newMax !== null) {
+                            newMin = parseInt(newMin);
+                            newMax = parseInt(newMax);
+                            if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
+                                document.getElementById('yearRangeMin').value = newMin;
+                                document.getElementById('yearRangeMax').value = newMax;
+                                applyFilters();
+                                updateSlidersDisplay();
+                            } else {
+                                alert('Invalid input. Please enter valid numbers where min ≤ max.');
+                            }
+                        }
+                    } else if (type === 'mass') {
+                        newMin = prompt('Enter new minimum mass (g):', document.getElementById('massRangeMin').value);
+                        newMax = prompt('Enter new maximum mass (g):', document.getElementById('massRangeMax').value);
+                        if (newMin !== null && newMax !== null) {
+                            newMin = parseInt(newMin);
+                            newMax = parseInt(newMax);
+                            if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
+                                document.getElementById('massRangeMin').value = newMin;
+                                document.getElementById('massRangeMax').value = newMax;
+                                applyFilters();
+                                updateSlidersDisplay();
+                            } else {
+                                alert('Invalid input. Please enter valid numbers where min ≤ max.');
+                            }
+                        }
+                    } else if (type === 'diameter') {
+                        newMin = prompt('Enter new minimum diameter (km):', document.getElementById('diameterRangeMin').value);
+                        newMax = prompt('Enter new maximum diameter (km):', document.getElementById('diameterRangeMax').value);
+                        if (newMin !== null && newMax !== null) {
+                            newMin = parseFloat(newMin);
+                            newMax = parseFloat(newMax);
+                            if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
+                                document.getElementById('diameterRangeMin').value = newMin;
+                                document.getElementById('diameterRangeMax').value = newMax;
+                                applyFilters();
+                                updateCraterSlidersDisplay();
+                            } else {
+                                alert('Invalid input. Please enter valid numbers where min ≤ max.');
+                            }
+                        }
+                    } else if (type === 'age') {
+                        newMin = prompt('Enter new minimum age (Myr):', document.getElementById('ageRangeMin').value);
+                        newMax = prompt('Enter new maximum age (Myr):', document.getElementById('ageRangeMax').value);
+                        if (newMin !== null && newMax !== null) {
+                            newMin = parseFloat(newMin);
+                            newMax = parseFloat(newMax);
+                            if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
+                                document.getElementById('ageRangeMin').value = newMin;
+                                document.getElementById('ageRangeMax').value = newMax;
+                                applyFilters();
+                                updateCraterSlidersDisplay();
+                            } else {
+                                alert('Invalid input. Please enter valid numbers where min ≤ max.');
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Call the function after the DOM has loaded
+        document.addEventListener('DOMContentLoaded', makeRangeEditable);
 
         function populateColorSchemeSelectors() {
             const meteoriteSelect = document.getElementById('meteoriteColorScheme');
