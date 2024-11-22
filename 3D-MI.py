@@ -525,6 +525,7 @@ HTML_TEMPLATE = """
                     { threshold: 100, color: Cesium.Color.ORANGE.withAlpha(0.8) },
                     { threshold: 50,  color: Cesium.Color.YELLOW.withAlpha(0.8) },
                     { threshold: 10,   color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) }
+                    { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
             'Blue Scale': {
@@ -542,6 +543,7 @@ HTML_TEMPLATE = """
                     { threshold: 100, color: Cesium.Color.BLUE.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.SKYBLUE.withAlpha(0.8) },
                     { threshold: 10,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8) }
+                    { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
             'Green Scale': {
@@ -559,6 +561,7 @@ HTML_TEMPLATE = """
                     { threshold: 100, color: Cesium.Color.GREEN.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.LIME.withAlpha(0.8) },
                     { threshold: 10,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.8) }
+                    { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
             'Purple Scale': {
@@ -576,6 +579,7 @@ HTML_TEMPLATE = """
                     { threshold: 100, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.VIOLET.withAlpha(0.8) },
                     { threshold: 10,  color: Cesium.Color.PLUM.withAlpha(0.8) }
+                    { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
             'Brown Scale': {
@@ -593,6 +597,7 @@ HTML_TEMPLATE = """
                     { threshold: 100, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.PERU.withAlpha(0.8) },
                     { threshold: 10,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8) }
+                    { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
             'Colorblind-Friendly (Deutan)': {
@@ -610,6 +615,7 @@ HTML_TEMPLATE = """
                     { threshold: 100, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.8) },
                     { threshold: 10,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.8) }
+                    { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             },
             'Colorblind-Friendly (Protan)': {
@@ -627,6 +633,7 @@ HTML_TEMPLATE = """
                     { threshold: 100, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.8) },
                     { threshold: 10,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) }
+                    { threshold: 5,  color: Cesium.Color.MINTCREAM.withAlpha(0.8) }
                 ]
             }
         };
