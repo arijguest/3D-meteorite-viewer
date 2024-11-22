@@ -42,6 +42,12 @@ if os.path.exists(IMPACT_CRATERS_FILE):
     with open(IMPACT_CRATERS_FILE, 'r', encoding='utf-8') as geojson_file:
         impact_craters = json.load(geojson_file)
         for feature in impact_craters['features']:
+            # Clean up the 'Confirmation' field
+            confirmation = feature['properties'].get('Confirmation', '')
+            if confirmation:
+                cleaned_confirmation = re.sub(r'\d+\.\d+\.CO;2" title="See details" target="_blank">', '', confirmation)
+                feature['properties']['Confirmation'] = cleaned_confirmation.strip()
+
             age_str = feature['properties'].get('Age [Myr]', '')
             age_min, age_max = parse_age_string(age_str)
             feature['properties']['age_min'] = age_min if age_min is not None else 0
@@ -195,7 +201,6 @@ HTML_TEMPLATE = """
             width: 100%;
             border-collapse: collapse;
             table-layout: auto;
-            overflow-x: auto;
         }
         #fullMeteoriteTable th, #fullMeteoriteTable td,
         #fullCraterTable th, #fullCraterTable td {
@@ -238,7 +243,12 @@ HTML_TEMPLATE = """
             max-height: 80vh;
             overflow: hidden;
         }
-        #fullMeteoriteTable tbody, #fullCraterTable tbody {
+        #craterTableContainer .table-wrapper {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        /* Remove display: block to align columns */
+        /* #fullMeteoriteTable tbody, #fullCraterTable tbody {
             display: block;
             max-height: 60vh;
             overflow-y: auto;
@@ -252,6 +262,20 @@ HTML_TEMPLATE = """
             display: table;
             width: 100%;
             table-layout: auto;
+        } */
+        /* Wrap crater table in a div to allow horizontal scrolling */
+        #craterTableContainer {
+            overflow-x: auto;
+        }
+        /* Adjust table to allow infinite width */
+        #fullCraterTable {
+            min-width: 100%;
+        }
+        /* Handle data too wide for the column gracefully */
+        #fullCraterTable td {
+            max-width: 200px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
         .legend-section {
             margin-bottom: 20px;
@@ -278,20 +302,6 @@ HTML_TEMPLATE = """
         option[disabled] {
             color: #888;
         }
-        /* Wrap crater table in a div to allow horizontal scrolling */
-        #craterTableContainer {
-            overflow-x: auto;
-        }
-        /* Adjust table to allow infinite width */
-        #fullCraterTable {
-            min-width: 100%;
-        }
-        /* Handle data too wide for the column gracefully */
-        #fullCraterTable td {
-            max-width: 200px;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
     </style>
 </head>
 <body>
@@ -309,6 +319,7 @@ HTML_TEMPLATE = """
             <h2>Options</h2>
             <button class="close-button" id="closeOptions">&times;</button>
         </header>
+        <div style="margin-bottom: 10px;"></div>
         <div id="searchContainer">
             <input type="text" id="searchInput" placeholder="Search location...">
             <button id="searchButton">Search</button>
@@ -353,6 +364,10 @@ HTML_TEMPLATE = """
         <div>
             <label><strong>Target Rock:</strong></label>
             <select id="targetRockSelect" multiple size="5"></select>
+        </div>
+        <div>
+            <label><strong>Crater Type:</strong></label>
+            <select id="craterTypeSelect" multiple size="5"></select>
         </div>
         <hr>
         <div>
@@ -411,12 +426,14 @@ HTML_TEMPLATE = """
             <h2>All Impact Craters</h2>
             <input type="text" id="craterSearchInput" class="modal-search" placeholder="Search impact crater...">
             <div id="craterTableContainer">
-                <table id="fullCraterTable">
-                    <thead>
-                        <tr id="craterTableHeaders"></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-wrapper">
+                    <table id="fullCraterTable">
+                        <thead>
+                            <tr id="craterTableHeaders"></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
             <p>For details on the abbreviations used in this table, please visit <a href="https://impact-craters.com/" target="_blank">impact-craters.com</a>.</p>
             <p>Data source: <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021 "The terrestrial impact crater record: A statistical analysis of morphologies, structures, ages, lithologies, and more"</a>. Website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</p>
@@ -477,6 +494,10 @@ HTML_TEMPLATE = """
 
         if (allCraters.length > 0) {
             craterPropertyNames = Object.keys(allCraters[0].properties);
+
+            // Reorder craterPropertyNames to ensure desired column order
+            const desiredOrder = ['Name', 'Continent', 'Country', 'Age [Myr]', 'Crater diamter [km]', 'Crater type'];
+            craterPropertyNames = desiredOrder.concat(craterPropertyNames.filter(item => !desiredOrder.includes(item)));
         }
 
         let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
@@ -500,10 +521,10 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.WHITE.withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold: 50, color: Cesium.Color.RED.withAlpha(0.8) },
-                    { threshold: 30, color: Cesium.Color.ORANGE.withAlpha(0.8) },
-                    { threshold: 10, color: Cesium.Color.YELLOW.withAlpha(0.8) },
-                    { threshold: 0,  color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) }
+                    { threshold: 200, color: Cesium.Color.RED.withAlpha(0.8) },
+                    { threshold: 100, color: Cesium.Color.ORANGE.withAlpha(0.8) },
+                    { threshold: 50,  color: Cesium.Color.YELLOW.withAlpha(0.8) },
+                    { threshold: 0,   color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) }
                 ]
             },
             'Blue Scale': {
@@ -677,6 +698,7 @@ HTML_TEMPLATE = """
             let ageMax = parseFloat(document.getElementById('ageRangeMax').value);
             const selectedRocks = Array.from(document.getElementById('targetRockSelect').selectedOptions).map(option => option.value);
             const selectedClasses = Array.from(document.getElementById('meteoriteClassSelect').selectedOptions).map(option => option.value);
+            const selectedCraterTypes = Array.from(document.getElementById('craterTypeSelect').selectedOptions).map(option => option.value);
 
             if (yearMin > yearMax) {
                 [yearMin, yearMax] = [yearMax, yearMin];
@@ -717,18 +739,17 @@ HTML_TEMPLATE = """
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
                 let diameter = parseFloat(properties['Crater diamter [km]']) || 0;
-                let age_str = properties['Age [Myr]'] || '';
-                let age_min, age_max;
-                [age_min, age_max] = parse_age_values(age_str);
-                age_min = age_min !== null ? age_min : 0;
-                age_max = age_max !== null ? age_max : 2500;
+                let age_min = properties.age_min !== null ? parseFloat(properties.age_min) : 0;
+                let age_max = properties.age_max !== null ? parseFloat(properties.age_max) : 2500;
                 const targetRock = properties.Target || 'Unknown';
+                const craterType = properties['Crater type'] || 'Unknown';
 
                 const diameterMatch = diameter >= diameterMin && diameter <= diameterMax;
                 const ageMatch = (age_max >= ageMin && age_min <= ageMax);
                 const rockMatch = selectedRocks.length ? selectedRocks.includes(targetRock) : true;
+                const typeMatch = selectedCraterTypes.length ? selectedCraterTypes.includes(craterType) : true;
 
-                return diameterMatch && ageMatch && rockMatch;
+                return diameterMatch && ageMatch && rockMatch && typeMatch;
             });
 
             updateMeteoriteData();
@@ -1427,9 +1448,88 @@ HTML_TEMPLATE = """
             });
         }
 
+        // Add function to populate crater type options
+        function populateCraterTypeOptions() {
+            const craterTypeSet = new Set();
+            allCraters.forEach(crater => {
+                const craterType = crater.properties['Crater type'] || 'Unknown';
+                craterTypeSet.add(craterType);
+            });
+            const craterTypeSelect = document.getElementById('craterTypeSelect');
+            craterTypeSet.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.text = type;
+                craterTypeSelect.add(option);
+            });
+        }
+
         function initializeCraterFilters() {
             populateTargetRockOptions();
+            populateCraterTypeOptions();
             initializeCraterSliders();
+        }
+
+        // Add event listener for crater type select
+        document.getElementById('craterTypeSelect').addEventListener('change', () => {
+            applyFilters();
+        });
+
+        // In resetFilters function, reset crater type select
+        function resetFilters() {
+            initializeSliders();
+
+            const targetRockSelect = document.getElementById('targetRockSelect');
+            for (let i = 0; i < targetRockSelect.options.length; i++) {
+                targetRockSelect.options[i].selected = false;
+            }
+
+            const craterTypeSelect = document.getElementById('craterTypeSelect');
+            for (let i = 0; i < craterTypeSelect.options.length; i++) {
+                craterTypeSelect.options[i].selected = false;
+            }
+
+            const meteoriteClassSelect = document.getElementById('meteoriteClassSelect');
+            for (let i = 0; i < meteoriteClassSelect.options.length; i++) {
+                meteoriteClassSelect.options[i].selected = false;
+            }
+
+            applyFilters();
+        }
+
+        // Adjust getCraterSize function to use dynamic thresholds based on data
+        function getCraterSize(diameter) {
+            if (diameter >= 200) return 20;
+            if (diameter >= 100) return 15;
+            if (diameter >= 50) return 10;
+            return 7;
+        }
+
+        // In initializeCraterSliders, ensure maxDiameter is used in various places
+        function initializeCraterSliders() {
+            const diameters = allCraters.map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null).filter(d => d !== null);
+            const ages = allCraters.map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null).filter(a => a !== null);
+
+            const minDiameter = Math.min(...diameters);
+            const maxDiameter = Math.max(...diameters);
+            const minAge = Math.min(...ages);
+            const maxAge = Math.max(...ages);
+
+            document.getElementById('diameterRangeMin').min = minDiameter;
+            document.getElementById('diameterRangeMin').max = maxDiameter;
+            document.getElementById('diameterRangeMax').min = minDiameter;
+            document.getElementById('diameterRangeMax').max = maxDiameter;
+            document.getElementById('diameterRangeMin').value = minDiameter;
+            document.getElementById('diameterRangeMax').value = maxDiameter;
+
+            document.getElementById('ageRangeMin').min = minAge;
+            document.getElementById('ageRangeMin').max = maxAge;
+            document.getElementById('ageRangeMax').min = minAge;
+            document.getElementById('ageRangeMax').max = maxAge;
+            document.getElementById('ageRangeMin').value = minAge;
+            document.getElementById('ageRangeMax').value = maxAge;
+
+            updateCraterSlidersDisplay();
         }
 
         function initializeMeteoriteFilters() {
