@@ -1363,36 +1363,6 @@ HTML_TEMPLATE = """
             updateCraterSlidersDisplay();
         }
 
-    const minDiameter = Math.min(...diameters);
-    const maxDiameter = Math.max(...diameters);
-    const minAge = Math.min(...ageMins, ...ageMaxs);
-    const maxAge = Math.max(...ageMins, ...ageMaxs);
-
-    const diameterRangeMin = document.getElementById('diameterRangeMin');
-    const diameterRangeMax = document.getElementById('diameterRangeMax');
-    const ageRangeMin = document.getElementById('ageRangeMin');
-    const ageRangeMax = document.getElementById('ageRangeMax');
-
-    // Set diameter sliders
-    diameterRangeMin.min = minDiameter;
-    diameterRangeMin.max = maxDiameter;
-    diameterRangeMin.value = minDiameter;
-
-    diameterRangeMax.min = minDiameter;
-    diameterRangeMax.max = maxDiameter;
-    diameterRangeMax.value = maxDiameter;
-
-    // Set age sliders
-    ageRangeMin.min = minAge;
-    ageRangeMin.max = maxAge;
-    ageRangeMin.value = minAge;
-
-    ageRangeMax.min = minAge;
-    ageRangeMax.max = maxAge;
-    ageRangeMax.value = maxAge;
-
-    updateCraterSlidersDisplay();
-}
         document.getElementById('yearRangeMin').addEventListener('input', () => {
             applyFilters();
             updateSlidersDisplay();
