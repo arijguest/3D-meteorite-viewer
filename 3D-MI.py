@@ -414,6 +414,7 @@ HTML_TEMPLATE = """
                         <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
                         <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
                         <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
+                        <th onclick="sortTable('fullMeteoriteTable', 5)">MetBull &#x25B2;&#x25BC;</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -1168,7 +1169,7 @@ HTML_TEMPLATE = """
         function updateModalTable() {
             const tbody = document.querySelector('#fullMeteoriteTable tbody');
             if (!filteredMeteorites.length) {
-                tbody.innerHTML = '<tr><td colspan="5">No meteorite data available.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6">No meteorite data available.</td></tr>';
                 return;
             }
             const searchQuery = document.getElementById('meteoriteSearchInput').value.toLowerCase();
@@ -1176,11 +1177,14 @@ HTML_TEMPLATE = """
             filteredMeteorites.forEach((meteorite, index) => {
                 const name = meteorite.name || 'Unknown';
                 if (name.toLowerCase().includes(searchQuery)) {
+                    const id = meteorite.id || 'Unknown';
                     const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
                     const massDisplay = formatMass(mass);
                     const recclass = meteorite.recclass || 'Unknown';
                     const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
                     const fall = meteorite.fall || 'Unknown';
+                    const metBullLink = id !== 'Unknown' ? `<a href="https://www.lpi.usra.edu/meteor/metbull.php?code=${id}" target="_blank">View</a>` : 'N/A';
+
                     const tr = document.createElement('tr');
                     tr.style.cursor = 'pointer';
                     tr.onclick = () => flyToMeteorite(index);
@@ -1190,6 +1194,7 @@ HTML_TEMPLATE = """
                         <td>${recclass}</td>
                         <td>${year}</td>
                         <td>${fall}</td>
+                        <td>${metBullLink}</td>
                     `;
                     tbody.appendChild(tr);
                 }
@@ -1244,7 +1249,10 @@ HTML_TEMPLATE = """
             rows.sort((a, b) => {
                 let x = a.cells[colIndex].innerText || a.cells[colIndex].textContent;
                 let y = b.cells[colIndex].innerText || b.cells[colIndex].textContent;
-
+       
+                if (colIndex === 5) {
+                    return 0;
+                }
                 const xNum = parseFloat(x.replace(/[^\d.-]/g, ''));
                 const yNum = parseFloat(y.replace(/[^\d.-]/g, ''));
 
