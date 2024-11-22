@@ -1126,9 +1126,6 @@ HTML_TEMPLATE = """
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-        // Initialize the ScreenSpaceEventHandler once
-        const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
-
         // Double-click event handler
         handler.setInputAction((movement) => {
             const pickedObject = viewer.scene.pick(movement.position);
