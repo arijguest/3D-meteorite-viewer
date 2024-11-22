@@ -522,7 +522,6 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.WHITE.withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold 300, color: Cesium.Color.DARKRED.withAlpha(0.8) },
                     { threshold: 200, color: Cesium.Color.RED.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.ORANGE.withAlpha(0.8) },
                     { threshold: 50,  color: Cesium.Color.YELLOW.withAlpha(0.8) },
@@ -1544,29 +1543,45 @@ HTML_TEMPLATE = """
             return 7;
         }
 
-        // In initializeCraterSliders, ensure maxDiameter is used in various places
         function initializeCraterSliders() {
-            const diameters = allCraters.map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null).filter(d => d !== null);
-            const ages = allCraters.map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null).filter(a => a !== null);
+            const diameters = allCraters
+                .map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null)
+                .filter(d => d !== null && !isNaN(d));
+            const ages = allCraters
+                .map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null)
+                .filter(a => a !== null && !isNaN(a));
 
             const minDiameter = Math.min(...diameters);
             const maxDiameter = Math.max(...diameters);
             const minAge = Math.min(...ages);
             const maxAge = Math.max(...ages);
 
-            document.getElementById('diameterRangeMin').min = minDiameter;
-            document.getElementById('diameterRangeMin').max = maxDiameter;
-            document.getElementById('diameterRangeMax').min = minDiameter;
-            document.getElementById('diameterRangeMax').max = maxDiameter;
-            document.getElementById('diameterRangeMin').value = minDiameter;
-            document.getElementById('diameterRangeMax').value = maxDiameter;
+            // Define the slider's maximum diameter limit
+            const sliderMaxDiameter = 280;
 
-            document.getElementById('ageRangeMin').min = minAge;
-            document.getElementById('ageRangeMin').max = maxAge;
-            document.getElementById('ageRangeMax').min = minAge;
-            document.getElementById('ageRangeMax').max = maxAge;
-            document.getElementById('ageRangeMin').value = minAge;
-            document.getElementById('ageRangeMax').value = maxAge;
+            // Set diameter sliders with manual upper limit
+            const diameterRangeMin = document.getElementById('diameterRangeMin');
+            const diameterRangeMax = document.getElementById('diameterRangeMax');
+
+            diameterRangeMin.min = minDiameter;
+            diameterRangeMin.max = sliderMaxDiameter;
+            diameterRangeMin.value = minDiameter;
+
+            diameterRangeMax.min = minDiameter;
+            diameterRangeMax.max = sliderMaxDiameter;
+            diameterRangeMax.value = sliderMaxDiameter;
+
+            // Set age sliders
+            const ageRangeMin = document.getElementById('ageRangeMin');
+            const ageRangeMax = document.getElementById('ageRangeMax');
+
+            ageRangeMin.min = minAge;
+              ageRangeMin.max = maxAge;
+            ageRangeMin.value = minAge;
+
+            ageRangeMax.min = minAge;
+            ageRangeMax.max = maxAge;
+            ageRangeMax.value = maxAge;
 
             updateCraterSlidersDisplay();
         }
