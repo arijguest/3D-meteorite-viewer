@@ -1304,23 +1304,27 @@ HTML_TEMPLATE = """
             updateSlidersDisplay();
         }
 
-function initializeCraterSliders() {
-    const diameters = allCraters
-        .map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null)
-        .filter(d => d !== null);
-    const ages = allCraters
-        .map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null)
-        .filter(a => a !== null);
+        function initializeCraterSliders() {
+            const diameters = allCraters
+                .map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null)
+                .filter(d => d !== null);
 
-    if (diameters.length === 0) {
-        console.warn('No crater diameters found.');
-        return;
-    }
+            const ageMins = allCraters
+                .map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null)
+                .filter(a => a !== null);
+            const ageMaxs = allCraters
+                .map(c => c.properties.age_max !== null ? parseFloat(c.properties.age_max) : null)
+                .filter(a => a !== null);
+
+            if (diameters.length === 0) {
+                console.warn('No crater diameters found.');
+                return;
+        }
 
     const minDiameter = Math.min(...diameters);
     const maxDiameter = Math.max(...diameters);
-    const minAge = Math.min(...ages);
-    const maxAge = Math.max(...ages);
+    const minAge = Math.min(...ageMins, ...ageMaxs);
+    const maxAge = Math.max(...ageMins, ...ageMaxs);
 
     const diameterRangeMin = document.getElementById('diameterRangeMin');
     const diameterRangeMax = document.getElementById('diameterRangeMax');
@@ -1347,7 +1351,6 @@ function initializeCraterSliders() {
 
     updateCraterSlidersDisplay();
 }
-
         document.getElementById('yearRangeMin').addEventListener('input', () => {
             applyFilters();
             updateSlidersDisplay();
