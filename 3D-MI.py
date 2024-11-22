@@ -163,7 +163,7 @@ HTML_TEMPLATE = """
             max-width: 300px;
         }
         #tooltip a {
-            color: lightblue;
+            color: #FF6666; /* Light red color */
             text-decoration: underline;
         }
         #modal, #infoModal, #craterModal {
@@ -185,6 +185,7 @@ HTML_TEMPLATE = """
             color: white;
             border-radius: 5px;
             position: relative;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button, #keyMenu .close-button {
             color: #aaa;
@@ -248,21 +249,6 @@ HTML_TEMPLATE = """
             max-height: 60vh;
             overflow-y: auto;
         }
-        /* #fullMeteoriteTable tbody, #fullCraterTable tbody {
-            display: block;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        #fullMeteoriteTable thead, #fullCraterTable thead {
-            display: table;
-            width: 100%;
-            table-layout: auto;
-        }
-        #fullMeteoriteTable tbody tr, #fullCraterTable tbody tr {
-            display: table;
-            width: 100%;
-            table-layout: auto;
-        } */
         /* Wrap crater table in a div to allow horizontal scrolling */
         #craterTableContainer {
             overflow-x: auto;
@@ -306,6 +292,32 @@ HTML_TEMPLATE = """
         .highlighted-row {
             background-color: #ffff99;
             transition: background-color 0.5s ease;
+        }
+        /* Enhanced Info Modal Styling */
+        #infoModal-content h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        #infoModal-content h3 {
+            font-size: 22px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        #infoModal-content ul {
+            list-style: disc inside;
+        }
+        #infoModal-content li {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        #infoModal-content li::before {
+            content: "🔹 ";
+            margin-right: 5px;
+        }
+        #infoModal-content a {
+            color: #FF6666; /* Light red color */
+            text-decoration: underline;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -448,29 +460,30 @@ HTML_TEMPLATE = """
     <div id="infoModal">
         <div id="infoModal-content">
             <span id="closeInfoModal">&times;</span>
-            <h2>Information</h2>
-            <p>Welcome to the Global Meteorite Specimens and Impact Craters Visualization. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
+            <h2>🌟 Application Features</h2>
+            <h3>Overview</h3>
+            <p>Welcome to the <strong>Global Meteorite Specimens & Impact Craters Visualization</strong>. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
             <h3>Features:</h3>
             <ul>
-                <li><strong>Navigation:</strong> Use mouse or touch controls to rotate, zoom, and pan around the globe.</li>
-                <li><strong>Search:</strong> Fly to a specific location using the search bar in the Options menu.</li>
-                <li><strong>Filters:</strong> Adjust filters like year, mass, diameter, age, class, and target rock type in the Options menu to refine the displayed data.</li>
-                <li><strong>Show/Hide Data:</strong> Toggle meteorites and impact craters visibility using the checkboxes in the Options menu.</li>
-                <li><strong>Color Schemes:</strong> Customize color schemes for meteorites and impact craters in the Key menu. Choose from various palettes, including colorblind-friendly options.</li>
-                <li><strong>Legends:</strong> View legends for meteorite and crater color schemes in the Key menu to understand data representation.</li>
-                <li><strong>Clustering:</strong> Enable or disable clustering of meteorite markers to manage display density at different zoom levels.</li>
-                <li><strong>Top Lists:</strong> Explore top meteorites and impact craters in the bars at the bottom and top of the screen, respectively. Click to fly to their locations.</li>
-                <li><strong>Details:</strong> Click on any meteorite or crater marker to view detailed information in a tooltip.</li>
-                <li><strong>View All:</strong> Access full lists of meteorites and craters by clicking "View All" in the respective bars.</li>
-                <li><strong>Reset Filters:</strong> Quickly reset all filters to default settings using the "Reset Filters" button.</li>
-                <li><strong>Reset Color Schemes:</strong> Reset the color schemes for meteorites and impact craters to default settings using the "Reset Color Schemes" button in the Key menu.</li>
+                <li><strong>🔄 Navigation:</strong> Use mouse or touch controls to rotate, zoom, and pan around the globe.</li>
+                <li><strong>🔍 Search:</strong> Fly to a specific location using the search bar in the Options menu.</li>
+                <li><strong>⚙️ Filters:</strong> Adjust filters like year, mass, diameter, age, class, and target rock type in the Options menu to refine the displayed data.</li>
+                <li><strong>👁️ Show/Hide Data:</strong> Toggle meteorites and impact craters visibility using the checkboxes in the Options menu.</li>
+                <li><strong>🎨 Color Schemes:</strong> Customize color schemes for meteorites and impact craters in the Key menu. Choose from various palettes, including colorblind-friendly options.</li>
+                <li><strong>📜 Legends:</strong> View legends for meteorite and crater color schemes in the Key menu to understand data representation.</li>
+                <li><strong>🔗 Clustering:</strong> Enable or disable clustering of meteorite markers to manage display density at different zoom levels.</li>
+                <li><strong>🏆 Top Lists:</strong> Explore top meteorites and impact craters in the bars at the bottom and top of the screen, respectively. Click to fly to their locations.</li>
+                <li><strong>📋 Details:</strong> Click on any meteorite or crater marker to view detailed information in a tooltip.</li>
+                <li><strong>📂 View All:</strong> Access full lists of meteorites and craters by clicking "View All" in the respective bars.</li>
+                <li><strong>🔄 Reset Filters:</strong> Quickly reset all filters to default settings using the "Reset Filters" button.</li>
+                <li><strong>🎨 Reset Color Schemes:</strong> Reset the color schemes for meteorites and impact craters to default settings using the "Reset Color Schemes" button in the Key menu.</li>
             </ul>
             <h3>Data Sources:</h3>
             <ul>
                 <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
-                <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> and the website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a></li>
+                <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> and the website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
             </ul>
-            <p>This application utilizes CesiumJS for 3D globe visualization.</p>
+            <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
         </div>
     </div>
     <script>
