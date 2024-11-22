@@ -518,13 +518,13 @@ HTML_TEMPLATE = """
                     { threshold: 100000, color: Cesium.Color.ORANGE.withAlpha(0.6) },
                     { threshold: 50000,  color: Cesium.Color.YELLOW.withAlpha(0.6) },
                     { threshold: 10000,  color: Cesium.Color.LIGHTYELLOW.withAlpha(0.6) },
-                    { threshold: 0,      color: Cesium.Color.WHITE.withAlpha(0.6) }
+                    { threshold: 5000,      color: Cesium.Color.WHITE.withAlpha(0.6) }
                 ],
                 craterColors: [
                     { threshold: 200, color: Cesium.Color.RED.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.ORANGE.withAlpha(0.8) },
                     { threshold: 50,  color: Cesium.Color.YELLOW.withAlpha(0.8) },
-                    { threshold: 0,   color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) }
+                    { threshold: 10,   color: Cesium.Color.LIGHTYELLOW.withAlpha(0.8) }
                 ]
             },
             'Blue Scale': {
@@ -535,13 +535,13 @@ HTML_TEMPLATE = """
                     { threshold: 100000, color: Cesium.Color.BLUE.withAlpha(0.6) },
                     { threshold: 50000,  color: Cesium.Color.SKYBLUE.withAlpha(0.6) },
                     { threshold: 10000,  color: Cesium.Color.CYAN.withAlpha(0.6) },
-                    { threshold: 0,      color: Cesium.Color.LIGHTCYAN.withAlpha(0.6) }
+                    { threshold: 5000,      color: Cesium.Color.LIGHTCYAN.withAlpha(0.6) }
                 ],
                 craterColors: [
                     { threshold: 200, color: Cesium.Color.DARKBLUE.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.BLUE.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.SKYBLUE.withAlpha(0.8) },
-                    { threshold: 0,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8) }
                 ]
             },
             'Green Scale': {
@@ -552,13 +552,13 @@ HTML_TEMPLATE = """
                     { threshold: 100000, color: Cesium.Color.GREEN.withAlpha(0.6) },
                     { threshold: 50000,  color: Cesium.Color.LIME.withAlpha(0.6) },
                     { threshold: 10000,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.6) },
-                    { threshold: 0,      color: Cesium.Color.YELLOWGREEN.withAlpha(0.6) }
+                    { threshold: 5000,      color: Cesium.Color.YELLOWGREEN.withAlpha(0.6) }
                 ],
                 craterColors: [
                     { threshold: 200, color: Cesium.Color.DARKGREEN.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.GREEN.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.LIME.withAlpha(0.8) },
-                    { threshold: 0,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.8) }
                 ]
             },
             'Purple Scale': {
@@ -569,13 +569,13 @@ HTML_TEMPLATE = """
                     { threshold: 100000, color: Cesium.Color.BLUEVIOLET.withAlpha(0.6) },
                     { threshold: 50000,  color: Cesium.Color.VIOLET.withAlpha(0.6) },
                     { threshold: 10000,  color: Cesium.Color.PLUM.withAlpha(0.6) },
-                    { threshold: 0,      color: Cesium.Color.LAVENDER.withAlpha(0.6) }
+                    { threshold: 5000,      color: Cesium.Color.LAVENDER.withAlpha(0.6) }
                 ],
                 craterColors: [
                     { threshold: 200, color: Cesium.Color.DARKVIOLET.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.VIOLET.withAlpha(0.8) },
-                    { threshold: 0,  color: Cesium.Color.PLUM.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.PLUM.withAlpha(0.8) }
                 ]
             },
             'Brown Scale': {
@@ -586,13 +586,13 @@ HTML_TEMPLATE = """
                     { threshold: 100000, color: Cesium.Color.SADDLEBROWN.withAlpha(0.6) },
                     { threshold: 50000,  color: Cesium.Color.PERU.withAlpha(0.6) },
                     { threshold: 10000,  color: Cesium.Color.BURLYWOOD.withAlpha(0.6) },
-                    { threshold: 0,      color: Cesium.Color.WHEAT.withAlpha(0.6) }
+                    { threshold: 5000,      color: Cesium.Color.WHEAT.withAlpha(0.6) }
                 ],
                 craterColors: [
                     { threshold: 200, color: Cesium.Color.SIENNA.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.PERU.withAlpha(0.8) },
-                    { threshold: 0,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8) }
                 ]
             },
             'Colorblind-Friendly (Deutan)': {
@@ -603,13 +603,13 @@ HTML_TEMPLATE = """
                     { threshold: 100000, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.6) },
                     { threshold: 50000,  color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.6) },
                     { threshold: 10000,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.6) },
-                    { threshold: 0,      color: Cesium.Color.fromCssColorString('#F0E442').withAlpha(0.6) }
+                    { threshold: 5000,      color: Cesium.Color.fromCssColorString('#F0E442').withAlpha(0.6) }
                 ],
                 craterColors: [
                     { threshold: 200, color: Cesium.Color.fromCssColorString('#CC79A7').withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.8) },
-                    { threshold: 0,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.8) }
                 ]
             },
             'Colorblind-Friendly (Protan)': {
@@ -620,13 +620,13 @@ HTML_TEMPLATE = """
                     { threshold: 100000, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.6) },
                     { threshold: 50000,  color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.6) },
                     { threshold: 10000,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.6) },
-                    { threshold: 0,      color: Cesium.Color.fromCssColorString('#DDCC77').withAlpha(0.6) }
+                    { threshold: 5000,      color: Cesium.Color.fromCssColorString('#DDCC77').withAlpha(0.6) }
                 ],
                 craterColors: [
                     { threshold: 200, color: Cesium.Color.fromCssColorString('#117733').withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.8) },
                     { threshold: 50, color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.8) },
-                    { threshold: 0,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) }
+                    { threshold: 10,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) }
                 ]
             }
         };
@@ -1648,19 +1648,20 @@ HTML_TEMPLATE = """
             const selectedScheme = document.getElementById('craterColorScheme').value;
             const scheme = colorSchemes[selectedScheme].craterColors;
 
-            // Reverse the scheme to display smaller thresholds at the bottom
-            const reversedScheme = [...scheme].reverse();
+            // Sort the scheme by threshold ascending
+            const sortedScheme = scheme.slice().sort((a, b) => a.threshold - b.threshold);
 
-            reversedScheme.forEach(item => {
+            sortedScheme.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
                 let label = '';
-                const nextThreshold = scheme.find(s => s.threshold > item.threshold);
-                if (nextThreshold) {
-                    label = `Diameter ≥ ${item.threshold} km`;
+
+                if (index === 0) {
+                    label = `Diameter < ${sortedScheme[1].threshold} km`;
                 } else {
-                    label = `Diameter < ${scheme[scheme.length - 2].threshold} km`;
+                    label = `Diameter ≥ ${item.threshold} km`;
                 }
+
                 li.innerHTML += label;
                 list.appendChild(li);
             });
@@ -1673,19 +1674,20 @@ HTML_TEMPLATE = """
             const selectedScheme = document.getElementById('meteoriteColorScheme').value;
             const scheme = colorSchemes[selectedScheme].colors;
 
-            // Reverse the scheme to display smaller thresholds at the bottom
-            const reversedScheme = [...scheme].reverse();
+            // Sort the scheme by threshold ascending
+            const sortedScheme = scheme.slice().sort((a, b) => a.threshold - b.threshold);
 
-            reversedScheme.forEach(item => {
+            sortedScheme.forEach((item, index) => {
                 const li = document.createElement('li');
                 li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
                 let label = '';
-                const nextThreshold = scheme.find(s => s.threshold > item.threshold);
-                if (nextThreshold) {
-                    label = `Mass ≥ ${(item.threshold / 1000).toLocaleString()} kg`;
+
+                if (index === 0) {
+                    label = `Mass < ${(sortedScheme[1].threshold / 1000).toLocaleString()} kg`;
                 } else {
-                    label = `Mass < ${(scheme[scheme.length - 2].threshold / 1000).toLocaleString()} kg`;
+                    label = `Mass ≥ ${(item.threshold / 1000).toLocaleString()} kg`;
                 }
+
                 li.innerHTML += label;
                 list.appendChild(li);
             });
