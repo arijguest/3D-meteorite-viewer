@@ -1648,14 +1648,18 @@ HTML_TEMPLATE = """
             const selectedScheme = document.getElementById('craterColorScheme').value;
             const scheme = colorSchemes[selectedScheme].craterColors;
 
-            scheme.forEach(item => {
+            // Reverse the scheme to display smaller thresholds at the bottom
+            const reversedScheme = [...scheme].reverse();
+
+            reversedScheme.forEach(item => {
                 const li = document.createElement('li');
                 li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
                 let label = '';
-                if (item.threshold === 0) {
-                    label = `Diameter < ${scheme.find(s => s.threshold > 0).threshold} km`;
-                } else {
+                const nextThreshold = scheme.find(s => s.threshold > item.threshold);
+                if (nextThreshold) {
                     label = `Diameter ≥ ${item.threshold} km`;
+                } else {
+                    label = `Diameter < ${scheme[scheme.length - 2].threshold} km`;
                 }
                 li.innerHTML += label;
                 list.appendChild(li);
@@ -1669,14 +1673,18 @@ HTML_TEMPLATE = """
             const selectedScheme = document.getElementById('meteoriteColorScheme').value;
             const scheme = colorSchemes[selectedScheme].colors;
 
-            scheme.forEach(item => {
+            // Reverse the scheme to display smaller thresholds at the bottom
+            const reversedScheme = [...scheme].reverse();
+
+            reversedScheme.forEach(item => {
                 const li = document.createElement('li');
                 li.innerHTML = `<span class="legend-icon" style="background-color: ${item.color.toCssColorString()};"></span>`;
                 let label = '';
-                if (item.threshold === 0) {
-                    label = `Mass < ${(scheme.find(s => s.threshold > 0).threshold / 1000).toLocaleString()} kg`;
-                } else {
+                const nextThreshold = scheme.find(s => s.threshold > item.threshold);
+                if (nextThreshold) {
                     label = `Mass ≥ ${(item.threshold / 1000).toLocaleString()} kg`;
+                } else {
+                    label = `Mass < ${(scheme[scheme.length - 2].threshold / 1000).toLocaleString()} kg`;
                 }
                 li.innerHTML += label;
                 list.appendChild(li);
