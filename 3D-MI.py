@@ -1302,31 +1302,49 @@ HTML_TEMPLATE = """
             updateSlidersDisplay();
         }
 
-        function initializeCraterSliders() {
-            const diameters = allCraters.map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null).filter(d => d !== null);
-            const ages = allCraters.map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null).filter(a => a !== null);
+function initializeCraterSliders() {
+    const diameters = allCraters
+        .map(c => c.properties['Crater diamter [km]'] ? parseFloat(c.properties['Crater diamter [km]']) : null)
+        .filter(d => d !== null);
+    const ages = allCraters
+        .map(c => c.properties.age_min !== null ? parseFloat(c.properties.age_min) : null)
+        .filter(a => a !== null);
 
-            const minDiameter = Math.min(...diameters);
-            const maxDiameter = Math.max(...diameters);
-            const minAge = Math.min(...ages);
-            const maxAge = Math.max(...ages);
+    if (diameters.length === 0) {
+        console.warn('No crater diameters found.');
+        return;
+    }
 
-            document.getElementById('diameterRangeMin').min = minDiameter;
-            document.getElementById('diameterRangeMin').max = maxDiameter;
-            document.getElementById('diameterRangeMax').min = minDiameter;
-            document.getElementById('diameterRangeMax').max = maxDiameter;
-            document.getElementById('diameterRangeMin').value = minDiameter;
-            document.getElementById('diameterRangeMax').value = maxDiameter;
+    const minDiameter = Math.min(...diameters);
+    const maxDiameter = Math.max(...diameters);
+    const minAge = Math.min(...ages);
+    const maxAge = Math.max(...ages);
 
-            document.getElementById('ageRangeMin').min = minAge;
-            document.getElementById('ageRangeMin').max = maxAge;
-            document.getElementById('ageRangeMax').min = minAge;
-            document.getElementById('ageRangeMax').max = maxAge;
-            document.getElementById('ageRangeMin').value = minAge;
-            document.getElementById('ageRangeMax').value = maxAge;
+    const diameterRangeMin = document.getElementById('diameterRangeMin');
+    const diameterRangeMax = document.getElementById('diameterRangeMax');
+    const ageRangeMin = document.getElementById('ageRangeMin');
+    const ageRangeMax = document.getElementById('ageRangeMax');
 
-            updateCraterSlidersDisplay();
-        }
+    // Set diameter sliders
+    diameterRangeMin.min = minDiameter;
+    diameterRangeMin.max = maxDiameter;
+    diameterRangeMin.value = minDiameter;
+
+    diameterRangeMax.min = minDiameter;
+    diameterRangeMax.max = maxDiameter;
+    diameterRangeMax.value = maxDiameter;
+
+    // Set age sliders
+    ageRangeMin.min = minAge;
+    ageRangeMin.max = maxAge;
+    ageRangeMin.value = minAge;
+
+    ageRangeMax.min = minAge;
+    ageRangeMax.max = maxAge;
+    ageRangeMax.value = maxAge;
+
+    updateCraterSlidersDisplay();
+}
 
         document.getElementById('yearRangeMin').addEventListener('input', () => {
             applyFilters();
