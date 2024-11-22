@@ -522,6 +522,7 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.WHITE.withAlpha(0.6) }
                 ],
                 craterColors: [
+                    { threshold 300, color: Cesium.Color.DARKRED.withAlpha(0.8) },
                     { threshold: 200, color: Cesium.Color.RED.withAlpha(0.8) },
                     { threshold: 100, color: Cesium.Color.ORANGE.withAlpha(0.8) },
                     { threshold: 50,  color: Cesium.Color.YELLOW.withAlpha(0.8) },
