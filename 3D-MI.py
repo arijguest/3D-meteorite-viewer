@@ -248,7 +248,6 @@ HTML_TEMPLATE = """
             max-height: 60vh;
             overflow-y: auto;
         }
-        /* Remove display: block to align columns */
         /* #fullMeteoriteTable tbody, #fullCraterTable tbody {
             display: block;
             max-height: 60vh;
@@ -342,7 +341,7 @@ HTML_TEMPLATE = """
         </div>
         <div>
             <label><strong>Meteorite Class:</strong></label>
-            <select id="meteoriteClassSelect" multiple size="5"></select>
+            <select id="meteoriteClassSelect" multiple size="3"></select>
         </div>
         <div>
             <label><input type="checkbox" id="clusterMeteorites" checked> Enable Clustering</label>
@@ -360,15 +359,15 @@ HTML_TEMPLATE = """
         <div>
             <label><strong>Age Range:</strong> <span id="ageRangeValue"></span></label>
             <input type="range" id="ageRangeMin" value="0">
-            <input type="range" id="ageRangeMax" value="2500">
+            <input type="range" id="ageRangeMax" value="3000">
         </div>
         <div>
             <label><strong>Target Rock:</strong></label>
-            <select id="targetRockSelect" multiple size="5"></select>
+            <select id="targetRockSelect" multiple size="3"></select>
         </div>
         <div>
             <label><strong>Crater Type:</strong></label>
-            <select id="craterTypeSelect" multiple size="5"></select>
+            <select id="craterTypeSelect" multiple size="3"></select>
         </div>
         <hr>
         <div>
@@ -512,7 +511,7 @@ HTML_TEMPLATE = """
 
         const colorSchemes = {
             'Default': {
-                name: 'Default',
+                name: 'Default1',
                 description: 'Red to Yellow Scale',
                 colors: [
                     { threshold: 500000, color: Cesium.Color.RED.withAlpha(0.6) },
@@ -529,7 +528,7 @@ HTML_TEMPLATE = """
                 ]
             },
             'Blue Scale': {
-                name: 'Blue Scale',
+                name: 'Default2',
                 description: 'Dark Blue to Light Blue',
                 colors: [
                     { threshold: 500000, color: Cesium.Color.DARKBLUE.withAlpha(0.6) },
@@ -539,9 +538,9 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.LIGHTCYAN.withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold: 50, color: Cesium.Color.DARKBLUE.withAlpha(0.8) },
-                    { threshold: 30, color: Cesium.Color.BLUE.withAlpha(0.8) },
-                    { threshold: 10, color: Cesium.Color.SKYBLUE.withAlpha(0.8) },
+                    { threshold: 200, color: Cesium.Color.DARKBLUE.withAlpha(0.8) },
+                    { threshold: 100, color: Cesium.Color.BLUE.withAlpha(0.8) },
+                    { threshold: 50, color: Cesium.Color.SKYBLUE.withAlpha(0.8) },
                     { threshold: 0,  color: Cesium.Color.LIGHTBLUE.withAlpha(0.8) }
                 ]
             },
@@ -556,9 +555,9 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.YELLOWGREEN.withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold: 50, color: Cesium.Color.DARKGREEN.withAlpha(0.8) },
-                    { threshold: 30, color: Cesium.Color.GREEN.withAlpha(0.8) },
-                    { threshold: 10, color: Cesium.Color.LIME.withAlpha(0.8) },
+                    { threshold: 200, color: Cesium.Color.DARKGREEN.withAlpha(0.8) },
+                    { threshold: 100, color: Cesium.Color.GREEN.withAlpha(0.8) },
+                    { threshold: 50, color: Cesium.Color.LIME.withAlpha(0.8) },
                     { threshold: 0,  color: Cesium.Color.LIGHTGREEN.withAlpha(0.8) }
                 ]
             },
@@ -573,9 +572,9 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.LAVENDER.withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold: 50, color: Cesium.Color.DARKVIOLET.withAlpha(0.8) },
-                    { threshold: 30, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8) },
-                    { threshold: 10, color: Cesium.Color.VIOLET.withAlpha(0.8) },
+                    { threshold: 200, color: Cesium.Color.DARKVIOLET.withAlpha(0.8) },
+                    { threshold: 100, color: Cesium.Color.BLUEVIOLET.withAlpha(0.8) },
+                    { threshold: 50, color: Cesium.Color.VIOLET.withAlpha(0.8) },
                     { threshold: 0,  color: Cesium.Color.PLUM.withAlpha(0.8) }
                 ]
             },
@@ -590,9 +589,9 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.WHEAT.withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold: 50, color: Cesium.Color.SIENNA.withAlpha(0.8) },
-                    { threshold: 30, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8) },
-                    { threshold: 10, color: Cesium.Color.PERU.withAlpha(0.8) },
+                    { threshold: 200, color: Cesium.Color.SIENNA.withAlpha(0.8) },
+                    { threshold: 100, color: Cesium.Color.SADDLEBROWN.withAlpha(0.8) },
+                    { threshold: 50, color: Cesium.Color.PERU.withAlpha(0.8) },
                     { threshold: 0,  color: Cesium.Color.BURLYWOOD.withAlpha(0.8) }
                 ]
             },
@@ -607,9 +606,9 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.fromCssColorString('#F0E442').withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold: 50, color: Cesium.Color.fromCssColorString('#CC79A7').withAlpha(0.8) },
-                    { threshold: 30, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.8) },
-                    { threshold: 10, color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.8) },
+                    { threshold: 200, color: Cesium.Color.fromCssColorString('#CC79A7').withAlpha(0.8) },
+                    { threshold: 100, color: Cesium.Color.fromCssColorString('#0072B2').withAlpha(0.8) },
+                    { threshold: 50, color: Cesium.Color.fromCssColorString('#009E73').withAlpha(0.8) },
                     { threshold: 0,  color: Cesium.Color.fromCssColorString('#D55E00').withAlpha(0.8) }
                 ]
             },
@@ -624,9 +623,9 @@ HTML_TEMPLATE = """
                     { threshold: 0,      color: Cesium.Color.fromCssColorString('#DDCC77').withAlpha(0.6) }
                 ],
                 craterColors: [
-                    { threshold: 50, color: Cesium.Color.fromCssColorString('#117733').withAlpha(0.8) },
-                    { threshold: 30, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.8) },
-                    { threshold: 10, color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.8) },
+                    { threshold: 200, color: Cesium.Color.fromCssColorString('#117733').withAlpha(0.8) },
+                    { threshold: 100, color: Cesium.Color.fromCssColorString('#332288').withAlpha(0.8) },
+                    { threshold: 50, color: Cesium.Color.fromCssColorString('#44AA99').withAlpha(0.8) },
                     { threshold: 0,  color: Cesium.Color.fromCssColorString('#88CCEE').withAlpha(0.8) }
                 ]
             }
