@@ -31,9 +31,10 @@ def parse_age_string(age_str):
             elif 'min' in groups and 'max' in groups and groups['min'] and groups['max']:
                 return float(groups['min']), float(groups['max'])
             elif 'min' in groups and groups['min']:
-                return float(groups['min']), 2500
+                return float(groups['min']), None  # Return None for max age
             elif 'max' in groups and groups['max']:
-                return 0, float(groups['max'])
+                return None, float(groups['max'])  # Return None for min age
+    # If no pattern matched, return None
     return None, None
 
 IMPACT_CRATERS_FILE = 'earth-impact-craters-v2.geojson'
@@ -739,8 +740,8 @@ HTML_TEMPLATE = """
             filteredCraters = allCraters.filter(feature => {
                 const properties = feature.properties;
                 let diameter = parseFloat(properties['Crater diamter [km]']) || 0;
-                let age_min = properties.age_min !== null ? parseFloat(properties.age_min) : 0;
-                let age_max = properties.age_max !== null ? parseFloat(properties.age_max) : 2500;
+                let age_min = properties.age_min !== null ? parseFloat(properties.age_min) : minCraterAge;
+                let age_max = properties.age_max !== null ? parseFloat(properties.age_max) : maxCraterAge;
                 const targetRock = properties.Target || 'Unknown';
                 const craterType = properties['Crater type'] || 'Unknown';
 
@@ -879,29 +880,43 @@ HTML_TEMPLATE = """
                 const properties = feature.properties;
                 const geometry = feature.geometry;
 
-                if (geometry && geometry.type === "Point") {
-                    const [lon, lat] = geometry.coordinates;
-                    let diameter = parseFloat(properties['Crater diamter [km]']) || 1;
+                let lon, lat;
 
-                    const entity = craterEntities.entities.add({
-                        position: Cesium.Cartesian3.fromDegrees(lon, lat),
-                        point: {
-                            pixelSize: getCraterSize(diameter),
-                            color: getCraterColor(diameter),
-                            outlineColor: Cesium.Color.BLACK,
-                            outlineWidth: 1
-                        },
-                        description: getCraterDescription(properties),
-                        properties: {
-                            isImpactCrater: true,
-                            craterIndex: index
-                        }
-                    });
-                    craterEntitiesList.push(entity);
+                if (geometry && geometry.type === "Point") {
+                    [lon, lat] = geometry.coordinates;
+                } else if (properties.Longitude && properties.Latitude) {
+                    lon = parseFloat(properties.Longitude);
+                    lat = parseFloat(properties.Latitude);
+                } else {
+                    console.warn(`Crater ${properties.Name} has no valid geometry.`);
+                    return;
                 }
+
+                if (isNaN(lat) || isNaN(lon)) {
+                    console.warn(`Invalid coordinates for crater ${properties.Name}.`);
+                    return;
+                }
+
+                let diameter = parseFloat(properties['Crater diamter [km]']) || 1;
+
+                const entity = craterEntities.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: {
+                        pixelSize: getCraterSize(diameter),
+                        color: getCraterColor(diameter),
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 1
+                    },
+                    description: getCraterDescription(properties),
+                    properties: {
+                        isImpactCrater: true,
+                        craterIndex: index
+                    }
+                });
+                craterEntitiesList.push(entity);
             });
         }
-
+        
         function getCraterDescription(properties) {
             const name = properties.Name || 'Unknown';
             const age = properties['Age [Myr]'] || 'Unknown';
@@ -1438,7 +1453,7 @@ HTML_TEMPLATE = """
 
             const ageMin = parseFloat(document.getElementById('ageRangeMin').value);
             const ageMax = parseFloat(document.getElementById('ageRangeMax').value);
-            document.getElementById('ageRangeValue').innerText = `${ageMin.toFixed(2)} - ${ageMax.toFixed(2)} Ma`;
+            document.getElementById('ageRangeValue').innerText = `${ageMin.toFixed(0)} - ${ageMax.toFixed(0)} Myr`;
         }
 
         function populateTargetRockOptions() {
