@@ -302,6 +302,11 @@ HTML_TEMPLATE = """
         option[disabled] {
             color: #888;
         }
+        /* Add this to your existing CSS */
+        .highlighted-row {
+            background-color: #ffff99;
+            transition: background-color 0.5s ease;
+        }
     </style>
 </head>
 <body>
@@ -1121,11 +1126,14 @@ HTML_TEMPLATE = """
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-                    // Double-click event handler
-        handler.setInputAction(movement => {
+        // Initialize the ScreenSpaceEventHandler once
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+
+        // Double-click event handler
+        handler.setInputAction((movement) => {
             const pickedObject = viewer.scene.pick(movement.position);
             if (Cesium.defined(pickedObject)) {
-                let id = pickedObject.id;
+                const id = pickedObject.id;
                 if (id && id.properties) {
                     if (id.properties.isMeteorite) {
                         const index = id.properties.meteoriteIndex;
@@ -1135,8 +1143,8 @@ HTML_TEMPLATE = """
                             const row = table.querySelector(`tr[data-index='${index}']`);
                             if (row) {
                                 row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                row.style.backgroundColor = '#ffff99'; // Highlight the row
-                                setTimeout(() => { row.style.backgroundColor = ''; }, 2000); // Remove highlight after 2 seconds
+                                row.classList.add('highlighted-row'); // Add highlight class
+                                setTimeout(() => { row.classList.remove('highlighted-row'); }, 2000); // Remove after 2 seconds
                             }
                         }, 300); // Slight delay to ensure modal is open
                     } else if (id.properties.isImpactCrater) {
@@ -1147,8 +1155,8 @@ HTML_TEMPLATE = """
                             const row = table.querySelector(`tr[data-index='${index}']`);
                             if (row) {
                                 row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                row.style.backgroundColor = '#ffff99'; // Highlight the row
-                                setTimeout(() => { row.style.backgroundColor = ''; }, 2000); // Remove highlight after 2 seconds
+                                row.classList.add('highlighted-row'); // Add highlight class
+                                setTimeout(() => { row.classList.remove('highlighted-row'); }, 2000); // Remove after 2 seconds
                             }
                         }, 300); // Slight delay to ensure modal is open
                     }
