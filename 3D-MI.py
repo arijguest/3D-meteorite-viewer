@@ -319,6 +319,53 @@ HTML_TEMPLATE = """
             text-decoration: underline;
             font-weight: bold;
         }
+        #modelsMenu {
+            position: absolute;
+            top: 100px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            z-index: 1000;
+            color: white;
+            border-radius: 5px;
+            max-height: calc(100% - 120px);
+            overflow-y: auto;
+            display: none;
+            width: 300px;
+        }
+        #modelsMenu header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #modelsMenu h2 {
+            margin: 0;
+            padding-right: 30px;
+        }
+        #modelsMenu .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        #modelsList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #modelsList li {
+            padding: 5px 0;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+        }
+        #modelsList li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -329,6 +376,8 @@ HTML_TEMPLATE = """
             <button id="optionsButton">⚙️ Options</button>
             <button id="keyButton">🔑 Key</button>
             <button id="infoButton">ℹ️ Info</button>
+            <button id="modelsButton">🛰️ Models</button>
+            <button id="fullscreenButton">🔍 Fullscreen</button>
         </div>
     </div>
     <div id="controls">
@@ -485,6 +534,13 @@ HTML_TEMPLATE = """
             </ul>
             <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
         </div>
+    </div>
+    <div id="modelsMenu">
+        <header>
+            <h2>3D Models</h2>
+            <button class="close-button" id="closeModelsMenu">&times;</button>
+        </header>
+        <ul id="modelsList"></ul>
     </div>
     <script>
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
@@ -958,6 +1014,76 @@ HTML_TEMPLATE = """
 
             meteoriteDataSource.clustering.eventHandler = createClusterEventHandler(meteoriteDataSource.clustering);
         }
+
+        // List of available models
+        const models = [
+            { name: 'Bennu', url: '/static/models/Bennu.gltf' }
+            // Add other models here
+        ];
+
+        // Function to load a model into the scene
+        function loadModel(name, url) {
+            const position = Cesium.Cartesian3.fromDegrees(0, 0, 0); // Update coordinates as needed
+            const heading = Cesium.Math.toRadians(0);
+            const pitch = 0;
+            const roll = 0;
+            const orientation = Cesium.Transforms.headingPitchRollQuaternion(position, new Cesium.HeadingPitchRoll(heading, pitch, roll));
+
+            const entity = viewer.entities.add({
+                name: name,
+                position: position,
+                orientation: orientation,
+                model: {
+                    uri: url,
+                    scale: 5000 // Adjust scale as needed
+                }
+            });
+            viewer.flyTo(entity);
+        }
+
+        function populateModelsList() {
+            const modelsList = document.getElementById('modelsList');
+            models.forEach(model => {
+                const li = document.createElement('li');
+                li.textContent = model.name;
+                li.onclick = () => {
+                    loadModel(model.name, model.url);
+                    modelsMenu.style.display = 'none';
+                };
+                modelsList.appendChild(li);
+            });
+        }
+
+        // Call this function after the DOM content is loaded
+        document.addEventListener('DOMContentLoaded', populateModelsList);
+
+        const modelsButton = document.getElementById('modelsButton');
+        const modelsMenu = document.getElementById('modelsMenu');
+        const closeModelsMenu = document.getElementById('closeModelsMenu');
+
+        modelsButton.onclick = () => {
+            if (modelsMenu.style.display === 'none' || modelsMenu.style.display === '') {
+                closeOtherMenus('models');
+                modelsMenu.style.display = 'block';
+            } else {
+                modelsMenu.style.display = 'none';
+            }
+        };
+
+        closeModelsMenu.onclick = () => {
+            modelsMenu.style.display = 'none';
+        };
+
+        const fullscreenButton = document.getElementById('fullscreenButton');
+        fullscreenButton.onclick = () => {
+            if (!document.fullscreenElement) {
+                 document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        };
 
         function createClusterEventHandler(clustering) {
             clustering.clusterEvent.addEventListener(function(clusteredEntities, cluster) {
@@ -1804,6 +1930,7 @@ HTML_TEMPLATE = """
             if (openedMenu !== 'options') controls.style.display = 'none';
             if (openedMenu !== 'key') keyMenu.style.display = 'none';
             if (openedMenu !== 'info') infoModal.style.display = 'none';
+            if (openedMenu !== 'models') modelsMenu.style.display = 'none';
         }
 
         document.getElementById('meteoriteColorScheme').onchange = function() {
