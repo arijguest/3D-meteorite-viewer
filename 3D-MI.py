@@ -319,44 +319,6 @@ HTML_TEMPLATE = """
             text-decoration: underline;
             font-weight: bold;
         }
-        #modelsMenu {
-            position: absolute;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 10px;
-            z-index: 1000;
-            color: white;
-            border-radius: 5px;
-            max-height: calc(100% - 120px);
-            overflow-y: auto;
-            display: none;
-            width: 300px;
-        }
-
-        #modelsMenu header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        #modelsMenu h2 {
-            margin: 0;
-            padding-right: 30px;
-        }
-
-        #modelsMenu .close-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -366,7 +328,6 @@ HTML_TEMPLATE = """
         <div>
             <button id="optionsButton">⚙️ Options</button>
             <button id="keyButton">🔑 Key</button>
-            <button id="modelsButton">🛸 3D Models</button>
             <button id="infoButton">ℹ️ Info</button>
             <button id="fullscreenButton">⛶ Fullscreen</button>
         </div>
@@ -524,19 +485,6 @@ HTML_TEMPLATE = """
                 <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
             </ul>
             <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
-        </div>
-    </div>
-    <div id="modelsMenu">
-        <header>
-            <h2>3D Asteroid Models</h2>
-            <button class="close-button" id="closeModelsMenu">&times;</button>
-        </header>
-        <div>
-            <label for="modelSelect"><strong>Select a 3D Model:</strong></label>
-            <select id="modelSelect">
-                <option value="bennu.glb">Bennu</option>
-                <!-- Add more options here as needed -->
-            </select>
         </div>
     </div>
     <script>
@@ -1902,62 +1850,13 @@ HTML_TEMPLATE = """
                 list.appendChild(li);
             });
         }
-    
-        // Handle the 3D Models menu toggle
-        const modelsButton = document.getElementById('modelsButton');
-        const modelsMenu = document.getElementById('modelsMenu');
-        const closeModelsMenu = document.getElementById('closeModelsMenu');
-    
-        modelsButton.onclick = () => {
-            if (modelsMenu.style.display === 'none' || modelsMenu.style.display === '') {
-                closeOtherMenus('models');
-                modelsMenu.style.display = 'block';
-            } else {
-                modelsMenu.style.display = 'none';
-            }
-        };
-    
-        closeModelsMenu.onclick = () => {
-            modelsMenu.style.display = 'none';
-        };
-    
-        // Function to load and display the selected 3D model
-        const modelSelect = document.getElementById('modelSelect');
-        let currentModelEntity = null;
-    
-        modelSelect.onchange = () => {
-            const selectedModel = modelSelect.value;
-    
-            // Remove the previous model
-            if (currentModelEntity) {
-                viewer.entities.remove(currentModelEntity);
-            }
-    
-            // Add the new model
-            currentModelEntity = viewer.entities.add({
-                name: selectedModel,
-                position: Cesium.Cartesian3.fromDegrees(0, 0, 0), // Adjust position as needed
-                model: {
-                    uri: selectedModel,
-                    scale: 1.0 // Adjust scale as needed
-                }
-            });
-    
-            // Zoom to the model
-            viewer.zoomTo(currentModelEntity);
-        };
-    
+        
         // Function to close other menus when one is opened
         function closeOtherMenus(openedMenu) {
             if (openedMenu !== 'options') controls.style.display = 'none';
             if (openedMenu !== 'key') keyMenu.style.display = 'none';
             if (openedMenu !== 'info') infoModal.style.display = 'none';
-            if (openedMenu !== 'models') modelsMenu.style.display = 'none';
         }
-    
-        // Initialize the default model (Bennu)
-        modelSelect.value = 'bennu.glb';
-        modelSelect.onchange();
     
         // Handle the Fullscreen button
         const fullscreenButton = document.getElementById('fullscreenButton');
