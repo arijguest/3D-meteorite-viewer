@@ -454,7 +454,7 @@ HTML_TEMPLATE = """
                 </div>
             </div>
             <p>For details on the abbreviations used in this table, please visit <a href="https://impact-craters.com/" target="_blank">impact-craters.com</a>.</p>
-            <p>Data source: <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021 "The terrestrial impact crater record: A statistical analysis of morphologies, structures, ages, lithologies, and more"</a>. Website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</p>
+            <p>Data source: <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021 "The terrestrial impact crater record: A statistical analysis of morphologies, structures, ages, lithologies, and more"</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</p>
         </div>
     </div>
     <div id="infoModal">
@@ -462,26 +462,26 @@ HTML_TEMPLATE = """
             <span id="closeInfoModal">&times;</span>
             <h2>🌟 Application Features</h2>
             <h3>Overview</h3>
-            <p>Welcome to the <strong>Global Meteorite Specimens & Impact Craters Visualization</strong>. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world.</p>
+            <p>Welcome to the <strong>Global Meteorite Specimens & Impact Craters Visualization</strong>. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world - in both 2D and 3D!</p>
             <h3>Features:</h3>
             <ul>
                 <li><strong>🔄 Navigation:</strong> Use mouse or touch controls to rotate, zoom, and pan around the globe.</li>
                 <li><strong>🔍 Search:</strong> Fly to a specific location using the search bar in the Options menu.</li>
-                <li><strong>⚙️ Filters:</strong> Adjust filters like year, mass, diameter, age, class, and target rock type in the Options menu to refine the displayed data.</li>
+                <li><strong>⚙️ Filters:</strong> Adjust filters like year, mass, diameter, age, class, and target rock type in the Options menu to refine the displayed data. Click each slider value to manually set your own limits.</li>
                 <li><strong>👁️ Show/Hide Data:</strong> Toggle meteorites and impact craters visibility using the checkboxes in the Options menu.</li>
                 <li><strong>🎨 Color Schemes:</strong> Customize color schemes for meteorites and impact craters in the Key menu. Choose from various palettes, including colorblind-friendly options.</li>
                 <li><strong>📜 Legends:</strong> View legends for meteorite and crater color schemes in the Key menu to understand data representation.</li>
-                <li><strong>🔗 Clustering:</strong> Enable or disable clustering of meteorite markers to manage display density at different zoom levels.</li>
-                <li><strong>🏆 Top Lists:</strong> Explore top meteorites and impact craters in the bars at the bottom and top of the screen, respectively. Click to fly to their locations.</li>
-                <li><strong>📋 Details:</strong> Click on any meteorite or crater marker to view detailed information in a tooltip.</li>
-                <li><strong>📂 View All:</strong> Access full lists of meteorites and craters by clicking "View All" in the respective bars.</li>
+                <li><strong>🔗 Clustering:</strong> Enable or disable clustering of meteorite markers to manage display density at different zoom levels. This feature improves performance on mobile devices, so is on by default. </li>
+                <li><strong>🏆 Top Bars:</strong> Explore top meteorites (by mass) and impact craters (by diameter) at the bottom of the screen. Click to fly to their locations.</li>
+                <li><strong>📂 View All:</strong> Access full lists of meteorites and craters by clicking "View All".</li>
+                <li><strong>📋 Details:</strong> Tap/hover on any meteorite or crater to view detailed information in a tooltip. Double click it to see it's table entry.</li>
                 <li><strong>🔄 Reset Filters:</strong> Quickly reset all filters to default settings using the "Reset Filters" button.</li>
                 <li><strong>🎨 Reset Color Schemes:</strong> Reset the color schemes for meteorites and impact craters to default settings using the "Reset Color Schemes" button in the Key menu.</li>
             </ul>
             <h3>Data Sources:</h3>
             <ul>
                 <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
-                <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> and the website created by <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
+                <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
             </ul>
             <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
         </div>
