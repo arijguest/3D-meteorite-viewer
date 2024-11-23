@@ -1017,7 +1017,7 @@ HTML_TEMPLATE = """
 
         // List of available models
         const models = [
-            { name: 'Bennu', url: '/static/models/Bennu.gltf' }
+            { name: 'Bennu', url: 'Bennu.gltf' }
             // Add other models here
         ];
 
