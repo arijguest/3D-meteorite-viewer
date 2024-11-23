@@ -61,7 +61,7 @@ HTML_TEMPLATE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>🌠 Global Meteorite Specimens & Impact Craters 🌠</title>
+    <title>🌠 Global Meteorite Specimens & Impact Craters 💥</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
@@ -345,7 +345,7 @@ HTML_TEMPLATE = """
     <div id="wrapper">
         <div id="cesiumContainer"></div>
         <div id="header">
-            <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
+            <h1>🌠 Global Meteorite Specimens & Impact Craters 💥</h1>
             <div>
                 <button id="optionsButton">⚙️ Options</button>
                 <button id="keyButton">🔑 Key</button>
@@ -502,8 +502,8 @@ HTML_TEMPLATE = """
                 </ul>
                 <h3>Data Sources:</h3>
                 <ul>
-                    <li><a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
-                    <li>Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
+                    <li>🌠 <a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
+                    <li>💥 Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
                 </ul>
                 <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
             </div>
