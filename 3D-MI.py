@@ -1730,10 +1730,11 @@ HTML_TEMPLATE = """
 
         // Adjust getCraterSize function to use dynamic thresholds based on data
         function getCraterSize(diameter) {
-            if (diameter >= 200) return 20;
-            if (diameter >= 100) return 15;
-            if (diameter >= 50) return 10;
-            return 7;
+            if (diameter >= 200) return 30;
+            if (diameter >= 150) return 25;
+            if (diameter >= 100) return 20;
+            if (diameter >= 50) return 15;
+            return 10;
         }
 
         function initializeMeteoriteFilters() {
