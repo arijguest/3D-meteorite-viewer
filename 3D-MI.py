@@ -349,8 +349,8 @@ HTML_TEMPLATE = """
             <div>
                 <button id="optionsButton">⚙️ Options</button>
                 <button id="keyButton">🔑 Key</button>
-                <button id="infoButton">ℹ️ Info</button>
                 <button id="fullscreenButton">⛶ Fullscreen</button>
+                <button id="infoButton">ℹ️ Info</button>
             </div>
         </div>
         <div id="controls">
