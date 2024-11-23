@@ -319,17 +319,39 @@ HTML_TEMPLATE = """
             text-decoration: underline;
             font-weight: bold;
         }
+        #wrapper:fullscreen {
+            width: 100%;
+            height: 100%;
+        }
+        #header {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            z-index: 1001; /* Increased z-index to stay above Cesium */
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+        }
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
-    <div id="cesiumContainer"></div>
-    <div id="header">
-        <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
-        <div>
-            <button id="optionsButton">⚙️ Options</button>
-            <button id="keyButton">🔑 Key</button>
-            <button id="infoButton">ℹ️ Info</button>
-            <button id="fullscreenButton">⛶ Fullscreen</button>
+    <div id="wrapper">
+        <div id="cesiumContainer"></div>
+        <div id="header">
+            <h1>🌠 Global Meteorite Specimens & Impact Craters 🌠</h1>
+            <div>
+                <button id="optionsButton">⚙️ Options</button>
+                <button id="keyButton">🔑 Key</button>
+                <button id="infoButton">ℹ️ Info</button>
+                <button id="fullscreenButton">⛶ Fullscreen</button>
+            </div>
         </div>
     </div>
     <div id="controls">
@@ -1858,12 +1880,25 @@ HTML_TEMPLATE = """
             if (openedMenu !== 'info') infoModal.style.display = 'none';
         }
     
-        // Handle the Fullscreen button
+        // Get the wrapper element
+        const wrapper = document.getElementById('wrapper');
         const fullscreenButton = document.getElementById('fullscreenButton');
-    
+
         fullscreenButton.onclick = () => {
-            viewer.scene.canvas.requestFullscreen();
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
         };
+
+        document.addEventListener('fullscreenchange', () => {
+             if (document.fullscreenElement) {
+                fullscreenButton.textContent = '🡼 Exit Fullscreen';
+            } else {
+                fullscreenButton.textContent = '⛶ Fullscreen';
+            }
+        });
 
         function updateMeteoriteLegend() {
             const legendContainer = document.getElementById('meteoriteLegend');
