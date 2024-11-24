@@ -520,7 +520,15 @@ HTML_TEMPLATE = """
                 <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
             </div>
         </div>
-        <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 10px;">
+        <div id="loadingIndicator" style="
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+        ">
             <div class="spinner"></div>
             <span>Loading data, please wait...</span>
         </div>
@@ -768,7 +776,6 @@ HTML_TEMPLATE = """
             });
         }
 
-        // Call the function after the DOM has loaded
         document.addEventListener('DOMContentLoaded', makeRangeEditable);
 
         function populateColorSchemeSelectors() {
@@ -812,6 +819,7 @@ HTML_TEMPLATE = """
         }
 
         function fetchAllMeteorites() {
+            showLoadingIndicator();
             const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
             fetch(url)
                 .then(response => response.json())
@@ -819,9 +827,12 @@ HTML_TEMPLATE = """
                     allMeteorites = data;
                     populateMeteoriteClassOptions();
                     initializeMeteoriteSliders();
+                    applyFilters();
+                    hideLoadingIndicator();
                 })
                 .catch(error => {
                     console.error('Error fetching meteorite data:', error);
+                    hideLoadingIndicator();
                 });
         }
 
@@ -940,7 +951,6 @@ HTML_TEMPLATE = """
             return [null, null];
         }
 
-        // Event listener for 'Apply Filters' button
         document.getElementById('applyFiltersButton').addEventListener('click', () => {
             disableFilterInputs();
             showLoadingIndicator();
@@ -1668,24 +1678,35 @@ HTML_TEMPLATE = """
             craterEntities.show = this.checked;
         });
 
-        document.getElementById('refreshButton').onclick = resetFilters;
+        document.getElementById('refreshButton').addEventListener('click', () => {
+            disableFilterInputs();
+            showLoadingIndicator();
+            setTimeout(() => {
+                resetFilters();
+                hideLoadingIndicator();
+                enableFilterInputs();
+            }, 100);
+        });
 
         function resetFilters() {
             initializeSliders();
-
+        
             const targetRockSelect = document.getElementById('targetRockSelect');
             for (let i = 0; i < targetRockSelect.options.length; i++) {
                 targetRockSelect.options[i].selected = false;
             }
-
+        
+            const craterTypeSelect = document.getElementById('craterTypeSelect');
+            for (let i = 0; i < craterTypeSelect.options.length; i++) {
+                craterTypeSelect.options[i].selected = false;
+            }
+        
             const meteoriteClassSelect = document.getElementById('meteoriteClassSelect');
             for (let i = 0; i < meteoriteClassSelect.options.length; i++) {
                 meteoriteClassSelect.options[i].selected = false;
             }
-
+        
             applyFilters();
-            updateSlidersDisplay();
-            updateCraterSlidersDisplay();
         }
 
         function updateSlidersDisplay() {
