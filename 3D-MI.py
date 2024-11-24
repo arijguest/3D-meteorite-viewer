@@ -353,9 +353,6 @@ HTML_TEMPLATE = """
         #loadingIndicator h3 {
             color: white;
         }
-        .table-scrollable {
-            overflow-y: auto;
-        }
     </style>
 </head>
 <body>
@@ -460,24 +457,22 @@ HTML_TEMPLATE = """
         <div id="tooltip"></div>
         <div id="modal">
             <div id="modal-content">
-                <div class="table-scrollable">
-                    <span id="closeModal">&times;</span>
-                    <h2>All Meteorites</h2>
-                    <input type="text" id="meteoriteSearchInput" class="modal-search" placeholder="Search meteorite...">
-                    <table id="fullMeteoriteTable">
-                        <thead>
-                            <tr>
-                                <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
-                                <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
-                                <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
-                                <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
-                                <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
-                                <th onclick="sortTable('fullMeteoriteTable', 5)">MetBull &#x25B2;&#x25BC;</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <span id="closeModal">&times;</span>
+                <h2>All Meteorites</h2>
+                <input type="text" id="meteoriteSearchInput" class="modal-search" placeholder="Search meteorite...">
+                <table id="fullMeteoriteTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
+                            <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
+                            <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
+                            <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
+                            <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
+                            <th onclick="sortTable('fullMeteoriteTable', 5)">MetBull &#x25B2;&#x25BC;</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
         <div id="craterModal">
@@ -1263,27 +1258,19 @@ HTML_TEMPLATE = """
         }
 
         function openModal() {
-            showLoadingIndicator();
-
-            setTimeout() => {
-                updateModalTable();
-                document.getElementById('modal').style.display = 'block';
-                const rows = document.querySelectorAll('#fullMeteoriteTable tbody tr');
-                rows.forEach(row => row.style.backgroundColor = '');
-                hideLoadingIndicator();
-            }, 100);
+            updateModalTable();
+            document.getElementById('modal').style.display = 'block';
+            // Clear existing highlights
+            const rows = document.querySelectorAll('#fullMeteoriteTable tbody tr');
+            rows.forEach(row => row.style.backgroundColor = '');
         }
     
         function openCraterModal() {
-            showLoadingIndicator();
-
-            setTimeout() => {
-                updateCraterModalTable();
-                document.getElementById('craterModal').style.display = 'block';
-                const rows = document.querySelectorAll('#fullCraterTable tbody tr');
-                rows.forEach(row => row.style.backgroundColor = '');
-                hideLoadingIndicator();
-            }, 100);
+            updateCraterModalTable();
+            document.getElementById('craterModal').style.display = 'block';
+            // Clear existing highlights
+            const rows = document.querySelectorAll('#fullCraterTable tbody tr');
+            rows.forEach(row => row.style.backgroundColor = '');
         }
 
         const tooltip = document.getElementById('tooltip');
