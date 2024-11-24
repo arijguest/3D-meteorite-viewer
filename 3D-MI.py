@@ -350,6 +350,9 @@ HTML_TEMPLATE = """
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        #loadingIndicator h3 {
+            color: white;
+        }
     </style>
 </head>
 <body>
