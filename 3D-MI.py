@@ -288,12 +288,10 @@ HTML_TEMPLATE = """
         option[disabled] {
             color: #888;
         }
-        /* Add this to your existing CSS */
         .highlighted-row {
             background-color: #ffff99;
             transition: background-color 0.5s ease;
         }
-        /* Enhanced Info Modal Styling */
         #infoModal-content h2 {
             font-size: 28px;
             margin-bottom: 10px;
@@ -338,6 +336,19 @@ HTML_TEMPLATE = """
         #cesiumContainer {
             width: 100%;
             height: 100%;
+        }
+        .spinner {
+            margin: 0 auto 10px auto;
+            width: 40px;
+            height: 40px;
+            border: 6px solid #ccc;
+            border-top-color: #1e90ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -410,6 +421,7 @@ HTML_TEMPLATE = """
             </div>
             <hr>
             <div>
+                <button id="applyFiltersButton">Apply Filters</button>
                 <button id="refreshButton">Reset Filters</button>
             </div>
             <hr>
@@ -507,6 +519,10 @@ HTML_TEMPLATE = """
                 </ul>
                 <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
             </div>
+        </div>
+        <div id="loadingIndicator" style="display: none; text-align: center; margin-top: 10px;">
+            <div class="spinner"></div>
+            <span>Loading data, please wait...</span>
         </div>
     </div>
     <script>
@@ -700,7 +716,6 @@ HTML_TEMPLATE = """
                             if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
                                 document.getElementById('yearRangeMin').value = newMin;
                                 document.getElementById('yearRangeMax').value = newMax;
-                                applyFilters();
                                 updateSlidersDisplay();
                             } else {
                                 alert('Invalid input. Please enter valid numbers where min ≤ max.');
@@ -715,7 +730,6 @@ HTML_TEMPLATE = """
                             if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
                                 document.getElementById('massRangeMin').value = newMin;
                                 document.getElementById('massRangeMax').value = newMax;
-                                applyFilters();
                                 updateSlidersDisplay();
                             } else {
                                 alert('Invalid input. Please enter valid numbers where min ≤ max.');
@@ -730,7 +744,6 @@ HTML_TEMPLATE = """
                             if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
                                 document.getElementById('diameterRangeMin').value = newMin;
                                 document.getElementById('diameterRangeMax').value = newMax;
-                                applyFilters();
                                 updateCraterSlidersDisplay();
                             } else {
                                 alert('Invalid input. Please enter valid numbers where min ≤ max.');
@@ -745,7 +758,6 @@ HTML_TEMPLATE = """
                             if (!isNaN(newMin) && !isNaN(newMax) && newMin <= newMax) {
                                 document.getElementById('ageRangeMin').value = newMin;
                                 document.getElementById('ageRangeMax').value = newMax;
-                                applyFilters();
                                 updateCraterSlidersDisplay();
                             } else {
                                 alert('Invalid input. Please enter valid numbers where min ≤ max.');
@@ -807,7 +819,6 @@ HTML_TEMPLATE = """
                     allMeteorites = data;
                     populateMeteoriteClassOptions();
                     initializeMeteoriteSliders();
-                    applyFilters();
                 })
                 .catch(error => {
                     console.error('Error fetching meteorite data:', error);
@@ -927,6 +938,39 @@ HTML_TEMPLATE = """
                 return [value, value];
             }
             return [null, null];
+        }
+
+        // Event listener for 'Apply Filters' button
+        document.getElementById('applyFiltersButton').addEventListener('click', () => {
+            disableFilterInputs();
+            showLoadingIndicator();
+            setTimeout(() => {
+                applyFilters();
+                hideLoadingIndicator();
+                enableFilterInputs();
+            }, 100);
+        });
+        
+        // Functions to show and hide the loading indicator
+        function showLoadingIndicator() {
+            document.getElementById('loadingIndicator').style.display = 'block';
+        }
+        
+        function hideLoadingIndicator() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+        
+        // Functions to disable and enable filter inputs
+        function disableFilterInputs() {
+            document.querySelectorAll('#controls input, #controls select, #controls button').forEach(elem => {
+                elem.disabled = true;
+            });
+        }
+        
+        function enableFilterInputs() {
+            document.querySelectorAll('#controls input, #controls select, #controls button').forEach(elem => {
+                elem.disabled = false;
+            });
         }
 
         function updateTotalCounts() {
@@ -1583,43 +1627,33 @@ HTML_TEMPLATE = """
         }
 
         document.getElementById('yearRangeMin').addEventListener('input', () => {
-            applyFilters();
             updateSlidersDisplay();
         });
         document.getElementById('yearRangeMax').addEventListener('input', () => {
-            applyFilters();
             updateSlidersDisplay();
         });
         document.getElementById('massRangeMin').addEventListener('input', () => {
-            applyFilters();
             updateSlidersDisplay();
         });
         document.getElementById('massRangeMax').addEventListener('input', () => {
-            applyFilters();
             updateSlidersDisplay();
         });
 
         document.getElementById('diameterRangeMin').addEventListener('input', () => {
-            applyFilters();
             updateCraterSlidersDisplay();
         });
         document.getElementById('diameterRangeMax').addEventListener('input', () => {
-            applyFilters();
             updateCraterSlidersDisplay();
         });
         document.getElementById('ageRangeMin').addEventListener('input', () => {
-            applyFilters();
             updateCraterSlidersDisplay();
         });
         document.getElementById('ageRangeMax').addEventListener('input', () => {
-            applyFilters();
             updateCraterSlidersDisplay();
         });
         document.getElementById('targetRockSelect').addEventListener('change', () => {
-            applyFilters();
         });
         document.getElementById('meteoriteClassSelect').addEventListener('change', () => {
-            applyFilters();
         });
 
         document.getElementById('toggleMeteorites').addEventListener('change', function() {
@@ -1650,6 +1684,8 @@ HTML_TEMPLATE = """
             }
 
             applyFilters();
+            updateSlidersDisplay();
+            updateCraterSlidersDisplay();
         }
 
         function updateSlidersDisplay() {
