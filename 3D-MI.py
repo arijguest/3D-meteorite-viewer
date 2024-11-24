@@ -265,6 +265,10 @@ HTML_TEMPLATE = """
             white-space: nowrap;
             text-overflow: ellipsis;
         }
+        #meteoriteTableContainer .table-wrapper2
+            max-height: 60vh;
+            overflow-y: auto;
+        }
         .legend-section {
             margin-bottom: 20px;
         }
@@ -462,19 +466,23 @@ HTML_TEMPLATE = """
                 <span id="closeModal">&times;</span>
                 <h2>All Meteorites</h2>
                 <input type="text" id="meteoriteSearchInput" class="modal-search" placeholder="Search meteorite...">
-                <table id="fullMeteoriteTable">
-                    <thead>
-                        <tr>
-                            <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
-                            <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
-                            <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
-                            <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
-                            <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
-                            <th onclick="sortTable('fullMeteoriteTable', 5)">MetBull &#x25B2;&#x25BC;</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div id="meteoriteTableContainer">
+                    <div class="table-wrapper2">
+                        <table id="fullMeteoriteTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 5)">MetBull &#x25B2;&#x25BC;</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="craterModal">
