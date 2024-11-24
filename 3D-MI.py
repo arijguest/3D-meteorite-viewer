@@ -203,6 +203,7 @@ HTML_TEMPLATE = """
             width: 100%;
             border-collapse: collapse;
             table-layout: auto;
+            overflow-y: auto;
         }
         #fullMeteoriteTable th, #fullMeteoriteTable td,
         #fullCraterTable th, #fullCraterTable td {
@@ -212,6 +213,7 @@ HTML_TEMPLATE = """
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            overflow-y: auto;
         }
         #fullMeteoriteTable th, #fullCraterTable th {
             background-color: #555;
