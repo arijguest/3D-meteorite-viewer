@@ -353,6 +353,9 @@ HTML_TEMPLATE = """
         #loadingIndicator h3 {
             color: white;
         }
+        .table-scrollable {
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -457,7 +460,7 @@ HTML_TEMPLATE = """
         <div id="tooltip"></div>
         <div id="modal">
             <div id="modal-content">
-                <div class="table-wrapper">
+                <div class="table-scrollable">
                     <span id="closeModal">&times;</span>
                     <h2>All Meteorites</h2>
                     <input type="text" id="meteoriteSearchInput" class="modal-search" placeholder="Search meteorite...">
