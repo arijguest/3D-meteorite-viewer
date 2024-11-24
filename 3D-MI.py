@@ -394,7 +394,7 @@ HTML_TEMPLATE = """
             </div>
             <div>
                 <label><strong>Meteorite Class:</strong></label>
-                <select id="meteoriteClassSelect" multiple size="3"></select>
+                <select id="meteoriteClassSelect" multiple size="3" multiple></select>
             </div>
             <div>
                 <label><input type="checkbox" id="clusterMeteorites" checked> Enable Clustering</label>
@@ -416,11 +416,11 @@ HTML_TEMPLATE = """
             </div>
             <div>
                 <label><strong>Target Rock:</strong></label>
-                <select id="targetRockSelect" multiple size="3"></select>
+                <select id="targetRockSelect" multiple size="3" multiple></select>
             </div>
             <div>
                 <label><strong>Crater Type:</strong></label>
-                <select id="craterTypeSelect" multiple size="3"></select>
+                <select id="craterTypeSelect" multiple size="3" multiple></select>
             </div>
             <hr>
             <div>
@@ -849,8 +849,8 @@ HTML_TEMPLATE = """
             let diameterMax = parseFloat(document.getElementById('diameterRangeMax').value);
             let ageMin = parseFloat(document.getElementById('ageRangeMin').value);
             let ageMax = parseFloat(document.getElementById('ageRangeMax').value);
-            const selectedRocks = Array.from(document.getElementById('targetRockSelect').selectedOptions).map(option => option.value);
             const selectedClasses = Array.from(document.getElementById('meteoriteClassSelect').selectedOptions).map(option => option.value);
+            const selectedRocks = Array.from(document.getElementById('targetRockSelect').selectedOptions).map(option => option.value);
             const selectedCraterTypes = Array.from(document.getElementById('craterTypeSelect').selectedOptions).map(option => option.value);
 
             if (yearMin > yearMax) {
@@ -1692,24 +1692,26 @@ HTML_TEMPLATE = """
         });
 
         function resetFilters() {
+            disableFilterInputs();
+            showLoadingIndicator();
+        
+            // Reset Sliders
             initializeSliders();
         
-            const targetRockSelect = document.getElementById('targetRockSelect');
-            for (let i = 0; i < targetRockSelect.options.length; i++) {
-                targetRockSelect.options[i].selected = false;
-            }
+            // Reset Multi-Select Dropdowns
+            ['meteoriteClassSelect', 'targetRockSelect', 'craterTypeSelect'].forEach(selectId => {
+                const selectElem = document.getElementById(selectId);
+                for (let i = 0; i < selectElem.options.length; i++) {
+                    selectElem.options[i].selected = false;
+                }
+            });
         
-            const craterTypeSelect = document.getElementById('craterTypeSelect');
-            for (let i = 0; i < craterTypeSelect.options.length; i++) {
-                craterTypeSelect.options[i].selected = false;
-            }
-        
-            const meteoriteClassSelect = document.getElementById('meteoriteClassSelect');
-            for (let i = 0; i < meteoriteClassSelect.options.length; i++) {
-                meteoriteClassSelect.options[i].selected = false;
-            }
-        
-            applyFilters();
+            // Apply Filters After Short Delay to Show Loading Indicator
+            setTimeout(() => {
+                applyFilters();
+                hideLoadingIndicator();
+                enableFilterInputs();
+            }, 100);
         }
 
         function updateSlidersDisplay() {
