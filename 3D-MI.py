@@ -342,9 +342,9 @@ HTML_TEMPLATE = """
             width: 40px;
             height: 40px;
             border: 6px solid #ccc;
-            border-top-color: #1e90ff;
+            border-top-color: #ff1e40;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.6s linear infinite;
         }
         
         @keyframes spin {
@@ -530,7 +530,7 @@ HTML_TEMPLATE = """
             text-align: center;
         ">
             <div class="spinner"></div>
-            <span>Loading data, please wait...</span>
+            <h3><strong>Loading data, please wait...</strong></h3>
         </div>
     </div>
     <script>
