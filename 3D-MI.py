@@ -343,29 +343,6 @@ HTML_TEMPLATE = """
             width: 100%;
             height: 100%;
         }
-        /* Pagination styles */
-        .pagination {
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .pagination button {
-            background-color: #444;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            margin: 2px;
-            cursor: pointer;
-        }
-
-        .pagination button.active {
-            background-color: #888;
-        }
-
-        .pagination button:disabled {
-            background-color: #222;
-            cursor: default;
-        }
         .spinner {
             margin: 0 auto 10px auto;
             width: 40px;
@@ -486,13 +463,11 @@ HTML_TEMPLATE = """
         <div id="tooltip"></div>
         <div id="modal">
             <div id="modal-content">
-                <header>
-                    <h2>All Meteorites</h2>
-                    <button class="close-button" id="closeModal">&times;</button>
-                </header>
+                <span id="closeModal">&times;</span>
+                <h2>All Meteorites</h2>
                 <input type="text" id="meteoriteSearchInput" class="modal-search" placeholder="Search meteorite...">
                 <div id="meteoriteTableContainer">
-                    <div class="table-wrapper">
+                    <div class="table-wrapper2">
                         <table id="fullMeteoriteTable">
                             <thead>
                                 <tr>
@@ -506,8 +481,6 @@ HTML_TEMPLATE = """
                             </thead>
                             <tbody></tbody>
                         </table>
-                        <!-- Add pagination controls -->
-                        <div id="meteoritePagination" class="pagination"></div>
                     </div>
                 </div>
             </div>
@@ -1424,70 +1397,45 @@ HTML_TEMPLATE = """
             if (event.target == infoModal) infoModal.style.display = 'none';
         };
 
-        // Variables for pagination
-        let currentMeteoritePage = 1;
-        const meteoritesPerPage = 50; // Adjust as needed
-
-        function updateModalTable(page = 1) {
-            currentMeteoritePage = page;
-
-            const tbody = document.querySelector('#fullMeteoriteTable tbody');
-            const totalPages = Math.ceil(filteredMeteorites.length / meteoritesPerPage);
-
-            if (!filteredMeteorites.length) {
-                tbody.innerHTML = '<tr><td colspan="6">No meteorite data available.</td></tr>';
-                document.getElementById('meteoritePagination').innerHTML = '';
-                return;
+        function updateModalTable() {
+                const tbody = document.querySelector('#fullMeteoriteTable tbody');
+                if (!filteredMeteorites.length) {
+                    tbody.innerHTML = '<tr><td colspan="6">No meteorite data available.</td></tr>';
+                    return;
+                }
+                const searchQuery = document.getElementById('meteoriteSearchInput').value.toLowerCase();
+                tbody.innerHTML = '';
+    
+                filteredMeteorites.forEach((meteorite, index) => {
+                    const name = meteorite.name || 'Unknown';
+                    if (name.toLowerCase().includes(searchQuery)) {
+                        const id = meteorite.id || 'Unknown';
+                        const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
+                        const massDisplay = formatMass(mass);
+                        const recclass = meteorite.recclass || 'Unknown';
+                        const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
+                        const fall = meteorite.fall || 'Unknown';
+                        const metBullLink = id !== 'Unknown' ? `<a href="https://www.lpi.usra.edu/meteor/metbull.php?code=${id}" target="_blank">View</a>` : 'N/A';
+    
+                        const tr = document.createElement('tr');
+                        tr.style.cursor = 'pointer';
+                        tr.setAttribute('data-index', index); // Add data-index attribute
+                        tr.onclick = () => {
+                            flyToMeteorite(index);
+                            document.getElementById('modal').style.display = 'none'; // Close modal
+                        };
+                        tr.innerHTML = `
+                            <td>${name}</td>
+                            <td>${massDisplay}</td>
+                            <td>${recclass}</td>
+                            <td>${year}</td>
+                            <td>${fall}</td>
+                            <td>${metBullLink}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
             }
-
-            const searchQuery = document.getElementById('meteoriteSearchInput').value.toLowerCase();
-            tbody.innerHTML = '';
-
-            // Filter meteorites by search query
-            const filteredAndSearchedMeteorites = filteredMeteorites.filter(meteorite => {
-                const name = meteorite.name || 'Unknown';
-                return name.toLowerCase().includes(searchQuery);
-            });
-
-            const startIndex = (currentMeteoritePage - 1) * meteoritesPerPage;
-            const endIndex = startIndex + meteoritesPerPage;
-
-            const paginatedMeteorites = filteredAndSearchedMeteorites.slice(startIndex, endIndex);
-
-            paginatedMeteorites.forEach((meteorite, index) => {
-                const name = meteorite.name || 'Unknown';
-                const id = meteorite.id || 'Unknown';
-                const mass = meteorite.mass ? parseFloat(meteorite.mass) : 'Unknown';
-                const massDisplay = formatMass(mass);
-                const recclass = meteorite.recclass || 'Unknown';
-                const year = meteorite.year ? new Date(meteorite.year).getFullYear() : 'Unknown';
-                const fall = meteorite.fall || 'Unknown';
-                const metBullLink = id !== 'Unknown' ? `<a href="https://www.lpi.usra.edu/meteor/metbull.php?code=${id}" target="_blank">View</a>` : 'N/A';
-
-                const tr = document.createElement('tr');
-                tr.style.cursor = 'pointer';
-                tr.setAttribute('data-index', filteredMeteorites.indexOf(meteorite));
-                tr.onclick = () => {
-                    flyToMeteorite(filteredMeteorites.indexOf(meteorite));
-                    document.getElementById('modal').style.display = 'none';
-                };
-                tr.innerHTML = `
-                    <td>${name}</td>
-                    <td>${massDisplay}</td>
-                    <td>${recclass}</td>
-                    <td>${year}</td>
-                    <td>${fall}</td>
-                    <td>${metBullLink}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            updateMeteoritePagination(filteredAndSearchedMeteorites.length, totalPages);
-        }
-
-        function updateMeteoritePagination(totalItems, totalPages) {
-            const paginationContainer = document.getElementById('meteorite
-
 
         function updateCraterModalTable() {
                 const tbody = document.querySelector('#fullCraterTable tbody');
