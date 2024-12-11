@@ -572,6 +572,14 @@ HTML_TEMPLATE = """
         let craterPropertyNames = [];
         let smallMeteoritesLoaded = {};
 
+        // Keep track of loaded areas to prevent redundant requests
+        let loadedAreas = {};
+
+        function fetchMeteoritesInView() {
+            const rectangle = viewer.camera.computeViewRectangle();
+            const west = Cesium.Math.toDegrees(rectangle.west);
+            const south = Cesium.Math.toDegrees(rect
+
         if (allCraters.length > 0) {
             craterPropertyNames = Object.keys(allCraters[0].properties);
 
