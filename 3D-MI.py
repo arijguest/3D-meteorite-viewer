@@ -570,6 +570,7 @@ HTML_TEMPLATE = """
         const allCraters = impactCraters.features;
 
         let craterPropertyNames = [];
+        let smallMeteoritesLoaded = {};
 
         if (allCraters.length > 0) {
             craterPropertyNames = Object.keys(allCraters[0].properties);
@@ -833,7 +834,8 @@ HTML_TEMPLATE = """
 
         function fetchAllMeteorites() {
             showLoadingIndicator();
-            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
+            // Fetch only meteorites with mass >= 5000 grams
+            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000&$where=mass>=5000';
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -848,6 +850,61 @@ HTML_TEMPLATE = """
                     hideLoadingIndicator();
                 });
         }
+
+        function fetchSmallMeteoritesInView() {
+            const altitude = viewer.camera.positionCartographic.height;
+            if (altitude > 2000000) {
+                return; // Do not load small meteorites above this altitude
+            }
+
+            // Get the current view rectangle
+            const rectangle = viewer.camera.computeViewRectangle();
+            const west = Cesium.Math.toDegrees(rectangle.west);
+            const south = Cesium.Math.toDegrees(rectangle.south);
+            const east = Cesium.Math.toDegrees(rectangle.east);
+            const north = Cesium.Math.toDegrees(rectangle.north);
+
+            // Create a key for the current view
+            const viewKey = `${west.toFixed(2)},${south.toFixed(2)},${east.toFixed(2)},${north.toFixed(2)}`;
+
+            // Check if we've already loaded small meteorites for this view
+            if (smallMeteoritesLoaded[viewKey]) {
+                return;
+            }
+
+            // Mark this view as loaded
+            smallMeteoritesLoaded[viewKey] = true;
+
+            // Build the SoQL query to fetch small meteorites in this bounding box
+            const boundsFilter = `&$where=mass<5000 AND within_box(geolocation,${north},${west},${south},${east})`;
+
+            // Fetch small meteorites within the bounding box
+            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000' + boundsFilter;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    allMeteorites = allMeteorites.concat(data);
+                    // Re-apply filters and update the map
+                    applyFilters();
+                })
+                .catch(error => {
+                    console.error('Error fetching small meteorite data:', error);
+                });
+        }
+
+        // Debounce function to limit how often fetchSmallMeteoritesInView is called
+        function debounce(func, delay) {
+            let debounceTimer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Add the debounced event listener
+        viewer.camera.changed.addEventListener(debounce(fetchSmallMeteoritesInView, 1000));
 
         function applyFilters() {
             let yearMin = parseInt(document.getElementById('yearRangeMin').value);
