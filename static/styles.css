@@ -85,7 +85,7 @@ html, body, #wrapper, #cesiumContainer {
     display: flex;
     overflow-x: auto;
     height: 7vh;
- }
+}
 
 #craterBar { bottom: 7vh; }
 #meteoriteBar { bottom: 0; }
