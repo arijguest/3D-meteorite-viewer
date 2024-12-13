@@ -1,4 +1,3 @@
-<script>
 Cesium.Ion.defaultAccessToken = cesiumToken;
 const viewer = new Cesium.Viewer('cesiumContainer', {
     terrainProvider: Cesium.createWorldTerrain(),
@@ -1453,4 +1452,3 @@ function updateMeteoriteLegend() {
 
 updateMeteoriteLegend();
 updateCraterLegend();
-</script>
