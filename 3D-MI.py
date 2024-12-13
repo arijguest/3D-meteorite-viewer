@@ -287,13 +287,14 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
-         
-        const allMeteorites = {{ all_meteorites | tojson | safe }};
-        let filteredMeteorites = [];
-        const impactCraters = {{ impact_craters | tojson }};
-        let filteredCraters = [];
-        const allCraters = impactCraters.features;
-
+        document.addEventListener('DOMContentLoaded', function () {
+            const allMeteorites = {{ all_meteorites | tojson | safe }};
+            let filteredMeteorites = [];
+            const impactCraters = {{ impact_craters | tojson }};
+            let filteredCraters = [];
+            const allCraters = impactCraters.features;
+        });
+            
         let craterPropertyNames = [];
 
         if (allCraters.length > 0) {
