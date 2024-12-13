@@ -1736,7 +1736,8 @@ def index():
 @app.route('/chart-data')
 def get_chart_data():
     from static.graphs import create_meteorite_chart
-    return create_meteorite_chart(allMeteorites)
+    chart_json = create_meteorite_chart(allMeteorites)
+    return jsonify(chart_json)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
