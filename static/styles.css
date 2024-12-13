@@ -10,6 +10,43 @@ html, body, #wrapper, #cesiumContainer {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Fullscreen Handling */
+:fullscreen {
+    width: 100vw;
+    height: 100vh;
+}
+
+#wrapper:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+}
+
+#wrapper:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+:-moz-full-screen {
+    width: 100vw;
+    height: 100vh;
+}
+
+#wrapper:-moz-full-screen {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
 /* Header Component */
 #header {
     position: absolute;
