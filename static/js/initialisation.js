@@ -163,6 +163,31 @@ let craterEntitiesList = [];
 let filteredCraters = [];
 const allCraters = impactCraters.features;
 
+// Function to fetch all meteorites
+function fetchAllMeteorites() {
+    showLoadingIndicator();
+    const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok, status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            window.allMeteorites = data;
+            initializeOptions();
+            applyFilters();              
+            hideLoadingIndicator();
+        })
+        .catch(error => {
+            console.error('Error fetching meteorite data:', error);
+            hideLoadingIndicator();
+            alert('Failed to load meteorite data. Please try again later.');
+        });
+}
+
 // Initialize crater property names
 let craterPropertyNames = [];
 if (allCraters.length > 0) {
@@ -237,31 +262,6 @@ window.showLoadingIndicator = showLoadingIndicator;
 window.hideLoadingIndicator = hideLoadingIndicator;
 window.disableFilterInputs = disableFilterInputs;
 window.enableFilterInputs = enableFilterInputs;
-
-// Function to fetch all meteorites
-function fetchAllMeteorites() {
-    showLoadingIndicator();
-    const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok, status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            window.allMeteorites = data;
-            initializeOptions();
-            applyFilters();              
-            hideLoadingIndicator();
-        })
-        .catch(error => {
-            console.error('Error fetching meteorite data:', error);
-            hideLoadingIndicator();
-            alert('Failed to load meteorite data. Please try again later.');
-        });
-}
 
 // Start loading app when the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
