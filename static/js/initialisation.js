@@ -177,6 +177,8 @@ function hideLoadingIndicator() {
     document.getElementById('loadingIndicator').style.display = 'none';
 }
 
+window.hideLoadingIndicator = hideLoadingIndicator;
+
 // Filter input control functions
 function disableFilterInputs() {
     document.querySelectorAll('#controls input, #controls select, #controls button').forEach(elem => {
@@ -217,11 +219,6 @@ function parse_age_values(age_str) {
     return [null, null];
 }
 
-// Start loading data when the DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    fetchAllMeteorites();
-});
-
 // Export necessary variables and functions
 window.viewer = viewer;
 window.meteoriteDataSource = meteoriteDataSource;
@@ -237,3 +234,33 @@ window.showLoadingIndicator = showLoadingIndicator;
 window.hideLoadingIndicator = hideLoadingIndicator;
 window.disableFilterInputs = disableFilterInputs;
 window.enableFilterInputs = enableFilterInputs;
+
+// Function to fetch all meteorites
+function fetchAllMeteorites() {
+    showLoadingIndicator();
+    const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok, status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            window.allMeteorites = data;
+            initializeOptions();
+            applyFilters();              
+            hideLoadingIndicator();
+        })
+        .catch(error => {
+            console.error('Error fetching meteorite data:', error);
+            hideLoadingIndicator();
+            alert('Failed to load meteorite data. Please try again later.');
+        });
+}
+
+// Start loading app when the DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    fetchAllMeteorites();
+});

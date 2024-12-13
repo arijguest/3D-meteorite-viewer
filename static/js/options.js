@@ -1,29 +1,3 @@
-// Function to fetch all meteorites
-function fetchAllMeteorites() {
-    showLoadingIndicator();
-    const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok, status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            window.allMeteorites = data;
-            initializeOptions();
-            applyFilters();              
-            hideLoadingIndicator();
-        })
-        .catch(error => {
-            console.error('Error fetching meteorite data:', error);
-            hideLoadingIndicator();
-            alert('Failed to load meteorite data. Please try again later.');
-        });
-}
-
-
 // Function to handle editable range values
 function makeRangeEditable() {
     const editableSpans = document.querySelectorAll('.editable-value');
@@ -680,6 +654,8 @@ function applyFilters() {
     updateCraterModalTable();
 }
 
+window.applyFilters = applyFilters;
+
 // Initialize all options
 function initializeOptions() {
     makeRangeEditable();
@@ -688,6 +664,8 @@ function initializeOptions() {
     populateTargetRockOptions();
     populateMeteoriteClassOptions();
     populateCraterTypeOptions();
+
+window.initializeOptions = initializeOptions;
 
     // Event listeners for range inputs
     document.getElementById('yearRangeMin').addEventListener('input', updateSlidersDisplay);
