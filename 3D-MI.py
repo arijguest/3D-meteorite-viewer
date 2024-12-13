@@ -288,7 +288,6 @@ HTML_TEMPLATE = """
         });
 
         const allMeteorites = {{ all_meteorites | safe }};
-        let allMeteorites = [];
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
         let filteredCraters = [];
