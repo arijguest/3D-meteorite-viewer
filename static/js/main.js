@@ -16,7 +16,6 @@ const viewer = new Cesium.Viewer('cesiumContainer', {
 
 let allMeteorites = [];
 let filteredMeteorites = [];
-const impactCraters = {{ impact_craters | tojson }};
 let filteredCraters = [];
 const allCraters = impactCraters.features;
 
