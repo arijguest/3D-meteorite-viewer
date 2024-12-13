@@ -10,25 +10,6 @@ CESIUM_ION_ACCESS_TOKEN = os.environ.get('CESIUM_ION_ACCESS_TOKEN')
 if not CESIUM_ION_ACCESS_TOKEN:
     raise ValueError("CESIUM_ION_ACCESS_TOKEN environment variable is not set.")
 
-# Fetch all meteorite data from NASA's Meteorite Landings API at server startup
-METEORITE_DATA_URL = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000'
-
-# Include your App Token in the headers
-API_APP_TOKEN = os.environ.get('NASA_API_APP_TOKEN')
-if not API_APP_TOKEN:
-    raise ValueError("NASA_API_APP_TOKEN environment variable is not set.")
-
-headers = {
-    'X-App-Token': API_APP_TOKEN
-}
-
-response = requests.get(METEORITE_DATA_URL, headers=headers)
-if response.status_code == 200:
-    allMeteorites = response.json()
-else:
-    allMeteorites = []
-    print(f"Failed to fetch meteorite data: {response.status_code}")
-
 def parse_age_string(age_str):
     if not age_str:
         return None, None
@@ -79,7 +60,198 @@ else:
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🌠 Global Meteorite Specimens & Impact Craters 💥</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
 <body>
+    <div id="wrapper">
+        <div id="cesiumContainer"></div>
+        <div id="header">
+            <h1>🌠 Global Meteorite Specimens & Impact Craters 💥</h1>
+            <div>
+                <button id="optionsButton">⚙️ Options</button>
+                <button id="keyButton">🔑 Key</button>
+                <button id="fullscreenButton">⛶ Fullscreen</button>
+                <button id="infoButton">ℹ️ Info</button>
+            </div>
+        </div>
+        <div id="controls">
+            <header>
+                <h2>Options</h2>
+                <button class="close-button" id="closeOptions">&times;</button>
+            </header>
+            <div style="margin-bottom: 10px;"></div>
+            <div id="searchContainer">
+                <input type="text" id="searchInput" placeholder="Search location...">
+                <button id="searchButton">Search</button>
+            </div>
+            <hr>
+            <h3>Meteorite Filters</h3>
+            <div>
+                <label><input type="checkbox" id="toggleMeteorites" checked> Show Meteorites</label>
+            </div>
+            <div>
+                <label><strong>Year Range:</strong> <span id="yearRangeValue" class="editable-value" data-type="year"></span></label>
+                <input type="range" id="yearRangeMin" min="860" max="2023" value="860">
+                <input type="range" id="yearRangeMax" min="860" max="2023" value="2023">
+            </div>
+            <div>
+                <label><strong>Mass Range:</strong> <span id="massRangeValue" class="editable-value" data-type="mass"></span></label>
+                <input type="range" id="massRangeMin" min="0" max="60000000" value="0">
+                <input type="range" id="massRangeMax" min="0" max="60000000" value="60000000">
+            </div>
+            <div>
+                <label><strong>Meteorite Class:</strong></label>
+                <select id="meteoriteClassSelect" multiple size="3" multiple></select>
+            </div>
+            <div>
+                <label><input type="checkbox" id="clusterMeteorites" checked> Enable Clustering</label>
+            </div>
+            <hr>
+            <h3>Impact Crater Filters</h3>
+            <div>
+                <label><input type="checkbox" id="toggleCraters" checked> Show Impact Craters</label>
+            </div>
+            <div>
+                <label><strong>Diameter Range (km):</strong> <span id="diameterRangeValue" class="editable-value" data-type="diameter"></span></label>
+                <input type="range" id="diameterRangeMin" value="0">
+                <input type="range" id="diameterRangeMax" value="300">
+            </div>
+            <div>
+                <label><strong>Age Range:</strong> <span id="ageRangeValue" class="editable-value" data-type="age"></span></label>
+                <input type="range" id="ageRangeMin" value="0">
+                <input type="range" id="ageRangeMax" value="3000">
+            </div>
+            <div>
+                <label><strong>Target Rock:</strong></label>
+                <select id="targetRockSelect" multiple size="3" multiple></select>
+            </div>
+            <div>
+                <label><strong>Crater Type:</strong></label>
+                <select id="craterTypeSelect" multiple size="3" multiple></select>
+            </div>
+            <hr>
+            <div>
+                <button id="applyFiltersButton">Apply Filters</button>
+                <button id="refreshButton">Reset Filters</button>
+            </div>
+            <hr>
+            <div>
+                <span id="totalMeteorites">Total Meteorites: 0</span><br>
+                <span id="totalCraters">Total Craters: 0</span>
+            </div>
+        </div>
+        <div id="keyMenu">
+            <header>
+                <h2>Key</h2>
+                <button class="close-button" id="closeKeyMenu">&times;</button>
+            </header>
+            <div>
+                <label for="meteoriteColorScheme"><strong>Meteorite Color Scheme:</strong></label>
+                <select id="meteoriteColorScheme"></select>
+            </div>
+            <div class="legend-section" id="meteoriteLegend"></div>
+            <div>
+                <label for="craterColorScheme"><strong>Crater Color Scheme:</strong></label>
+                <select id="craterColorScheme"></select>
+            </div>
+            <div class="legend-section" id="craterLegend"></div>
+            <div>
+                <button id="resetColorSchemes">Reset Color Schemes</button>
+            </div>
+        </div>
+        <div id="craterBar"></div>
+        <div id="meteoriteBar"></div>
+        <div id="tooltip"></div>
+        <div id="modal">
+            <div id="modal-content">
+                <span id="closeModal">&times;</span>
+                <h2>All Meteorites</h2>
+                <input type="text" id="meteoriteSearchInput" class="modal-search" placeholder="Search meteorite...">
+                <div id="meteoriteTableContainer">
+                    <div class="table-wrapper2">
+                        <table id="fullMeteoriteTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('fullMeteoriteTable', 0)">Name &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 1)">Mass &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 2)">Class &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 3)">Year &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 4)">Fall/Find &#x25B2;&#x25BC;</th>
+                                    <th onclick="sortTable('fullMeteoriteTable', 5)">MetBull &#x25B2;&#x25BC;</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="craterModal">
+            <div id="craterModal-content">
+                <span id="closeCraterModal">&times;</span>
+                <h2>All Impact Craters</h2>
+                <input type="text" id="craterSearchInput" class="modal-search" placeholder="Search impact crater...">
+                <div id="craterTableContainer">
+                    <div class="table-wrapper">
+                        <table id="fullCraterTable">
+                            <thead>
+                                <tr id="craterTableHeaders"></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <p>For details on the abbreviations used in this table, please visit <a href="https://impact-craters.com/" target="_blank">impact-craters.com</a>.</p>
+                <p>Data source: <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021 "The terrestrial impact crater record: A statistical analysis of morphologies, structures, ages, lithologies, and more"</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</p>
+            </div>
+        </div>
+        <div id="infoModal">
+            <div id="infoModal-content">
+                <span id="closeInfoModal">&times;</span>
+                <h2>🌟 Application Features</h2>
+                <h3>Overview</h3>
+                <p>Welcome to the <strong>Global Meteorite Specimens & Impact Craters Visualization</strong>. This interactive tool allows you to explore meteorite landings recorded by NASA and discover impact craters around the world - in both 2D and 3D!</p>
+                <h3>Features:</h3>
+                <ul>
+                    <li><strong>🔄 Navigation:</strong> Use mouse or touch controls to rotate, zoom, and pan around the globe.</li>
+                    <li><strong>🔍 Search:</strong> Fly to a specific location using the search bar in the Options menu.</li>
+                    <li><strong>⚙️ Filters:</strong> Adjust filters like year, mass, diameter, age, class, and target rock type in the Options menu to refine the displayed data. Click each slider value to manually set your own limits.</li>
+                    <li><strong>👁️ Show/Hide Data:</strong> Toggle meteorites and impact craters visibility using the checkboxes in the Options menu.</li>
+                    <li><strong>🎨 Color Schemes:</strong> Customize color schemes for meteorites and impact craters in the Key menu. Choose from various palettes, including colorblind-friendly options.</li>
+                    <li><strong>📜 Legends:</strong> View legends for meteorite and crater color schemes in the Key menu to understand data representation.</li>
+                    <li><strong>🔗 Clustering:</strong> Enable or disable clustering of meteorite markers to manage display density at different zoom levels. This feature improves performance on mobile devices, so is on by default. </li>
+                    <li><strong>🏆 Top Bars:</strong> Explore top meteorites (by mass) and impact craters (by diameter) at the bottom of the screen. Click to fly to their locations.</li>
+                    <li><strong>📂 View All:</strong> Access full lists of meteorites and craters by clicking "View All".</li>
+                    <li><strong>📋 Details:</strong> Tap/hover on any meteorite or crater to view detailed information in a tooltip. Double click it to see it's table entry.</li>
+                    <li><strong>🔄 Reset Filters:</strong> Quickly reset all filters to default settings using the "Reset Filters" button.</li>
+                    <li><strong>🎨 Reset Color Schemes:</strong> Reset the color schemes for meteorites and impact craters to default settings using the "Reset Color Schemes" button in the Key menu.</li>
+                </ul>
+                <h3>Data Sources:</h3>
+                <ul>
+                    <li>🌠 <a href="https://data.nasa.gov/Space-Science/Meteorite-Landings/gh4g-9sfh" target="_blank">NASA Meteorite Landings Dataset</a></li>
+                    <li>💥 Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
+                </ul>
+                <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
+            </div>
+        </div>
+        <div id="loadingIndicator" style="
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            text-align: center;
+        ">
+            <div class="spinner"></div>
+            <h3><strong>Loading data, please wait...</strong></h3>
+        </div>
+    </div>
     <script>
         Cesium.Ion.defaultAccessToken = '{{ cesium_token }}';
         const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -97,7 +269,7 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
-        const allMeteorites = {{ all_meteorites | tojson | safe }};
+        let allMeteorites = [];
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
         let filteredCraters = [];
@@ -121,7 +293,6 @@ HTML_TEMPLATE = """
 
         let meteoriteEntities = [];
         let craterEntitiesList = [];
-        let plottedMeteorites = [];
 
         const colorSchemes = {
             'Default': {
@@ -364,6 +535,24 @@ HTML_TEMPLATE = """
                 }
             }
             return Cesium.Color.GRAY.withAlpha(0.8);
+        }
+
+        function fetchAllMeteorites() {
+            showLoadingIndicator();
+            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    allMeteorites = data;
+                    populateMeteoriteClassOptions();
+                    initializeMeteoriteSliders();
+                    applyFilters();
+                    hideLoadingIndicator();
+                })
+                .catch(error => {
+                    console.error('Error fetching meteorite data:', error);
+                    hideLoadingIndicator();
+                });
         }
 
         function applyFilters() {
@@ -1358,6 +1547,8 @@ HTML_TEMPLATE = """
         initializeCraterFilters();
         populateColorSchemeSelectors();
 
+        fetchAllMeteorites();
+
         const infoModal = document.getElementById('infoModal');
         const infoButton = document.getElementById('infoButton');
         const closeInfoModal = document.getElementById('closeInfoModal');
@@ -1415,18 +1606,6 @@ HTML_TEMPLATE = """
             if (openedMenu !== 'key') keyMenu.style.display = 'none';
             if (openedMenu !== 'info') infoModal.style.display = 'none';
         }
-
-        document.getElementById('chartButton').onclick = () => {
-            fetch('/chart-data')
-                .then(response => response.json())
-                .then(chartData => {
-                    Plotly.newPlot('chartContainer', chartData.data, chartData.layout);
-                    document.getElementById('chartModal').style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Error fetching chart data:', error);
-                });
-        };
 
         document.getElementById('meteoriteColorScheme').onchange = function() {
             applyFilters();
@@ -1538,24 +1717,8 @@ def index():
     return render_template_string(
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN,
-        impact_craters=impact_craters,
-        all_meteorites=allMeteorites
+        impact_craters=impact_craters
     )
-
-@app.route('/')
-def index():
-    return render_template(
-        'layout.html',
-        cesium_token=CESIUM_ION_ACCESS_TOKEN,
-        impact_craters=impact_craters,
-        all_meteorites=allMeteorites
-    )
-
-@app.route('/chart-data')
-def get_chart_data():
-    from static.graphs import create_meteorite_chart
-    chart_json = create_meteorite_chart(allMeteorites)
-    return jsonify(chart_json)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
