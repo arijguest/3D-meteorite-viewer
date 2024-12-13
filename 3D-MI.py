@@ -287,7 +287,8 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
-        const allMeteorites = {{ all_meteorites | safe }};
+         
+        const allMeteorites = {{ all_meteorites | tojson | safe }};
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
         let filteredCraters = [];
@@ -1728,7 +1729,7 @@ def index():
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN,
         impact_craters=impact_craters,
-        all_meteorites=json.dumps(allMeteorites)
+        all_meteorites=allMeteorites
     )
 
 @app.route('/chart-data')
