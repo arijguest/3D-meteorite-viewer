@@ -145,6 +145,8 @@ const colorSchemes = {
     }
 };
 
+window.colorSchemes = colorSchemes;
+
 // Loading indicator functions
 function showLoadingIndicator() {
     document.getElementById('loadingIndicator').style.display = 'block';

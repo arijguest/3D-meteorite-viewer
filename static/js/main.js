@@ -340,6 +340,12 @@ function getCraterSize(diameter) {
     return 10;
 }
 
+function initializeCraterFilters() {
+    populateTargetRockOptions();
+    populateCraterTypeOptions();
+    initializeCraterSliders();
+}
+
 initializeCraterFilters();
 populateColorSchemeSelectors();
 
