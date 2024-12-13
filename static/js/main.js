@@ -49,24 +49,6 @@ function getCraterColor(diameter) {
     return Cesium.Color.GRAY.withAlpha(0.8);
 }
 
-function fetchAllMeteorites() {
-    showLoadingIndicator();
-    const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            allMeteorites = data;
-            populateMeteoriteClassOptions();
-            initializeMeteoriteSliders();
-            applyFilters();
-            hideLoadingIndicator();
-        })
-        .catch(error => {
-            console.error('Error fetching meteorite data:', error);
-            hideLoadingIndicator();
-        });
-}
-
 function getCraterDescription(properties) {
     const name = properties.Name || 'Unknown';
     const age = properties['Age [Myr]'] || 'Unknown';

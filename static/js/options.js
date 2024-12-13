@@ -1,3 +1,22 @@
+// Loading meteorite data
+function fetchAllMeteorites() {
+    showLoadingIndicator();
+    const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            allMeteorites = data;
+            populateMeteoriteClassOptions();
+            initializeMeteoriteSliders();
+            applyFilters();
+            hideLoadingIndicator();
+        })
+        .catch(error => {
+            console.error('Error fetching meteorite data:', error);
+            hideLoadingIndicator();
+        });
+}
+
 // Function to handle editable range values
 function makeRangeEditable() {
     const editableSpans = document.querySelectorAll('.editable-value');
@@ -165,7 +184,7 @@ function updateCraterSlidersDisplay() {
     document.getElementById('ageRangeValue').innerText = `${ageMin.toFixed(0)} - ${ageMax.toFixed(0)} Myr`;
 }
 
-// Populate filter options
+// Populate filter target rock dropdown
 function populateTargetRockOptions() {
     const targetRockSet = new Set();
     allCraters.forEach(crater => {
