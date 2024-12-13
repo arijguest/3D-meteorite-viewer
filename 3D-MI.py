@@ -312,6 +312,7 @@ HTML_TEMPLATE = """
 
         let meteoriteEntities = [];
         let craterEntitiesList = [];
+        let plottedMeteorites = [];
 
         const colorSchemes = {
             'Default': {
