@@ -372,6 +372,8 @@ function updateMeteoriteData() {
     meteoriteDataSource.clustering.eventHandler = createClusterEventHandler(meteoriteDataSource.clustering);
 }
 
+window.updateMeteoriteData = updateMeteoriteData;
+
 // Function to update total counts in options menu
 function updateTotalCounts() {
     document.getElementById('totalMeteorites').innerText = `Total Meteorites: ${filteredMeteorites.length}`;

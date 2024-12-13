@@ -192,6 +192,8 @@ function fetchAllMeteorites() {
         })
         .then(data => {
             window.allMeteorites = data;
+            window.filteredMeteorites = data;
+            window.plottedMeteorites = data;
             initializeOptions();
             applyFilters();              
             hideLoadingIndicator();
