@@ -3,7 +3,7 @@ import json
 import re
 from flask import Flask, render_template_string
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/js')
 
 CESIUM_ION_ACCESS_TOKEN = os.environ.get('CESIUM_ION_ACCESS_TOKEN')
 if not CESIUM_ION_ACCESS_TOKEN:
@@ -64,6 +64,7 @@ HTML_TEMPLATE = """
     <title>🌠 Global Meteorite Specimens & Impact Craters 💥</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div id="wrapper">
