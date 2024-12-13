@@ -76,4 +76,5 @@ def create_meteorite_chart(data):
         height=600
     )
     
-    return fig.to_json()
+    chart_json = json.loads(fig.to_json())
+    return chart_json

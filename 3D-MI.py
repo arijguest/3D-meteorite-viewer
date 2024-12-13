@@ -9,6 +9,15 @@ CESIUM_ION_ACCESS_TOKEN = os.environ.get('CESIUM_ION_ACCESS_TOKEN')
 if not CESIUM_ION_ACCESS_TOKEN:
     raise ValueError("CESIUM_ION_ACCESS_TOKEN environment variable is not set.")
 
+# Fetch all meteorite data from NASA's Meteorite Landings API at server startup
+METEORITE_DATA_URL = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000'
+response = requests.get(METEORITE_DATA_URL)
+if response.status_code == 200:
+    allMeteorites = response.json()
+else:
+    allMeteorites = []
+    print(f"Failed to fetch meteorite data: {response.status_code}")
+
 def parse_age_string(age_str):
     if not age_str:
         return None, None
@@ -63,6 +72,7 @@ HTML_TEMPLATE = """
     <meta charset="UTF-8">
     <title>🌠 Global Meteorite Specimens & Impact Craters 💥</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
@@ -276,6 +286,7 @@ HTML_TEMPLATE = """
             navigationInstructionsInitiallyVisible: false
         });
 
+        const allMeteorites = {{ all_meteorites | safe }};
         let allMeteorites = [];
         let filteredMeteorites = [];
         const impactCraters = {{ impact_craters | tojson }};
@@ -542,24 +553,6 @@ HTML_TEMPLATE = """
                 }
             }
             return Cesium.Color.GRAY.withAlpha(0.8);
-        }
-
-        function fetchAllMeteorites() {
-            showLoadingIndicator();
-            const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    allMeteorites = data;
-                    populateMeteoriteClassOptions();
-                    initializeMeteoriteSliders();
-                    applyFilters();
-                    hideLoadingIndicator();
-                })
-                .catch(error => {
-                    console.error('Error fetching meteorite data:', error);
-                    hideLoadingIndicator();
-                });
         }
 
         function applyFilters() {
@@ -1554,8 +1547,6 @@ HTML_TEMPLATE = """
         initializeCraterFilters();
         populateColorSchemeSelectors();
 
-        fetchAllMeteorites();
-
         const infoModal = document.getElementById('infoModal');
         const infoButton = document.getElementById('infoButton');
         const closeInfoModal = document.getElementById('closeInfoModal');
@@ -1620,6 +1611,9 @@ HTML_TEMPLATE = """
                 .then(chartData => {
                     Plotly.newPlot('chartContainer', chartData.data, chartData.layout);
                     document.getElementById('chartModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching chart data:', error);
                 });
         };
 
@@ -1733,7 +1727,8 @@ def index():
     return render_template_string(
         HTML_TEMPLATE,
         cesium_token=CESIUM_ION_ACCESS_TOKEN,
-        impact_craters=impact_craters
+        impact_craters=impact_craters,
+        all_meteorites=json.dumps(allMeteorites)
     )
 
 @app.route('/chart-data')
