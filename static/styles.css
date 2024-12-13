@@ -11,11 +11,6 @@ html, body, #wrapper, #cesiumContainer {
 }
 
 /* Fullscreen Handling */
-:fullscreen {
-    width: 100vw;
-    height: 100vh;
-}
-
 #wrapper:fullscreen {
     width: 100vw;
     height: 100vh;
@@ -23,21 +18,11 @@ html, body, #wrapper, #cesiumContainer {
     padding: 0;
 }
 
-:-webkit-full-screen {
-    width: 100vw;
-    height: 100vh;
-}
-
 #wrapper:-webkit-full-screen {
     width: 100vw;
     height: 100vh;
     margin: 0;
     padding: 0;
-}
-
-:-moz-full-screen {
-    width: 100vw;
-    height: 100vh;
 }
 
 #wrapper:-moz-full-screen {
