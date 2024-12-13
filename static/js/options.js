@@ -1,4 +1,4 @@
-// Loading meteorite data
+// Function to fetch all meteorites
 function fetchAllMeteorites() {
     showLoadingIndicator();
     const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
@@ -6,14 +6,16 @@ function fetchAllMeteorites() {
         .then(response => response.json())
         .then(data => {
             allMeteorites = data;
-            populateMeteoriteClassOptions();
-            initializeMeteoriteSliders();
-            applyFilters();
             hideLoadingIndicator();
+
+            // Initialize options and apply filters after data is loaded
+            initializeOptions();
+            applyFilters();
         })
         .catch(error => {
             console.error('Error fetching meteorite data:', error);
             hideLoadingIndicator();
+            alert('Failed to load meteorite data. Please try again later.');
         });
 }
 
