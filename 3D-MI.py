@@ -64,302 +64,6 @@ HTML_TEMPLATE = """
     <title>🌠 Global Meteorite Specimens & Impact Craters 💥</title>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-    <style>
-        html, body, #wrapper, #cesiumContainer {
-            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        #header {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            z-index: 1;
-            color: white;
-            text-align: center;
-            border-radius: 5px;
-        }
-        #header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        #header div {
-            margin-top: 10px;
-        }
-        #controls, #keyMenu {
-            position: absolute;
-            top: 100px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 10px;
-            z-index: 1000;
-            color: white;
-            border-radius: 5px;
-            max-height: calc(100% - 120px);
-            overflow-y: auto;
-            display: none;
-            width: 300px;
-        }
-        #controls header, #keyMenu header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        #controls h2, #keyMenu h2 {
-            margin: 0;
-            padding-right: 30px;
-        }
-        #controls .close-button, #keyMenu .close-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        #controls, #keyMenu {
-            padding-bottom: 20px;
-            bottom: 20px;
-        }
-        #meteoriteBar, #craterBar {
-            position: absolute;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 1);
-            display: flex;
-            overflow-x: auto;
-            padding: 5px 0;
-            z-index: 1;
-        }
-        #craterBar {
-            bottom: 40px;
-        }
-        #meteoriteBar {
-            bottom: 0;
-        }
-        .bar-item {
-            color: white;
-            flex: 0 0 auto;
-            padding: 5px 10px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .bar-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        #tooltip {
-            position: absolute;
-            pointer-events: none;
-            z-index: 999;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            max-width: 300px;
-        }
-        #tooltip a {
-            color: #FF6666; /* Light red color */
-            text-decoration: underline;
-        }
-        #modal, #infoModal, #craterModal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.7);
-        }
-        #modal-content, #infoModal-content, #craterModal-content {
-            background-color: #2b2b2b;
-            margin: 5% auto;
-            padding: 20px;
-            width: 80%;
-            color: white;
-            border-radius: 5px;
-            position: relative;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        #closeModal, #closeInfoModal, #closeCraterModal, #controls .close-button, #keyMenu .close-button {
-            color: #aaa;
-            position: absolute;
-            top: 10px;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        #closeModal:hover, #closeModal:focus, #closeInfoModal:hover, #closeInfoModal:focus, #closeCraterModal:hover, #closeCraterModal:focus, #controls .close-button:hover, #controls .close-button:focus, #keyMenu .close-button:hover, #keyMenu .close-button:focus {
-            color: white;
-            text-decoration: none;
-        }
-        #fullMeteoriteTable, #fullCraterTable {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: auto;
-            overflow-y: auto;
-        }
-        #fullMeteoriteTable th, #fullMeteoriteTable td,
-        #fullCraterTable th, #fullCraterTable td {
-            border: 1px solid #444;
-            padding: 8px;
-            text-align: left;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow-y: auto;
-        }
-        #fullMeteoriteTable th, #fullCraterTable th {
-            background-color: #555;
-            position: sticky;
-            top: 0;
-            z-index: 500;
-            cursor: pointer;
-        }
-        input[type="range"] {
-            width: 100%;
-        }
-        select {
-            width: 100%;
-        }
-        #searchContainer {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-        #searchInput {
-            flex: 1;
-        }
-        button, input[type="button"] {
-            cursor: pointer;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-        }
-        #modal-content, #craterModal-content {
-            max-height: 80vh;
-            overflow: hidden;
-        }
-        #craterTableContainer .table-wrapper {
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        /* Wrap crater table in a div to allow horizontal scrolling */
-        #craterTableContainer {
-            overflow-x: auto;
-        }
-        /* Adjust table to allow infinite width */
-        #fullCraterTable {
-            min-width: 100%;
-        }
-        /* Handle data too wide for the column gracefully */
-        #fullCraterTable td {
-            max-width: 200px;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-        #meteoriteTableContainer .table-wrapper2
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        .legend-section {
-            margin-bottom: 20px;
-        }
-        .legend-list {
-            list-style: none;
-            padding: 0;
-        }
-        .legend-list li {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .legend-icon {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-        .modal-search {
-            margin-bottom: 10px;
-        }
-        option[disabled] {
-            color: #888;
-        }
-        .highlighted-row {
-            background-color: #ffff99;
-            transition: background-color 0.5s ease;
-        }
-        #infoModal-content h2 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        #infoModal-content h3 {
-            font-size: 22px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-        #infoModal-content ul {
-            list-style: disc inside;
-        }
-        #infoModal-content li {
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        #infoModal-content li::before {
-            content: "🔹 ";
-            margin-right: 5px;
-        }
-        #infoModal-content a {
-            color: #FF6666; /* Light red color */
-            text-decoration: underline;
-            font-weight: bold;
-        }
-        #wrapper:fullscreen {
-            width: 100%;
-            height: 100%;
-        }
-        #header {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            z-index: 1001; /* Increased z-index to stay above Cesium */
-            color: white;
-            text-align: center;
-            border-radius: 5px;
-        }
-        #cesiumContainer {
-            width: 100%;
-            height: 100%;
-        }
-        .spinner {
-            margin: 0 auto 10px auto;
-            width: 40px;
-            height: 40px;
-            border: 6px solid #ccc;
-            border-top-color: #ff1e40;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        #loadingIndicator h3 {
-            color: white;
-        }
-    </style>
 </head>
 <body>
     <div id="wrapper">
@@ -370,6 +74,7 @@ HTML_TEMPLATE = """
                 <button id="optionsButton">⚙️ Options</button>
                 <button id="keyButton">🔑 Key</button>
                 <button id="fullscreenButton">⛶ Fullscreen</button>
+                <button id="chartButton">📊 Charts</button>
                 <button id="infoButton">ℹ️ Info</button>
             </div>
         </div>
@@ -531,6 +236,13 @@ HTML_TEMPLATE = """
                     <li>💥 Impact Crater data from <a href="https://doi.org/10.1111/maps.13657" target="_blank">Kenkmann 2021</a> via <a href="https://impact-craters.com/" target="_blank">Dr. Matthias Ebert</a>.</li>
                 </ul>
                 <p>This application utilizes <strong>CesiumJS</strong> for 3D globe visualization.</p>
+            </div>
+        </div>
+        <div id="chartModal">
+            <div id="chartModal-content">
+                <span id="closeChartModal">&times;</span>
+                <h2>Charts</h2>
+                <div id="chartContainer"></div>
             </div>
         </div>
         <div id="loadingIndicator" style="
@@ -1901,6 +1613,15 @@ HTML_TEMPLATE = """
             if (openedMenu !== 'info') infoModal.style.display = 'none';
         }
 
+        document.getElementById('chartButton').onclick = () => {
+            fetch('/chart-data')
+                .then(response => response.json())
+                .then(chartData => {
+                    Plotly.newPlot('chartContainer', chartData.data, chartData.layout);
+                    document.getElementById('chartModal').style.display = 'block';
+                });
+        };
+
         document.getElementById('meteoriteColorScheme').onchange = function() {
             applyFilters();
             updateMeteoriteLegend();
@@ -2013,6 +1734,11 @@ def index():
         cesium_token=CESIUM_ION_ACCESS_TOKEN,
         impact_craters=impact_craters
     )
+
+@app.route('/chart-data')
+def get_chart_data():
+    from graphs import create_meteorite_chart
+    return create_meteorite_chart(allMeteorites)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
