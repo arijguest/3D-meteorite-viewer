@@ -134,7 +134,7 @@ html, body, #wrapper, #cesiumContainer {
 .bar-item {
     color: white;
     flex: 0 0 auto;
-    padding: 0.1vh 0.1vh;
+    padding: 0.4vh 0.1vh;
     cursor: pointer;
     white-space: nowrap;
     transition: background-color 0.2s ease;
