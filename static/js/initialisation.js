@@ -15,29 +15,6 @@ const viewer = new Cesium.Viewer('cesiumContainer', {
     navigationInstructionsInitiallyVisible: false
 });
 
-// Initialize data sources
-let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
-viewer.dataSources.add(meteoriteDataSource);
-
-let craterEntities = new Cesium.CustomDataSource('craters');
-viewer.dataSources.add(craterEntities);
-
-// Initialize arrays
-let allMeteorites = [];
-let filteredMeteorites = [];
-let meteoriteEntities = [];
-let craterEntitiesList = [];
-let filteredCraters = [];
-const allCraters = impactCraters.features;
-
-// Initialize crater property names
-let craterPropertyNames = [];
-if (allCraters.length > 0) {
-    craterPropertyNames = Object.keys(allCraters[0].properties);
-    const desiredOrder = ['Name', 'Continent', 'Country', 'Age [Myr]', 'Crater diamter [km]', 'Crater type'];
-    craterPropertyNames = desiredOrder.concat(craterPropertyNames.filter(item => !desiredOrder.includes(item)));
-}
-
 // Initialize color scheme options
 const colorSchemes = {
     'Default': {
@@ -167,6 +144,32 @@ const colorSchemes = {
         ]
     }
 };
+
+// Make colorSchemes globally available
+window.colorSchemes = colorSchemes;
+
+// Initialize data sources
+let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
+viewer.dataSources.add(meteoriteDataSource);
+
+let craterEntities = new Cesium.CustomDataSource('craters');
+viewer.dataSources.add(craterEntities);
+
+// Initialize arrays
+let allMeteorites = [];
+let filteredMeteorites = [];
+let meteoriteEntities = [];
+let craterEntitiesList = [];
+let filteredCraters = [];
+const allCraters = impactCraters.features;
+
+// Initialize crater property names
+let craterPropertyNames = [];
+if (allCraters.length > 0) {
+    craterPropertyNames = Object.keys(allCraters[0].properties);
+    const desiredOrder = ['Name', 'Continent', 'Country', 'Age [Myr]', 'Crater diamter [km]', 'Crater type'];
+    craterPropertyNames = desiredOrder.concat(craterPropertyNames.filter(item => !desiredOrder.includes(item)));
+}
 
 // Loading indicator functions
 function showLoadingIndicator() {
