@@ -3,7 +3,7 @@ import json
 import re
 from flask import Flask, render_template_string
 
-app = Flask(__name__, static_url_path='/js')
+app = Flask(__name__, static_url_path='/js/')
 
 CESIUM_ION_ACCESS_TOKEN = os.environ.get('CESIUM_ION_ACCESS_TOKEN')
 if not CESIUM_ION_ACCESS_TOKEN:
