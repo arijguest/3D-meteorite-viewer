@@ -190,7 +190,8 @@
         const impactCraters = {{ impact_craters | tojson }};
     </script>
 
-    <!-- Include main.js -->
+    <!-- External scripts -->
+    <script src="{{ url_for('static', filename='js/initialisation.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
