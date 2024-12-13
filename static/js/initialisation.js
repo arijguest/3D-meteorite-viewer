@@ -145,6 +145,19 @@ const colorSchemes = {
     }
 };
 
+// Loading indicator functions
+function showLoadingIndicator() {
+    document.getElementById('loadingIndicator').style.display = 'block';
+}
+
+window.showLoadingIndicator = showLoadingIndicator;
+
+function hideLoadingIndicator() {
+    document.getElementById('loadingIndicator').style.display = 'none';
+}
+
+window.hideLoadingIndicator = hideLoadingIndicator;
+
 // Make colorSchemes globally available
 window.colorSchemes = colorSchemes;
 
@@ -195,17 +208,6 @@ if (allCraters.length > 0) {
     const desiredOrder = ['Name', 'Continent', 'Country', 'Age [Myr]', 'Crater diamter [km]', 'Crater type'];
     craterPropertyNames = desiredOrder.concat(craterPropertyNames.filter(item => !desiredOrder.includes(item)));
 }
-
-// Loading indicator functions
-function showLoadingIndicator() {
-    document.getElementById('loadingIndicator').style.display = 'block';
-}
-
-function hideLoadingIndicator() {
-    document.getElementById('loadingIndicator').style.display = 'none';
-}
-
-window.hideLoadingIndicator = hideLoadingIndicator;
 
 // Filter input control functions
 function disableFilterInputs() {
