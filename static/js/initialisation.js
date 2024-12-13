@@ -217,12 +217,6 @@ function parse_age_values(age_str) {
     return [null, null];
 }
 
-// Start loading data
-document.addEventListener('DOMContentLoaded', () => {
-    fetchAllMeteorites();
-    initializeOptions();
-});
-
 // Export necessary variables and functions
 window.viewer = viewer;
 window.meteoriteDataSource = meteoriteDataSource;
