@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import requests
 from flask import Flask, render_template_string
 
 app = Flask(__name__, static_url_path='/static')
@@ -1733,7 +1734,7 @@ def index():
 
 @app.route('/chart-data')
 def get_chart_data():
-    from graphs import create_meteorite_chart
+    from static.graphs import create_meteorite_chart
     return create_meteorite_chart(allMeteorites)
 
 if __name__ == '__main__':
