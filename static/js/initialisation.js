@@ -194,9 +194,11 @@ function fetchAllMeteorites() {
             window.allMeteorites = data;
             window.filteredMeteorites = data;
             window.plottedMeteorites = data;
-            initializeOptions();
-            applyFilters();              
             hideLoadingIndicator();
+
+            // Dispatch custom event after data is loaded
+            const event = new Event('meteoriteDataLoaded');
+            window.dispatchEvent(event);
         })
         .catch(error => {
             console.error('Error fetching meteorite data:', error);

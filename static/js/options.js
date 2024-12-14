@@ -721,6 +721,12 @@ window.initializeOptions = initializeOptions;
     document.getElementById('refreshButton').addEventListener('click', resetFilters);
 }
 
+// Listen for the data loading before initializing applyFilters() and initializeOptions()
+window.addEventListener('meteoriteDataLoaded', () => {
+    initializeOptions();
+    applyFilters();
+});
+
 // Export necessary functions
 window.makeRangeEditable = makeRangeEditable;
 window.initializeOptions = initializeOptions;
