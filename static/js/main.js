@@ -80,6 +80,30 @@ function makeRangeEditable() {
     });
 }
 
+// Initialize DOM elements for menus
+document.addEventListener('DOMContentLoaded', () => {
+    const infoModal = document.getElementById('infoModal');
+    const infoButton = document.getElementById('infoButton');
+    const closeInfoModal = document.getElementById('closeInfoModal');
+
+    // Info button event handlers
+    infoButton.addEventListener('click', () => {
+        closeOtherMenus('info');
+        infoModal.style.display = 'block';
+    });
+
+    closeInfoModal.addEventListener('click', () => {
+        infoModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+        if (event.target === infoModal) {
+            infoModal.style.display = 'none';
+        }
+    });
+});
+
 document.addEventListener('DOMContentLoaded', makeRangeEditable);
 
 function populateColorSchemeSelectors() {
