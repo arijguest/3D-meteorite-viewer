@@ -1093,8 +1093,12 @@ const infoButton = document.getElementById('infoButton');
 const closeInfoModal = document.getElementById('closeInfoModal');
 
 infoButton.onclick = () => {
-    closeOtherMenus('info');
-    infoModal.style.display = 'block';
+    if (infoModal.style.display === 'none' || infoModal.style.display === '') {
+        closeOtherMenus('info');
+        infoModal.style.display = 'block';
+    } else {
+        infoModal.style.display = 'none';
+    }
 };
 
 closeInfoModal.onclick = () => {
