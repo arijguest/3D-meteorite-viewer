@@ -80,30 +80,6 @@ function makeRangeEditable() {
     });
 }
 
-// Initialize DOM elements for menus
-document.addEventListener('DOMContentLoaded', () => {
-    const infoModal = document.getElementById('infoModal');
-    const infoButton = document.getElementById('infoButton');
-    const closeInfoModal = document.getElementById('closeInfoModal');
-
-    // Info button event handlers
-    infoButton.addEventListener('click', () => {
-        closeOtherMenus('info');
-        infoModal.style.display = 'block';
-    });
-
-    closeInfoModal.addEventListener('click', () => {
-        infoModal.style.display = 'none';
-    });
-
-    // Close modal when clicking outside
-    window.addEventListener('click', (event) => {
-        if (event.target === infoModal) {
-            infoModal.style.display = 'none';
-        }
-    });
-});
-
 document.addEventListener('DOMContentLoaded', makeRangeEditable);
 
 function populateColorSchemeSelectors() {
@@ -1212,13 +1188,6 @@ function updateCraterLegend() {
         li.innerHTML += label;
         list.appendChild(li);
     });
-}
-
-// Function to close other menus when one is opened
-function closeOtherMenus(openedMenu) {
-    if (openedMenu !== 'options') controls.style.display = 'none';
-    if (openedMenu !== 'key') keyMenu.style.display = 'none';
-    if (openedMenu !== 'info') infoModal.style.display = 'none';
 }
 
 // Get the wrapper element
