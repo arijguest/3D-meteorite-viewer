@@ -726,11 +726,17 @@ window.initializeOptions = initializeOptions;
     document.getElementById('refreshButton').addEventListener('click', resetFilters);
 }
 
+// Set a global flag indicating that options.js has loaded
+window.optionsJsLoaded = true;
+
 // Listen for the data loading before initializing applyFilters() and initializeOptions()
 window.addEventListener('meteoriteDataLoaded', () => {
     initializeOptions();
     applyFilters();
 });
+
+window.initializeOptions = initializeOptions;
+window.applyFilters = applyFilters;
 
 // Export necessary functions
 window.makeRangeEditable = makeRangeEditable;
