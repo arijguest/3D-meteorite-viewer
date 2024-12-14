@@ -1093,13 +1093,24 @@ const infoButton = document.getElementById('infoButton');
 const closeInfoModal = document.getElementById('closeInfoModal');
 
 infoButton.onclick = () => {
+    console.log('Info button clicked');
     if (infoModal.style.display === 'none' || infoModal.style.display === '') {
+        console.log('Opening Info Modal');
         closeOtherMenus('info');
         infoModal.style.display = 'block';
     } else {
+        console.log('Closing Info Modal');
         infoModal.style.display = 'none';
     }
 };
+
+document.addEventListener('click', function(event) {
+    console.log('Document clicked', event.target);
+    if (infoModal.style.display === 'block' && !infoModal.contains(event.target) && event.target !== infoButton) {
+        console.log('Closing Info Modal from document click');
+        infoModal.style.display = 'none';
+    }
+});
 
 closeInfoModal.onclick = () => {
     infoModal.style.display = 'none';
