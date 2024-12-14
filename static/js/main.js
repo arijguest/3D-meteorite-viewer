@@ -1104,14 +1104,6 @@ infoButton.onclick = () => {
     }
 };
 
-document.addEventListener('click', function(event) {
-    console.log('Document clicked', event.target);
-    if (infoModal.style.display === 'block' && !infoModal.contains(event.target) && event.target !== infoButton) {
-        console.log('Closing Info Modal from document click');
-        infoModal.style.display = 'none';
-    }
-});
-
 closeInfoModal.onclick = () => {
     infoModal.style.display = 'none';
 };
