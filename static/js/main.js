@@ -351,8 +351,6 @@ function initializeCraterFilters() {
 initializeCraterFilters();
 populateColorSchemeSelectors();
 
-fetchAllMeteorites();
-
 const infoModal = document.getElementById('infoModal');
 const infoButton = document.getElementById('infoButton');
 const closeInfoModal = document.getElementById('closeInfoModal');
