@@ -1101,25 +1101,32 @@ populateColorSchemeSelectors();
 
 fetchAllMeteorites();
 
-const infoModal = document.getElementById('infoModal');
-const infoButton = document.getElementById('infoButton');
-const closeInfoModal = document.getElementById('closeInfoModal');
+document.addEventListener('DOMContentLoaded', function() {
+    const infoButton = document.getElementById('infoButton');
+    const infoModal = document.getElementById('infoModal');
+    const closeInfoModal = document.getElementById('closeInfoModal');
 
-infoButton.onclick = () => {
-    console.log('Info button clicked');
-    if (infoModal.style.display === 'none' || infoModal.style.display === '') {
-        console.log('Opening Info Modal');
-        closeOtherMenus('info');
+    infoButton.addEventListener('click', function(event) {
+        event.stopPropagation();
         infoModal.style.display = 'block';
-    } else {
-        console.log('Closing Info Modal');
-        infoModal.style.display = 'none';
-    }
-};
+    });
 
-closeInfoModal.onclick = () => {
-    infoModal.style.display = 'none';
-};
+    closeInfoModal.addEventListener('click', function() {
+        infoModal.style.display = 'none';
+    });
+
+    // Prevent clicks inside the modal from closing it
+    infoModal.addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        if (event.target !== infoButton && !infoModal.contains(event.target)) {
+            infoModal.style.display = 'none';
+        }
+    });
+});
 
 window.flyToMeteorite = flyToMeteorite;
 window.flyToCrater = flyToCrater;
