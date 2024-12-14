@@ -15,6 +15,29 @@ const viewer = new Cesium.Viewer('cesiumContainer', {
     navigationInstructionsInitiallyVisible: false
 });
 
+// Initialize data sources
+let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
+viewer.dataSources.add(meteoriteDataSource);
+
+let craterEntities = new Cesium.CustomDataSource('craters');
+viewer.dataSources.add(craterEntities);
+
+// Initialize arrays
+let allMeteorites = [];
+let filteredMeteorites = [];
+let meteoriteEntities = [];
+let craterEntitiesList = [];
+let filteredCraters = [];
+const allCraters = impactCraters.features;
+
+// Initialize crater property names
+let craterPropertyNames = [];
+if (allCraters.length > 0) {
+    craterPropertyNames = Object.keys(allCraters[0].properties);
+    const desiredOrder = ['Name', 'Continent', 'Country', 'Age [Myr]', 'Crater diamter [km]', 'Crater type'];
+    craterPropertyNames = desiredOrder.concat(craterPropertyNames.filter(item => !desiredOrder.includes(item)));
+}
+
 // Initialize color scheme options
 const colorSchemes = {
     'Default': {
@@ -145,101 +168,13 @@ const colorSchemes = {
     }
 };
 
-window.colorSchemes = colorSchemes;
-
-function getCraterColor(diameter) {
-    const selectedScheme = document.getElementById('craterColorScheme').value;
-    const scheme = colorSchemes[selectedScheme].craterColors;
-    for (let i = 0; i < scheme.length; i++) {
-        if (diameter >= scheme[i].threshold) {
-            return scheme[i].color;
-        }
-    }
-    return Cesium.Color.GRAY.withAlpha(0.8);
-}
-
 // Loading indicator functions
 function showLoadingIndicator() {
     document.getElementById('loadingIndicator').style.display = 'block';
 }
 
-window.showLoadingIndicator = showLoadingIndicator;
-
 function hideLoadingIndicator() {
     document.getElementById('loadingIndicator').style.display = 'none';
-}
-
-window.hideLoadingIndicator = hideLoadingIndicator;
-
-// Make colorSchemes globally available
-window.colorSchemes = colorSchemes;
-
-// Initialize meteorite data
-let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
-viewer.dataSources.add(meteoriteDataSource).then(() => {
-    // Configure clustering options after successful addition
-    meteoriteDataSource.clustering.enabled = true;
-    meteoriteDataSource.clustering.pixelRange = 45;
-    meteoriteDataSource.clustering.minimumClusterSize = 10;
-});
-
-// Initialize crater data
-let craterEntities = new Cesium.CustomDataSource('craters');
-viewer.dataSources.add(craterEntities);
-
-// Initialize arrays
-let allMeteorites = [];
-let filteredMeteorites = [];
-let meteoriteEntities = [];
-let craterEntitiesList = [];
-let filteredCraters = [];
-const allCraters = impactCraters.features;
-
-// Function to fetch all meteorites
-function fetchAllMeteorites() {
-    showLoadingIndicator();
-    const url = 'https://data.nasa.gov/resource/gh4g-9sfh.json?$limit=50000';
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok, status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            window.allMeteorites = data;
-            window.filteredMeteorites = data;
-            window.plottedMeteorites = data;
-            hideLoadingIndicator();
-
-            // Wait until options.js is loaded before dispatching the event
-            function waitForOptionsJs() {
-                if (window.optionsJsLoaded) {
-                    // Dispatch custom event after data is loaded and options.js is ready
-                    const event = new Event('meteoriteDataLoaded');
-                    window.dispatchEvent(event);
-                } else {
-                    // Check again in a short time
-                    setTimeout(waitForOptionsJs, 50);
-                }
-            }
-
-            waitForOptionsJs();
-        })
-        .catch(error => {
-            console.error('Error fetching meteorite data:', error);
-            hideLoadingIndicator();
-            alert('Failed to load meteorite data. Please try again later.');
-        });
-}
-
-// Initialize crater property names
-let craterPropertyNames = [];
-if (allCraters.length > 0) {
-    craterPropertyNames = Object.keys(allCraters[0].properties);
-    const desiredOrder = ['Name', 'Continent', 'Country', 'Age [Myr]', 'Crater diamter [km]', 'Crater type'];
-    craterPropertyNames = desiredOrder.concat(craterPropertyNames.filter(item => !desiredOrder.includes(item)));
 }
 
 // Filter input control functions
@@ -297,8 +232,3 @@ window.showLoadingIndicator = showLoadingIndicator;
 window.hideLoadingIndicator = hideLoadingIndicator;
 window.disableFilterInputs = disableFilterInputs;
 window.enableFilterInputs = enableFilterInputs;
-
-// Start loading app when the DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    fetchAllMeteorites();
-});
