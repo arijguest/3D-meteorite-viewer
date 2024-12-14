@@ -348,9 +348,6 @@ function initializeCraterFilters() {
     initializeCraterSliders();
 }
 
-initializeCraterFilters();
-populateColorSchemeSelectors();
-
 const infoModal = document.getElementById('infoModal');
 const infoButton = document.getElementById('infoButton');
 const closeInfoModal = document.getElementById('closeInfoModal');
@@ -512,8 +509,6 @@ window.addEventListener('meteoriteDataLoaded', () => {
     populateColorSchemeSelectors();
     updateMeteoriteLegend();
     updateCraterLegend();
-
-    // Any other functions that depend on the data
 });
 
 // Ensure these functions are exposed if they need to be accessed from other scripts
