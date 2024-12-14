@@ -506,6 +506,18 @@ function updateMeteoriteLegend() {
     });
 }
 
+// Wait for the meteorite data to be loaded before initializing UI elements
+window.addEventListener('meteoriteDataLoaded', () => {
+    initializeCraterFilters();
+    populateColorSchemeSelectors();
+    updateMeteoriteLegend();
+    updateCraterLegend();
 
-updateMeteoriteLegend();
-updateCraterLegend();
+    // Any other functions that depend on the data
+});
+
+// Ensure these functions are exposed if they need to be accessed from other scripts
+window.initializeCraterFilters = initializeCraterFilters;
+window.populateColorSchemeSelectors = populateColorSchemeSelectors;
+window.updateMeteoriteLegend = updateMeteoriteLegend;
+window.updateCraterLegend = updateCraterLegend;

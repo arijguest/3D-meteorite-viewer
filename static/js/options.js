@@ -729,14 +729,11 @@ window.initializeOptions = initializeOptions;
 // Set a global flag indicating that options.js has loaded
 window.optionsJsLoaded = true;
 
-// Listen for the data loading before initializing applyFilters() and initializeOptions()
+// Listen for the data loading before initializing options and applying filters
 window.addEventListener('meteoriteDataLoaded', () => {
     initializeOptions();
     applyFilters();
 });
-
-window.initializeOptions = initializeOptions;
-window.applyFilters = applyFilters;
 
 // Export necessary functions
 window.makeRangeEditable = makeRangeEditable;
@@ -744,3 +741,4 @@ window.initializeOptions = initializeOptions;
 window.updateSlidersDisplay = updateSlidersDisplay;
 window.updateCraterSlidersDisplay = updateCraterSlidersDisplay;
 window.resetFilters = resetFilters;
+window.applyFilters = applyFilters;
