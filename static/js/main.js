@@ -636,11 +636,24 @@ const modal = document.getElementById('modal');
 const craterModal = document.getElementById('craterModal');
 document.getElementById('closeModal').onclick = () => modal.style.display = 'none';
 document.getElementById('closeCraterModal').onclick = () => craterModal.style.display = 'none';
-window.onclick = event => {
-    if (event.target == modal) modal.style.display = 'none';
-    if (event.target == craterModal) craterModal.style.display = 'none';
-    if (event.target == infoModal) infoModal.style.display = 'none';
+
+window.onclick = function(event) {
+    // Close the Meteorite Modal if it's open and the click is outside of it
+    if (modal.style.display === 'block' && !modal.contains(event.target)) {
+        modal.style.display = 'none';
+    }
+
+    // Close the Crater Modal if it's open and the click is outside of it
+    if (craterModal.style.display === 'block' && !craterModal.contains(event.target)) {
+        craterModal.style.display = 'none';
+    }
+
+    // Close the Info Modal if it's open and the click is outside of it
+    if (infoModal.style.display === 'block' && !infoModal.contains(event.target)) {
+        infoModal.style.display = 'none';
+    }
 };
+
 
 function updateModalTable() {
         const tbody = document.querySelector('#fullMeteoriteTable tbody');
