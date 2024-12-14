@@ -197,19 +197,24 @@ function fetchAllMeteorites() {
             return response.json();
         })
         .then(data => {
-            const meteorites = data;
-            window.allMeteorites = meteorites;
-            window.filteredMeteorites = meteorites;
-            window.plottedMeteorites = meteorites;
+            window.allMeteorites = data;
+            window.filteredMeteorites = data;
+            window.plottedMeteorites = data;
             hideLoadingIndicator();
 
-            // Dispatch custom event after data is loaded
-            setTimeout(() => {
-                // Dispatch the event after data is fully set
-                const event = new Event('meteoriteDataLoaded');
-                window.dispatchEvent(event);
-            }, 100);
-            hideLoadingIndicator();
+            // Wait until options.js is loaded before dispatching the event
+            function waitForOptionsJs() {
+                if (window.optionsJsLoaded) {
+                    // Dispatch custom event after data is loaded and options.js is ready
+                    const event = new Event('meteoriteDataLoaded');
+                    window.dispatchEvent(event);
+                } else {
+                    // Check again in a short time
+                    setTimeout(waitForOptionsJs, 50);
+                }
+            }
+
+            waitForOptionsJs();
         })
         .catch(error => {
             console.error('Error fetching meteorite data:', error);
