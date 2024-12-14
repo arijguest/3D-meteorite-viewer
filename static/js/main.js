@@ -40,17 +40,6 @@ function getMeteoriteColor(mass) {
 
 window.getMeteoriteColor = getMeteoriteColor;
 
-function getCraterColor(diameter) {
-    const selectedScheme = document.getElementById('craterColorScheme').value;
-    const scheme = colorSchemes[selectedScheme].craterColors;
-    for (let i = 0; i < scheme.length; i++) {
-        if (diameter >= scheme[i].threshold) {
-            return scheme[i].color;
-        }
-    }
-    return Cesium.Color.GRAY.withAlpha(0.8);
-}
-
 function getCraterDescription(properties) {
     const name = properties.Name || 'Unknown';
     const age = properties['Age [Myr]'] || 'Unknown';

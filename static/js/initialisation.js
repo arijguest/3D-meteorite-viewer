@@ -147,6 +147,17 @@ const colorSchemes = {
 
 window.colorSchemes = colorSchemes;
 
+function getCraterColor(diameter) {
+    const selectedScheme = document.getElementById('craterColorScheme').value;
+    const scheme = colorSchemes[selectedScheme].craterColors;
+    for (let i = 0; i < scheme.length; i++) {
+        if (diameter >= scheme[i].threshold) {
+            return scheme[i].color;
+        }
+    }
+    return Cesium.Color.GRAY.withAlpha(0.8);
+}
+
 // Loading indicator functions
 function showLoadingIndicator() {
     document.getElementById('loadingIndicator').style.display = 'block';
