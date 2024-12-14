@@ -325,6 +325,11 @@ function updateCraterData() {
 
 // Function to update meteorite data based on filters
 function updateMeteoriteData() {
+    if (!meteoriteDataSource || !meteoriteDataSource.entities) {
+        console.warn('Meteorite data source not ready');
+        return;
+    }
+    
     meteoriteDataSource.entities.removeAll();
     meteoriteEntities = [];
 

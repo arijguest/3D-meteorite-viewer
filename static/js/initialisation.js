@@ -163,10 +163,16 @@ window.hideLoadingIndicator = hideLoadingIndicator;
 // Make colorSchemes globally available
 window.colorSchemes = colorSchemes;
 
-// Initialize data sources
+// Initialize meteorite data
 let meteoriteDataSource = new Cesium.CustomDataSource('meteorites');
-viewer.dataSources.add(meteoriteDataSource);
+viewer.dataSources.add(meteoriteDataSource).then(() => {
+    // Configure clustering options after successful addition
+    meteoriteDataSource.clustering.enabled = true;
+    meteoriteDataSource.clustering.pixelRange = 45;
+    meteoriteDataSource.clustering.minimumClusterSize = 10;
+});
 
+// Initialize crater data
 let craterEntities = new Cesium.CustomDataSource('craters');
 viewer.dataSources.add(craterEntities);
 
